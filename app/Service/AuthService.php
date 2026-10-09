@@ -45,7 +45,7 @@ class AuthService implements IAuthService
             return ResponseModel::badRequest("Duplicate email.", null);
         }
 
-        $role_id = Role::where("name", "Super Admin")->first()->id;
+        $role_id = Role::where("name", "Customer")->first()->id;
 
         $user = [
             "name" => $arr["name"],
