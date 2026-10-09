@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\ServiceContractor\IAuthService;
+use App\Models\Role;
 use App\Models\User;
 use App\Response\ResponseModel;
 use Hash;
@@ -36,27 +37,33 @@ class AuthService implements IAuthService
         ]);
     }
 
-    public function Register(RegisterRequest $request) {
+    public function Register(RegisterRequest $request)
+    {
         $arr = $request->validated();
 
-                $user = User::where("email", $arr["email"])->first();
+        if (User::where("email", $arr["email"])->exists()) {
+            return ResponseModel::badRequest("Duplicate email.", null);
+        }
 
-                if ($user == null) {
-                    return ResponseModel::NotFound("User Not Found", null);
-                }
+        $role_id = Role::where("name", "Super Admin")->first()->id;
 
-                if (!Hash::check($arr["password"], $user->password)) {
-                    return ResponseModel::badRequest("Email or password wrong.", null);
-                }
+        $user = [
+            "name" => $arr["name"],
+            "email" => $arr["email"],
+            "password" => Hash::make($arr["password"]),
+            "role_id" => $role_id,
+        ];
 
-                $expired_at = Carbon::now()->addMinutes(30);
+        $user = User::create($user);
 
-                $token = $user->createToken("accessToken")->plainTextToken;
-
-                return ResponseModel::ok("Login Successfully!", [
-                    "accessToken" => $token,
-                    "expired_at"=>$expired_at
-                ]);
+        $isSuccess = $user->save();
+        if (!$isSuccess) {
+            return ResponseModel::internalServer(
+                "User created not Successfully!",
+                null,
+            );
+        }
+        return ResponseModel::ok("User created Successfully!", null);
     }
 }
 ?>

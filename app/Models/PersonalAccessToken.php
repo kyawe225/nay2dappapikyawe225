@@ -8,9 +8,10 @@ use Laravel\Sanctum\PersonalAccessToken as ScamtumPersonalAccessToken;
 
 class PersonalAccessToken extends ScamtumPersonalAccessToken
 {
-    use HasUuids;
+    use HasUuids,HasUuids;
 
     public $incrementing = false;
 
     protected $keyType = 'string';
+
 }
