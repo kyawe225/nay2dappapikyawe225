@@ -70,7 +70,7 @@ class AuthService implements IAuthService
     public function RefreshToken(Request $request)
     {
         if (!$request->bearerToken()) {
-            return ResponseModel::badRequest("not Authorized", null);
+            return ResponseModel::badRequest("Not Authorized", null);
         }
 
         DB::beginTransaction();
@@ -80,7 +80,7 @@ class AuthService implements IAuthService
             $user = auth()->user();
 
             if (!$lockedToken instanceof PersonalAccessToken) {
-                return ResponseModel::badRequest("not Authorized", null);
+                return ResponseModel::badRequest("Not Authorized", null);
             }
 
             // Example token name:
@@ -130,9 +130,9 @@ class AuthService implements IAuthService
         $accessTokenExpiredAt = Carbon::now("utc")->addSeconds(
             (int) env("SESSION_LIFETIME", 30),
         );
-        $refreshTokenExpiredAt = Carbon::now("utc")->addDays(30);
+        $refreshTokenExpiredAt = Carbon::now("utc")->addDays(env("REFRESH_TOKEN_LIFETIME",30));
         $sessionId = $sessionId ?? Str::uuid7();
-        // Access token: 15 minutes
+        // Access token: default 30 seconds
         $accessToken = $user->createToken(
             "access-token:{$sessionId}",
             ["access"],
