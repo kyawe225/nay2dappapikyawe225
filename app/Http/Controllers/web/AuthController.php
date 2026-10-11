@@ -22,4 +22,9 @@ class AuthController extends Controller
             $response = $this->service->Register($request);
             return response()->json($response);
         }
+
+        public function RefreshToken(Request $request){
+            $response = $this->service->RefreshToken($request);
+            return response()->json($response);
+        }
 }

@@ -5,11 +5,16 @@ namespace App\Service;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\ServiceContractor\IAuthService;
+use App\Models\PersonalAccessToken;
 use App\Models\Role;
 use App\Models\User;
 use App\Response\ResponseModel;
+use DB;
+use Exception;
 use Hash;
 use Illuminate\Support\Carbon;
+use Illuminate\Http\Request;
+use Str;
 
 class AuthService implements IAuthService
 {
@@ -27,14 +32,10 @@ class AuthService implements IAuthService
             return ResponseModel::badRequest("Email or password wrong.", null);
         }
 
-        $expired_at = Carbon::now()->addMinutes(30);
-
-        $token = $user->createToken("accessToken")->plainTextToken;
-
-        return ResponseModel::ok("Login Successfully!", [
-            "accessToken" => $token,
-            "expired_at" => $expired_at,
-        ]);
+        return ResponseModel::ok(
+            "Login Successfully!",
+            $this->generateTokens($user, null),
+        );
     }
 
     public function Register(RegisterRequest $request)
@@ -64,6 +65,94 @@ class AuthService implements IAuthService
             );
         }
         return ResponseModel::ok("User created Successfully!", null);
+    }
+
+    public function RefreshToken(Request $request)
+    {
+        if (!$request->bearerToken()) {
+            return ResponseModel::badRequest("not Authorized", null);
+        }
+
+        DB::beginTransaction();
+        try {
+            $lockedToken = auth()->user()->currentAccessToken();
+
+            $user = auth()->user();
+
+            if (!$lockedToken instanceof PersonalAccessToken) {
+                return ResponseModel::badRequest("not Authorized", null);
+            }
+
+            // Example token name:
+            // refresh-token:550e8400-e29b-41d4-a716-446655440000
+
+            $prefix = "refresh-token:";
+
+            if (!str_starts_with($lockedToken->name, $prefix)) {
+                return response()->json(
+                    [
+                        "message" => "Invalid refresh token.",
+                    ],
+                    401,
+                );
+            }
+
+            $sessionId = substr($lockedToken->name, strlen($prefix));
+
+            if (!$sessionId) {
+                return response()->json(
+                    [
+                        "message" => "Invalid token session.",
+                    ],
+                    401,
+                );
+            }
+
+            // Delete the matching access token
+            $user
+                ->tokens()
+                ->where("name", "access-token:{$sessionId}")
+                ->delete();
+
+            // Delete old refresh token
+            $lockedToken->delete();
+            $tokens = $this->generateTokens($user, $sessionId);
+            // Generate replacement pair for same device
+            DB::commit();
+            return ResponseModel::ok("new Token Generated!!!",$tokens);
+        } catch (Exception $e) {
+            DB::rollBack();
+        }
+    }
+
+    private function generateTokens(User $user, $sessionId): array
+    {
+        $accessTokenExpiredAt = Carbon::now("utc")->addSeconds(
+            (int) env("SESSION_LIFETIME", 30),
+        );
+        $refreshTokenExpiredAt = Carbon::now("utc")->addDays(30);
+        $sessionId = $sessionId ?? Str::uuid7();
+        // Access token: 15 minutes
+        $accessToken = $user->createToken(
+            "access-token:{$sessionId}",
+            ["access"],
+            $accessTokenExpiredAt,
+        )->plainTextToken;
+
+        // Refresh token: 30 days
+        $refreshToken = $user->createToken(
+            "refresh-token:{$sessionId}",
+            ["refresh"],
+            $refreshTokenExpiredAt,
+        )->plainTextToken;
+
+        return [
+            "token_type" => "Bearer",
+            "access_token" => $accessToken,
+            "access_token_expire_at" => $accessTokenExpiredAt,
+            "refresh_token" => $refreshToken,
+            "refresh_token_expire_at" => $refreshTokenExpiredAt,
+        ];
     }
 }
 ?>
