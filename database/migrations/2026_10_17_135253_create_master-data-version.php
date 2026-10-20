@@ -6,22 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('threed_results', function (Blueprint $table) {
-            $table->id();
+        Schema::create('master_data_versions', function (Blueprint $table): void {
+            $table->uuid('id')->primary();
+            $table->string('version', 64)->unique();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('threed_results');
+        Schema::dropIfExists('master_data_versions');
     }
 };

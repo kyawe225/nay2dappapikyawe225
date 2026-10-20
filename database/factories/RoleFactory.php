@@ -5,20 +5,12 @@ namespace Database\Factories;
 use App\Models\Role;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<Role>
- */
+/** @extends Factory<Role> */
 class RoleFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    /** @return array{name: string, status: string} */
     public function definition(): array
     {
-        return [
-            //
-        ];
+        return ['name' => fake()->unique()->word(), 'status' => 'active'];
     }
 }

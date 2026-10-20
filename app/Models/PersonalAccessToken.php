@@ -3,15 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Model;
-use Laravel\Sanctum\PersonalAccessToken as ScamtumPersonalAccessToken;
+use Laravel\Sanctum\PersonalAccessToken as SanctumPersonalAccessToken;
 
-class PersonalAccessToken extends ScamtumPersonalAccessToken
+class PersonalAccessToken extends SanctumPersonalAccessToken
 {
     use HasUuids;
-
-    public $incrementing = false;
-
-    protected $keyType = 'string';
-
 }

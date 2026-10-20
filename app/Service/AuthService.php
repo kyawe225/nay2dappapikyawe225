@@ -9,150 +9,107 @@ use App\Models\PersonalAccessToken;
 use App\Models\Role;
 use App\Models\User;
 use App\Response\ResponseModel;
-use DB;
-use Exception;
-use Hash;
-use Illuminate\Support\Carbon;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
-use Str;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AuthService implements IAuthService
 {
-    public function Login(LoginRequest $request)
+    public function Login(LoginRequest $request): ResponseModel
     {
-        $arr = $request->validated();
+        $data = $request->validated();
+        $user = User::query()->where('email', $data['email'])->first();
 
-        $user = User::where("email", $arr["email"])->first();
-
-        if ($user == null) {
-            return ResponseModel::NotFound("User Not Found", null);
+        if ($user === null || ! Hash::check($data['password'], $user->password)) {
+            return ResponseModel::unauthorized('Email or password is incorrect.', null);
         }
 
-        if (!Hash::check($arr["password"], $user->password)) {
-            return ResponseModel::badRequest("Email or password wrong.", null);
-        }
-
-        return ResponseModel::ok(
-            "Login Successfully!",
-            $this->generateTokens($user, null),
-        );
+        return ResponseModel::ok('Login successfully.', DB::transaction(fn (): array => $this->generateTokens($user)));
     }
 
-    public function Register(RegisterRequest $request)
+    public function Register(RegisterRequest $request): ResponseModel
     {
-        $arr = $request->validated();
+        $data = $request->validated();
+        $role = Role::query()->where('name', 'Customer')->where('status', 'active')->first();
 
-        if (User::where("email", $arr["email"])->exists()) {
-            return ResponseModel::badRequest("Duplicate email.", null);
+        if ($role === null) {
+            return ResponseModel::internalServer('Customer registration is unavailable.', null);
         }
 
-        $role_id = Role::where("name", "Customer")->first()->id;
+        User::query()->create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => $data['password'],
+            'role_id' => $role->id,
+        ]);
 
-        $user = [
-            "name" => $arr["name"],
-            "email" => $arr["email"],
-            "password" => Hash::make($arr["password"]),
-            "role_id" => $role_id,
-        ];
-
-        $user = User::create($user);
-
-        $isSuccess = $user->save();
-        if (!$isSuccess) {
-            return ResponseModel::internalServer(
-                "User created not Successfully!",
-                null,
-            );
-        }
-        return ResponseModel::ok("User created Successfully!", null);
+        return ResponseModel::ok('User created successfully.', null);
     }
 
-    public function RefreshToken(Request $request)
+    public function RefreshToken(Request $request): ResponseModel
     {
-        if (!$request->bearerToken()) {
-            return ResponseModel::badRequest("Not Authorized", null);
+        $currentToken = $request->user()->currentAccessToken();
+
+        if (! $currentToken instanceof PersonalAccessToken) {
+            throw new AuthenticationException;
         }
 
-        DB::beginTransaction();
-        try {
-            $lockedToken = auth()->user()->currentAccessToken();
+        return DB::transaction(function () use ($request, $currentToken): ResponseModel {
+            $user = User::query()->lockForUpdate()->findOrFail($request->user()->id);
+            $lockedToken = $user->tokens()->lockForUpdate()->find($currentToken->id);
 
-            $user = auth()->user();
-
-            if (!$lockedToken instanceof PersonalAccessToken) {
-                return ResponseModel::badRequest("Not Authorized", null);
+            if ($lockedToken === null || ! $lockedToken->can('refresh')
+                || ! str_starts_with($lockedToken->name, 'refresh-token:')
+                || ($lockedToken->expires_at !== null && $lockedToken->expires_at->isPast())) {
+                throw new AuthenticationException;
             }
 
-            // Example token name:
-            // refresh-token:550e8400-e29b-41d4-a716-446655440000
+            $sessionId = substr($lockedToken->name, strlen('refresh-token:'));
 
-            $prefix = "refresh-token:";
-
-            if (!str_starts_with($lockedToken->name, $prefix)) {
-                return response()->json(
-                    [
-                        "message" => "Invalid refresh token.",
-                    ],
-                    401,
-                );
+            if (! Str::isUuid($sessionId)) {
+                throw new AuthenticationException;
             }
 
-            $sessionId = substr($lockedToken->name, strlen($prefix));
+            $user->tokens()->whereIn('name', ['access-token:'.$sessionId, 'refresh-token:'.$sessionId])->delete();
 
-            if (!$sessionId) {
-                return response()->json(
-                    [
-                        "message" => "Invalid token session.",
-                    ],
-                    401,
-                );
-            }
-
-            // Delete the matching access token
-            $user
-                ->tokens()
-                ->where("name", "access-token:{$sessionId}")
-                ->delete();
-
-            // Delete old refresh token
-            $lockedToken->delete();
-            $tokens = $this->generateTokens($user, $sessionId);
-            // Generate replacement pair for same device
-            DB::commit();
-            return ResponseModel::ok("new Token Generated!!!",$tokens);
-        } catch (Exception $e) {
-            DB::rollBack();
-        }
+            return ResponseModel::ok('New tokens generated.', $this->generateTokens($user, $sessionId));
+        }, 3);
     }
 
-    private function generateTokens(User $user, $sessionId): array
+    public function Logout(Request $request): ResponseModel
     {
-        $accessTokenExpiredAt = Carbon::now("utc")->addSeconds(
-            (int) env("SESSION_LIFETIME", 30),
-        );
-        $refreshTokenExpiredAt = Carbon::now("utc")->addDays(env("REFRESH_TOKEN_LIFETIME",30));
-        $sessionId = $sessionId ?? Str::uuid7();
-        // Access token: default 30 seconds
-        $accessToken = $user->createToken(
-            "access-token:{$sessionId}",
-            ["access"],
-            $accessTokenExpiredAt,
-        )->plainTextToken;
+        $currentToken = $request->user()->currentAccessToken();
 
-        // Refresh token: 30 days
-        $refreshToken = $user->createToken(
-            "refresh-token:{$sessionId}",
-            ["refresh"],
-            $refreshTokenExpiredAt,
-        )->plainTextToken;
+        if (! $currentToken instanceof PersonalAccessToken || ! str_starts_with($currentToken->name, 'access-token:')) {
+            throw new AuthenticationException;
+        }
+
+        return DB::transaction(function () use ($request, $currentToken): ResponseModel {
+            $user = User::query()->lockForUpdate()->findOrFail($request->user()->id);
+            $sessionId = substr($currentToken->name, strlen('access-token:'));
+            $user->tokens()->whereIn('name', ['access-token:'.$sessionId, 'refresh-token:'.$sessionId])->delete();
+
+            return ResponseModel::ok('Logged out successfully.', null);
+        }, 3);
+    }
+
+    /** @return array{token_type: string, access_token: string, access_token_expire_at: Carbon, refresh_token: string, refresh_token_expire_at: Carbon, user: User} */
+    private function generateTokens(User $user, ?string $sessionId = null): array
+    {
+        $accessTokenExpiredAt = now('UTC')->addSeconds(max(1, (int) config('sanctum.access_token_lifetime_seconds')));
+        $refreshTokenExpiredAt = now('UTC')->addDays(max(1, (int) config('sanctum.refresh_token_lifetime_days')));
+        $sessionId ??= (string) Str::uuid7();
 
         return [
-            "token_type" => "Bearer",
-            "access_token" => $accessToken,
-            "access_token_expire_at" => $accessTokenExpiredAt,
-            "refresh_token" => $refreshToken,
-            "refresh_token_expire_at" => $refreshTokenExpiredAt,
+            'token_type' => 'Bearer',
+            'access_token' => $user->createToken('access-token:'.$sessionId, ['access'], $accessTokenExpiredAt)->plainTextToken,
+            'access_token_expire_at' => $accessTokenExpiredAt,
+            'refresh_token' => $user->createToken('refresh-token:'.$sessionId, ['refresh'], $refreshTokenExpiredAt)->plainTextToken,
+            'refresh_token_expire_at' => $refreshTokenExpiredAt,
+            'user' => $user->load('role'),
         ];
     }
 }
-?>

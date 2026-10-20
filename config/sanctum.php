@@ -53,6 +53,9 @@ return [
 
     'expiration' => null,
 
+    'access_token_lifetime_seconds' => (int) env('ACCESS_TOKEN_LIFETIME', env('SESSION_LIFETIME', 30)),
+    'refresh_token_lifetime_days' => (int) env('REFRESH_TOKEN_LIFETIME', 30),
+
     /*
     |--------------------------------------------------------------------------
     | Token Prefix
@@ -83,7 +86,7 @@ return [
         'authenticate_session' => AuthenticateSession::class,
         'encrypt_cookies' => EncryptCookies::class,
         'validate_csrf_token' => ValidateCsrfToken::class,
-        'abilities' => CheckAbilities::class
+        'abilities' => CheckAbilities::class,
     ],
 
 ];

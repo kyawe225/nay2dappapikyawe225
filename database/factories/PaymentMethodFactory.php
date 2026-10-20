@@ -5,20 +5,19 @@ namespace Database\Factories;
 use App\Models\PaymentMethod;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<PaymentMethod>
- */
+/** @extends Factory<PaymentMethod> */
 class PaymentMethodFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    /** @return array<string, mixed> */
     public function definition(): array
     {
         return [
-            //
+            'name' => fake()->company(),
+            'payment_method_image_location' => null,
+            'type' => 'deposit',
+            'description' => 'Use the transfer reference when submitting your payment.',
+            'open_time' => '00:00',
+            'cutoff_time' => '23:59',
         ];
     }
 }
