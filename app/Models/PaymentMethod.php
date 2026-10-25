@@ -9,9 +9,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'payment_method_image_location', 'type', 'description'])]
+#[Fillable(['name', 'payment_method_image_location', 'type', 'description', 'status'])]
 class PaymentMethod extends Model
 {
+    protected $attributes = ['status' => 'active'];
+
     /** @use HasFactory<PaymentMethodFactory> */
     use HasFactory, HasUuids;
 

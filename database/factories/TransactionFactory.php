@@ -28,7 +28,7 @@ class TransactionFactory extends Factory
                 DB::table('payment_accounts')->insert([
                     'id' => $accountId,
                     'type' => $attributes['type'],
-                    'name' => fake()->name(),
+                    'user_name' => fake()->name(),
                     'phone_number' => fake()->numerify('09#########'),
                     'user_id' => $attributes['payment_user_id'],
                     'payment_method_id' => $attributes['payment_method_id'],

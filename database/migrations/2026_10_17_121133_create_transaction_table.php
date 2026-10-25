@@ -58,7 +58,7 @@ return new class extends Migration
                 ->on('users')
                 ->cascadeOnUpdate()
                 ->restrictOnDelete();
-            $table->decimal('amount',52,2);
+            $table->decimal('amount', 52, 2);
             $table->dateTimeTz('paid_at');
             $table->string('last_six_tran_id');
             $table->uuid('payment_accounts_id');
@@ -91,7 +91,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('reference_id', 50); // this must be md5 hashed v4 uuid
 
-            $table->decimal('amount',52,2);
+            $table->decimal('amount', 52, 2);
 
             $table->uuid('requested_payment_user_id')->nullable(false);
             $table
@@ -101,7 +101,7 @@ return new class extends Migration
                 ->cascadeOnUpdate()
                 ->restrictOnDelete();
 
-            $table->enum('status', ['requested', 'approved', 'declined'])->default("requested");
+            $table->enum('status', ['requested', 'approved', 'declined'])->default('requested');
 
             $table->uuid('approve_user_id')->nullable(true);
             $table
@@ -178,7 +178,7 @@ return new class extends Migration
                 'withdraw_failed',
             ]);
             $table->enum('direction', ['in', 'out']);
-            $table->decimal('amount',52,2);
+            $table->decimal('amount', 52, 2);
             $table->decimal('balance_before');
             $table->decimal('balance_after');
             $table->string('reference_type', 50);
@@ -193,6 +193,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('wallet_transactions');
+        Schema::dropIfExists('wallet');
+        Schema::dropIfExists('withdraw_requests');
         Schema::dropIfExists('transactions');
+        Schema::dropIfExists('payment_accounts');
+        Schema::dropIfExists('payment_methods');
     }
 };

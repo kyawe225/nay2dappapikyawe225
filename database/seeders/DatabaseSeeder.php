@@ -28,6 +28,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call(MasterDataSeeder::class);
-        $this->call(PaymentAccountSeeder::class);
+        $this->call(CustomerPaymentHistorySeeder::class);
     }
 }

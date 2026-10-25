@@ -19,9 +19,10 @@ class PaymentMethodResource extends JsonResource
             'name' => $this->name,
             'paymentMethodImage' => $this->payment_method_image_location,
             'type' => $this->type,
+            'status' => $this->status,
             'description' => $this->description,
-            'created_at'=>$this->type != "deposit" ? $this->created_at : null,
-            'paymentAccounts'=> $this->type != "withdraw" ? PaymentAccountResource::collection($this->paymentAccounts) : null
+            'created_at' => $this->type != 'deposit' ? $this->created_at : null,
+            'paymentAccounts' => $this->type != 'withdraw' ? PaymentAccountResource::collection($this->paymentAccounts) : null,
         ];
     }
 }

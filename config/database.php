@@ -32,6 +32,24 @@ return [
 
     'connections' => [
 
+        'audit' => [
+            'driver' => env('AUDIT_DB_CONNECTION', 'sqlite'),
+            'url' => env('AUDIT_DB_URL'),
+            'host' => env('AUDIT_DB_HOST', '127.0.0.1'),
+            'port' => env('AUDIT_DB_PORT', '3306'),
+            'database' => env('AUDIT_DB_DATABASE', database_path('audit.sqlite')),
+            'username' => env('AUDIT_DB_USERNAME', ''),
+            'password' => env('AUDIT_DB_PASSWORD', ''),
+            'unix_socket' => env('AUDIT_DB_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'foreign_key_constraints' => true,
+            'busy_timeout' => 5000,
+        ],
+
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),

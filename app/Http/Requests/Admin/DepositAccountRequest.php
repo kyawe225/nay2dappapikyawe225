@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class DepositAccountRequest extends FormRequest
 {
@@ -12,7 +13,7 @@ class DepositAccountRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->isAdministrator() ?? false;
     }
 
     /**
@@ -23,11 +24,11 @@ class DepositAccountRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "userName"=>"string|required",
-            "phoneNumber"=>"string|nullable",
-            "bankAccountNumber"=>'string|nullable',
-            "descriptions"=>"string|nullable",
-            "paymentMethodId"=>"string|required"
+            'userName' => 'required|string|max:255',
+            'phoneNumber' => 'nullable|required_without:bankAccountNumber|string|max:255',
+            'bankAccountNumber' => 'nullable|required_without:phoneNumber|string|max:255',
+            'descriptions' => 'nullable|string|max:255',
+            'paymentMethodId' => ['required', 'uuid', Rule::exists('payment_methods', 'id')->where('type', 'deposit')->where('status', 'active')],
         ];
     }
 }

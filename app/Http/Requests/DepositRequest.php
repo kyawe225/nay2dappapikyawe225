@@ -23,10 +23,11 @@ class DepositRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'lastSixTranId'=>'string|required|max:6',
-            'amount'=>'string',
-            'PaymentAccountId'=>"string|required",
-            'PaymentMethodId'=>"string|required"
+            'lastSixTranId' => 'required|string|size:6',
+            'amount' => ['required', 'numeric', 'gt:0', 'regex:/^\d{1,50}(\.\d{1,2})?$/'],
+            'PaymentAccountId' => 'required|uuid|exists:payment_accounts,id',
+            'PaymentMethodId' => 'required|uuid|exists:payment_methods,id',
+            'clientReference' => 'sometimes|required|uuid',
         ];
     }
 }

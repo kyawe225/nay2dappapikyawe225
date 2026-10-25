@@ -3,134 +3,116 @@
 namespace App\Service;
 
 use App\Http\Requests\Admin\DepositAccountRequest;
+use App\Http\Requests\Admin\PaymentAccountStatusRequest;
 use App\Http\Requests\DepositRequest;
 use App\Http\Requests\WithdrawalAccountRequest;
 use App\Http\Requests\WithdrawalRequest;
-use App\Models\WithdrawRequest as WithdrawalRequestModel;
+use App\Http\Resources\PaymentAccountResource;
 use App\Http\ServiceContractor\IPaymentAccountService;
+use App\Http\ServiceContractor\IPaymentService;
 use App\Models\PaymentAccount;
-use App\Models\Transaction;
 use App\Models\User;
-use App\Models\WithdrawRequest;
 use App\Response\ResponseModel;
-use Carbon\Carbon;
-use Exception;
-use Illuminate\Log\Logger;
-use Str;
+use Illuminate\Support\Facades\DB;
 
 class PaymentAccountService implements IPaymentAccountService
 {
+    public function __construct(private IPaymentService $paymentService) {}
 
-    public function __construct(private Logger $logger)
-    {
-        $this->logger = $logger;
-    }
     public function CreateNewWithdrawalAccount(WithdrawalAccountRequest $request, User $user): ResponseModel
     {
-        try {
-            $validatedArr = $request->validated();
-            if (
-                PaymentAccount::where("type", "withdraw")->where(function ($query) use ($validatedArr) {
-                    $query->where("bank_account_number", $validatedArr["bankAccountNumber"])->Where('phone_number', $validatedArr["phoneNumber"]);
-                })->exists()
-            ) {
-                return ResponseModel::ok("Duplicate withdrawal account please add new account!", null);
-            }
-
-            $arr = [
-                "type" => "withdraw",
-                "user_name" => $validatedArr['userName'],
-                "phone_number" => $validatedArr["phoneNumber"],
-                "bank_account_number" => $validatedArr["bankAccountNumber"],
-                "descriptions" => $validatedArr["descriptions"],
-                "payment_method_id" => $validatedArr["paymentMethodId"],
-                "user_id" => $user->id
-            ];
-
-            $account = PaymentAccount::create($arr);
-            $account->save();
-
-            return ResponseModel::ok("Created withdrawal account successfully!", null);
-        } catch (Exception $ex) {
-            dd($ex);
-            $this->logger->error($ex->getMessage());
-            return ResponseModel::badRequest("Withdrawal request creation failed!", null);
-        }
+        return $this->CreateAccount($request->validated(), $user, 'withdraw');
     }
-    public function CreateNewWithdrawalRequest(WithdrawalRequest $request, User $user): ResponseModel
-    {
-        try {
-            $validatedArr = $request->validated();
-            $arr = [
-                "reference_id" => Str::random(10),
-                "requested_payment_user_id" => $user->id,
-                "amount" => $validatedArr["amount"],
-                "requested_payment_account_id" => $validatedArr["paymentAccountId"],
-                "requested_payment_method_id" => $validatedArr["paymentMethodId"],
-                "status" => "requested"
-            ];
-            $transaction = WithdrawalRequestModel::create($arr);
-            $transaction->save();
 
-            return ResponseModel::ok("Withdrawal Requested Successfully! Please wait for admin approval!!", null);
-        } catch (Exception $ex) {
-            $this->logger->error($ex->getMessage());
-            return ResponseModel::internalServer("Withdrawal request creation failed!", null);
-        }
-    }
     public function CreateNewDepositAccount(DepositAccountRequest $request, User $user): ResponseModel
     {
-        try {
-            $validatedArr = $request->validated();
-            if (
-                PaymentAccount::where("type", "deposit")->where(function ($query) use ($validatedArr) {
-                    $query->where("bank_account_number", $validatedArr["bankAccountNumber"])->Where('phone_number', $validatedArr["phoneNumber"]);
-                })->exists()
-            ) {
-                return ResponseModel::ok("Duplicate deposit account please add new account!", null);
-            }
-            $arr = [
-                "type" => "deposit",
-                "user_name" => $validatedArr['userName'],
-                "phone_number" => $validatedArr["phoneNumber"],
-                "bank_account_number" => $validatedArr["bankAccountNumber"],
-                "descriptions" => $validatedArr["descriptions"],
-                "payment_method_id" => $validatedArr["paymentMethodId"],
-                "user_id" => $user->id
-            ];
-
-            $account = PaymentAccount::create($arr);
-            $account->save();
-
-            return ResponseModel::ok("Created deposit account successfully!", null);
-        } catch (Exception $ex) {
-            $this->logger->error($ex->getMessage());
-            return ResponseModel::internalServer("Deposit account creation failed!", null);
-        }
+        return $this->CreateAccount($request->validated(), $user, 'deposit');
     }
+
+    public function CreateNewWithdrawalRequest(WithdrawalRequest $request, User $user): ResponseModel
+    {
+        return $this->paymentService->CreateNewWithdrawalRequest($request, $user);
+    }
+
     public function CreateNewDepositRequest(DepositRequest $request, User $user): ResponseModel
     {
-        try {
-            $validatedArr = $request->validated();
-            $arr = [
-                "reference_id" => Str::random(10),
-                "payment_user_id" => $user->id,
-                "amount" => $validatedArr["amount"],
-                "paid_at" => Carbon::now("UTC"),
-                "last_six_tran_id" => $validatedArr["lastSixTranId"],
-                "payment_accounts_id" => $validatedArr["PaymentAccountId"],
-                "payment_method_id" => $validatedArr["PaymentMethodId"],
-                "status" => "pending"
-            ];
+        return $this->paymentService->CreateNewDepositRequest($request, $user);
+    }
 
-            $transaction = Transaction::create($arr);
-            $transaction->save();
+    public function WithdrawalAccounts(User $user): ResponseModel
+    {
+        $accounts = $user->paymentAccounts()->with('paymentMethod')->where('type', 'withdraw')->where('status', '!=', 'delete')->latest()->latest('id')->get();
 
-            return ResponseModel::ok("Deposit Requested Successfully! Please wait for admin approval!!", null);
-        } catch (Exception $ex) {
-            $this->logger->error($ex->getMessage());
-            return ResponseModel::internalServer("Deposit request creation failed!", null);
-        }
+        return ResponseModel::ok('Withdrawal accounts fetched successfully!', PaymentAccountResource::collection($accounts));
+    }
 
+    public function DepositAccounts(): ResponseModel
+    {
+        $accounts = PaymentAccount::query()->with('paymentMethod')->where('type', 'deposit')->where('status', '!=', 'delete')->latest()->latest('id')->get();
+
+        return ResponseModel::ok('Deposit accounts fetched successfully!', PaymentAccountResource::collection($accounts));
+    }
+
+    public function DeleteWithdrawalAccount(string $accountId, User $user): ResponseModel
+    {
+        return DB::transaction(function () use ($accountId, $user): ResponseModel {
+            User::query()->lockForUpdate()->findOrFail($user->id);
+            $account = $user->paymentAccounts()->where('type', 'withdraw')->lockForUpdate()->find($accountId);
+
+            if ($account === null) {
+                return ResponseModel::NotFound('Withdrawal account was not found!', null);
+            }
+
+            $account->status = 'delete';
+            $account->save();
+
+            return ResponseModel::ok('Withdrawal account deleted successfully!', null);
+        }, 3);
+    }
+
+    public function ChangeDepositAccountStatus(PaymentAccountStatusRequest $request, string $accountId): ResponseModel
+    {
+        return DB::transaction(function () use ($request, $accountId): ResponseModel {
+            $account = PaymentAccount::query()->where('type', 'deposit')->where('status', '!=', 'delete')->lockForUpdate()->find($accountId);
+
+            if ($account === null) {
+                return ResponseModel::NotFound('Deposit account was not found!', null);
+            }
+
+            $account->status = $request->validated('status');
+            $account->save();
+
+            return ResponseModel::ok('Deposit account status changed successfully!', new PaymentAccountResource($account));
+        }, 3);
+    }
+
+    /** @param array{userName: string, paymentMethodId: string, phoneNumber?: ?string, bankAccountNumber?: ?string, descriptions?: ?string} $validatedArr */
+    private function CreateAccount(array $validatedArr, User $user, string $type): ResponseModel
+    {
+        return DB::transaction(function () use ($validatedArr, $user, $type): ResponseModel {
+            User::query()->lockForUpdate()->findOrFail($user->id);
+            $existingAccount = $user->paymentAccounts()->where('type', $type)
+                ->where('payment_method_id', $validatedArr['paymentMethodId'])
+                ->where('phone_number', $validatedArr['phoneNumber'] ?? null)
+                ->where('bank_account_number', $validatedArr['bankAccountNumber'] ?? null)
+                ->where('status', '!=', 'delete')->first();
+
+            if ($existingAccount !== null) {
+                return ResponseModel::conflict('Duplicate payment account! Please add a new account!', null);
+            }
+
+            $account = PaymentAccount::create([
+                'type' => $type,
+                'user_name' => $validatedArr['userName'],
+                'phone_number' => $validatedArr['phoneNumber'] ?? null,
+                'bank_account_number' => $validatedArr['bankAccountNumber'] ?? null,
+                'descriptions' => $validatedArr['descriptions'] ?? null,
+                'payment_method_id' => $validatedArr['paymentMethodId'],
+                'user_id' => $user->id,
+                'status' => 'active',
+            ]);
+
+            return ResponseModel::ok('Payment account created successfully!', new PaymentAccountResource($account));
+        }, 3);
     }
 }

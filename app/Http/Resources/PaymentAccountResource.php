@@ -19,6 +19,10 @@ class PaymentAccountResource extends JsonResource
             'userName' => $this->user_name,
             'phoneNumber' => $this->phone_number,
             'bankAccountNumber' => $this->bank_account_number,
+            'paymentMethodId' => $this->payment_method_id,
+            'paymentMethod' => new PaymentMethodResource($this->payment_method),
+            'type' => $this->type,
+            'status' => $this->status,
             'description' => $this->descriptions,
         ];
     }

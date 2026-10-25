@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['wallet_id', 'type', 'direction', 'amount', 'balance_before', 'balance_after', 'reference_type', 'reference_id', 'idempotency_key'])]
+#[Fillable(['wallet_id', 'type', 'direction', 'amount', 'balance_before', 'balance_after', 'reference_type', 'reference_id', 'idempotency_key', 'actor_user_id', 'reason', 'client_reference'])]
 class WalletTransaction extends Model
 {
     use HasUuids;

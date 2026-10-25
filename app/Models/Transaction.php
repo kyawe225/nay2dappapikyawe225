@@ -16,12 +16,12 @@ class Transaction extends Model
     use HasFactory, HasUuids;
 
     /** @var list<string> */
-    protected $fillable = ['type', 'reference_id', 'payment_user_id', 'amount', 'paid_at', 'last_six_tran_id', 'payment_accounts_id', 'payment_method_id', 'approver_user_id', 'approved_at', 'status'];
+    protected $fillable = ['type', 'reference_id', 'payment_user_id', 'amount', 'paid_at', 'last_six_tran_id', 'payment_accounts_id', 'payment_method_id', 'approver_user_id', 'approved_at', 'declined_user_id', 'declined_at', 'status'];
 
     /** @return array<string, string> */
     protected function casts(): array
     {
-        return ['amount' => 'decimal:2', 'paid_at' => 'datetime', 'approved_at' => 'datetime'];
+        return ['amount' => 'decimal:2', 'paid_at' => 'datetime', 'approved_at' => 'datetime', 'declined_at' => 'datetime'];
     }
 
     /** @param array<string, mixed> $filters */

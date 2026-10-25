@@ -15,6 +15,8 @@ class MasterController extends Controller
     {
         $validated = $request->validate(['version' => ['sometimes', 'nullable', 'string', 'max:64']]);
 
-        return response()->json($this->service->Index($validated['version'] ?? ''));
+        $response = $this->service->Index($validated['version'] ?? '');
+
+        return response()->json($response, $response->status);
     }
 }

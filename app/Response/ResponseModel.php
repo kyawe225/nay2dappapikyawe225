@@ -16,6 +16,11 @@ class ResponseModel
         return new ResponseModel(400, $message, $data);
     }
 
+    public static function conflict(string $message, mixed $data): ResponseModel
+    {
+        return new ResponseModel(409, $message, $data);
+    }
+
     public static function unauthorized(string $message, mixed $data): ResponseModel
     {
         return new ResponseModel(401, $message, $data);

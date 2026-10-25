@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['name', 'draw_date', 'time_type', 'winning_number', 'odds'])]
+#[Fillable(['name', 'draw_date', 'time_type', 'open_time', 'cutoff_time', 'winning_number', 'calculation_status', 'result_revision', 'calculated_at', 'settled_at', 'cancelled_at', 'recorded_by', 'settled_by', 'cancelled_by', 'cancellation_reason'])]
 class TwodDraw extends Model
 {
     /** @use HasFactory<TwodDrawFactory> */
@@ -18,6 +18,6 @@ class TwodDraw extends Model
     /** @return array<string, string> */
     protected function casts(): array
     {
-        return ['draw_date' => 'date', 'winning_number' => 'string', 'odds' => 'decimal:2'];
+        return ['draw_date' => 'date', 'winning_number' => 'string', 'calculated_at' => 'datetime', 'settled_at' => 'datetime', 'cancelled_at' => 'datetime'];
     }
 }

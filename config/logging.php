@@ -18,7 +18,7 @@ return [
     |
     */
 
-    'default' => env('LOG_CHANNEL', 'stack'),
+    'default' => env('LOG_CHANNEL', 'monthly'),
 
     /*
     |--------------------------------------------------------------------------
@@ -51,6 +51,14 @@ return [
     */
 
     'channels' => [
+
+        'http' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/http.log'),
+            'level' => 'info',
+            'max_files' => (int) env('LOG_HTTP_DAYS', 14),
+            'replace_placeholders' => true,
+        ],
 
         'stack' => [
             'driver' => 'stack',
@@ -122,7 +130,7 @@ return [
 
         'errorlog' => [
             'driver' => 'errorlog',
-            'level' => env('LOG_LEVEL', 'debug'),
+            'level' => env('LOG_LEVEL', 'error'),
             'replace_placeholders' => true,
         ],
 

@@ -13,10 +13,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password', 'role_id'])]
+#[Fillable(['name', 'email', 'password', 'role_id', 'status'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
+    protected $attributes = ['status' => 'active'];
+
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, HasUuids, Notifiable;
 
@@ -42,7 +44,7 @@ class User extends Authenticatable
 
     public function withdrawRequests(): HasMany
     {
-        return $this->hasMany(WithdrawRequest::class, 'payment_user_id');
+        return $this->hasMany(WithdrawRequest::class, 'requested_payment_user_id');
     }
 
     public function wallets(): HasMany
@@ -60,10 +62,15 @@ class User extends Authenticatable
         return $this->hasMany(ThreedEntry::class);
     }
 
+    public function isSuperAdministrator(): bool
+    {
+        return $this->status === 'active' && $this->role()->where('status', 'active')->where('name', 'Super Admin')->exists();
+    }
+
     public function isAdministrator(): bool
     {
-        return $this->role()->where('status', 'active')->whereNull('deleted_at')
-            ->whereIn('name', ['Super Admin', 'Staff'])->exists();
+        return $this->status === 'active' && $this->role()->where('status', 'active')->whereNull('deleted_at')
+            ->whereIn('name', ['Super Admin', 'Admin', 'Staff'])->exists();
     }
 
     /**

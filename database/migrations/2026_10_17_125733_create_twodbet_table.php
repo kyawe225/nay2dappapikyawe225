@@ -47,11 +47,11 @@ return new class extends Migration
             $table->index(['draw_date', 'created_at']);
         });
 
-        Schema::create("twod_odds", function (Blueprint $table) {
-            $table->uuid("id")->primary();
-            $table->string("name");
+        Schema::create('twod_odds', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('name');
             $table->decimal('odd_number');
-            $table->date("start_date");
+            $table->date('start_date');
             $table->timestamps();
         });
     }
@@ -61,8 +61,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('twod_draws');
-        Schema::dropIfExists('twod_bet');
+        Schema::dropIfExists('twod_bets');
         Schema::dropIfExists('twod_odds');
+        Schema::dropIfExists('twod_draws');
     }
 };

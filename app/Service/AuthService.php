@@ -20,33 +20,44 @@ class AuthService implements IAuthService
 {
     public function Login(LoginRequest $request): ResponseModel
     {
-        $data = $request->validated();
-        $user = User::query()->where('email', $data['email'])->first();
+        return DB::transaction(function () use ($request): ResponseModel {
+            $data = $request->validated();
+            $user = User::query()->where('email', $data['email'])->lockForUpdate()->first();
+            if ($user === null || ! Hash::check($data['password'], $user->password)) {
+                return ResponseModel::unauthorized('Email or password is incorrect.', null);
+            }
+            if ($user->status !== 'active' || ! $user->role()->where('status', 'active')->exists()) {
+                return new ResponseModel(403, 'This account is not active!', null);
+            }
 
-        if ($user === null || ! Hash::check($data['password'], $user->password)) {
-            return ResponseModel::unauthorized('Email or password is incorrect.', null);
-        }
-
-        return ResponseModel::ok('Login successfully.', DB::transaction(fn (): array => $this->generateTokens($user)));
+            return ResponseModel::ok('Login successfully.', $this->generateTokens($user));
+        }, 3);
     }
 
     public function Register(RegisterRequest $request): ResponseModel
     {
-        $data = $request->validated();
-        $role = Role::query()->where('name', 'Customer')->where('status', 'active')->first();
+        return DB::transaction(function () use ($request): ResponseModel {
+            $data = $request->validated();
+            $role = Role::query()->where('name', 'Customer')->where('status', 'active')->first();
 
-        if ($role === null) {
-            return ResponseModel::internalServer('Customer registration is unavailable.', null);
-        }
+            if ($role === null) {
+                return ResponseModel::internalServer('Customer registration is unavailable.', null);
+            }
 
-        User::query()->create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => $data['password'],
-            'role_id' => $role->id,
-        ]);
+            $user = User::query()->create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => $data['password'],
+                'role_id' => $role->id,
+            ]);
+            $user->wallets()->create([
+                'avaliable_balance' => '0.00',
+                'locked_balance' => '0.00',
+                'version' => (string) Str::uuid7(),
+            ]);
 
-        return ResponseModel::ok('User created successfully.', null);
+            return ResponseModel::ok('User created successfully.', null);
+        }, 3);
     }
 
     public function RefreshToken(Request $request): ResponseModel

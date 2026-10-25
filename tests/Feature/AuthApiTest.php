@@ -2,7 +2,9 @@
 
 use App\Models\Role;
 use App\Models\User;
+use App\Models\Wallet;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 
@@ -35,10 +37,40 @@ test('registration assigns the customer role and ignores privileged fields', fun
     ])->assertOk();
 
     $user = User::query()->where('email', 'new-customer@example.com')->firstOrFail();
-    expect($user->role->name)->toBe('Customer')->and($user->balance)->toBe(0);
+    $wallet = $user->wallets()->sole();
+    expect($user->role->name)->toBe('Customer')
+        ->and($wallet->avaliable_balance)->toBe('0.00')
+        ->and($wallet->locked_balance)->toBe('0.00')
+        ->and(Str::isUuid($wallet->version))->toBeTrue();
     $this->postJson('/api/auth/register', [
         'name' => 'Duplicate', 'email' => $user->email, 'password' => 'secure-password',
     ])->assertUnprocessable()->assertJsonValidationErrors('email');
+    expect($user->wallets()->count())->toBe(1)->and($user->wallets()->sole()->id)->toBe($wallet->id);
+});
+
+test('registration rolls back the customer if wallet creation fails', function (): void {
+    $dispatcher = Wallet::getEventDispatcher();
+    Wallet::setEventDispatcher(clone $dispatcher);
+    Wallet::creating(function (Wallet $wallet): never {
+        throw new RuntimeException('Wallet creation failed');
+    });
+    try {
+        expect(fn () => $this->withoutExceptionHandling()->postJson('/api/auth/register', [
+            'name' => 'Failed Customer', 'email' => 'failed-customer@example.test', 'password' => 'customer-password',
+        ]))->toThrow(RuntimeException::class, 'Wallet creation failed');
+    } finally {
+        Wallet::setEventDispatcher($dispatcher);
+    }
+    $this->assertDatabaseMissing('users', ['email' => 'failed-customer@example.test']);
+    $this->assertDatabaseCount('wallet', 0);
+});
+
+test('the database prevents a second wallet for the same customer', function (): void {
+    $this->postJson('/api/auth/register', ['name' => 'One Wallet', 'email' => 'one-wallet@example.test', 'password' => 'customer-password'])->assertOk();
+    $customer = User::query()->where('email', 'one-wallet@example.test')->sole();
+    expect(fn () => $customer->wallets()->create(['avaliable_balance' => '0.00', 'locked_balance' => '0.00', 'version' => (string) Str::uuid7()]))
+        ->toThrow(QueryException::class);
+    expect($customer->wallets()->count())->toBe(1);
 });
 
 test('login returns tokens and the users role without exposing the password', function (): void {

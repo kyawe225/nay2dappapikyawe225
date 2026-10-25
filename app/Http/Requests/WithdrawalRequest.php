@@ -23,9 +23,10 @@ class WithdrawalRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'amount'=>"decimal:0,2|required",
-            "paymentAccountId"=>"string|required",
-            "paymentMethodId"=>"string|required"
+            'amount' => ['required', 'numeric', 'gt:0', 'regex:/^\d{1,50}(\.\d{1,2})?$/'],
+            'paymentAccountId' => 'required|uuid|exists:payment_accounts,id',
+            'paymentMethodId' => 'required|uuid|exists:payment_methods,id',
+            'clientReference' => 'sometimes|required|uuid',
         ];
     }
 }

@@ -15,12 +15,12 @@ class WithdrawRequest extends Model
     /** @return array<string, string> */
     protected function casts(): array
     {
-        return ['approved_at' => 'datetime', 'declined_at' => 'datetime'];
+        return ['amount' => 'decimal:2', 'approved_at' => 'datetime', 'declined_at' => 'datetime'];
     }
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'payment_user_id');
+        return $this->belongsTo(User::class, 'requested_payment_user_id');
     }
 
     public function approver(): BelongsTo
@@ -40,6 +40,6 @@ class WithdrawRequest extends Model
 
     public function paymentMethod(): BelongsTo
     {
-        return $this->belongsTo(PaymentMethod::class);
+        return $this->belongsTo(PaymentMethod::class, 'requested_payment_method_id');
     }
 }

@@ -16,8 +16,6 @@ class PaymentMethodFactory extends Factory
             'payment_method_image_location' => null,
             'type' => 'deposit',
             'description' => 'Use the transfer reference when submitting your payment.',
-            'open_time' => '00:00',
-            'cutoff_time' => '23:59',
         ];
     }
 }

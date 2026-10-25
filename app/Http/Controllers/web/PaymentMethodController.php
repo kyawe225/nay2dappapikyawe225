@@ -18,13 +18,13 @@ class PaymentMethodController extends Controller
     {
         $depositAccounts = $this->service->DepositPaymentAccounts();
 
-        return response()->json($depositAccounts);
+        return response()->json($depositAccounts, $depositAccounts->status);
     }
 
     public function WithdrawalPaymentAccounts(Request $request): JsonResponse
     {
         $withdrawalPaymentAccounts = $this->service->WithdrawalPaymentAccounts(auth()->user());
 
-        return response()->json($withdrawalPaymentAccounts);
+        return response()->json($withdrawalPaymentAccounts, $withdrawalPaymentAccounts->status);
     }
 }
