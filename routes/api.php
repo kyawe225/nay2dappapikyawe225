@@ -136,8 +136,10 @@ Route::middleware(['auth:sanctum', EnsureActiveAccount::class, 'abilities:access
         Route::patch('paymentaccount/deposit/{account}/status', [AdminPaymentAccountController::class, 'ChangeDepositAccountStatus'])->whereUuid('account')->name('paymentaccount.deposit.status');
 
         Route::get('payment/deposit', [AdminPaymentController::class, 'DepositRequests'])->name('payment.deposit.index');
+        Route::post('payment/deposit/{transaction}/approve', [AdminPaymentController::class, 'ReviewDeposit'])->whereUuid('transaction')->name('payment.deposit.approve');
         Route::patch('payment/deposit/{transaction}/status', [AdminPaymentController::class, 'ReviewDeposit'])->whereUuid('transaction')->name('payment.deposit.status');
         Route::get('payment/withdrawal', [AdminPaymentController::class, 'WithdrawalRequests'])->name('payment.withdrawal.index');
+        Route::post('payment/withdrawal/{withdrawal}/approve', [AdminPaymentController::class, 'ReviewWithdrawal'])->whereUuid('withdrawal')->name('payment.withdrawal.approve');
         Route::patch('payment/withdrawal/{withdrawal}/status', [AdminPaymentController::class, 'ReviewWithdrawal'])->whereUuid('withdrawal')->name('payment.withdrawal.status');
     });
 });

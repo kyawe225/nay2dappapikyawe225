@@ -49,8 +49,8 @@ class WalletService implements IWalletService
         if ($wallet === null) {
             return ResponseModel::NotFound('Customer wallet was not found!', null);
         }
-        $transactions = $wallet->paymentTransactions();
-        $withdrawals = $wallet->withdrawalRequests();
+        $transactions = $wallet->paymentTransactions()->with(['approver', 'user']);
+        $withdrawals = $wallet->withdrawalRequests()->with(['approver', 'user']);
         $movements = $wallet->transactions();
         $this->FilterHistory($transactions, $request, ['transactionType' => 'type', 'transactionStatus' => 'status', 'referenceId' => 'reference_id']);
         $this->FilterHistory($withdrawals, $request, ['withdrawalStatus' => 'status', 'referenceId' => 'reference_id']);
@@ -72,7 +72,7 @@ class WalletService implements IWalletService
         if ($transaction === null) {
             return ResponseModel::NotFound('Customer wallet transaction was not found!', null);
         }
-        $withdrawals = $wallet->withdrawalRequests()->where('transaction_id', $transaction->id)->get();
+        $withdrawals = $wallet->withdrawalRequests()->with(['approver', 'user'])->where('transaction_id', $transaction->id)->get();
         $movements = $wallet->transactions()->where(function (Builder $query) use ($transaction, $withdrawals): void {
             $query->where(fn (Builder $query): Builder => $query->where('reference_type', 'transaction')->where('reference_id', $transaction->id))
                 ->orWhere(fn (Builder $query): Builder => $query->where('reference_type', 'withdraw_request')->whereIn('reference_id', $withdrawals->modelKeys()));

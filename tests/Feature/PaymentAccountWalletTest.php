@@ -40,25 +40,65 @@ function withdrawalPayload(PaymentAccount $account): array
     ];
 }
 
-test('deposits credit the wallet once after admin approval and return 409 for a conflicting review', function (): void {
+test('explicit payment approval returns 401 without authentication', function (string $type): void {
+    $this->postJson('/api/admin/payment/'.$type.'/'.Str::uuid7().'/approve')->assertUnauthorized();
+
+    $this->assertDatabaseCount('wallet_transactions', 0);
+})->with(['deposit', 'withdrawal']);
+
+test('explicit payment approval returns 403 for customers without changing requests or funds', function (): void {
+    ['customer' => $customer, 'depositAccount' => $depositAccount, 'withdrawalAccount' => $account] = paymentWalletScenario();
+    $customer->wallets()->create(['avaliable_balance' => '5000.50', 'locked_balance' => '0.00', 'version' => (string) Str::uuid7()]);
+    $transaction = Transaction::factory()->create(['payment_user_id' => $customer->id, 'payment_accounts_id' => $depositAccount->id, 'payment_method_id' => $depositAccount->payment_method_id]);
+    Sanctum::actingAs($customer, ['access']);
+    $withdrawalId = $this->postJson('/api/payment/withdrawal', withdrawalPayload($account))->assertOk()->json('data.id');
+
+    $this->postJson('/api/admin/payment/deposit/'.$transaction->id.'/approve')->assertForbidden();
+    $this->postJson('/api/admin/payment/withdrawal/'.$withdrawalId.'/approve', ['lastSixTranId' => '123456'])->assertForbidden();
+
+    $this->assertDatabaseHas('transactions', ['id' => $transaction->id, 'status' => 'pending', 'approver_user_id' => null]);
+    $this->assertDatabaseHas('withdraw_requests', ['id' => $withdrawalId, 'status' => 'requested', 'transaction_id' => null]);
+    $this->assertDatabaseHas('wallet', ['user_id' => $customer->id, 'avaliable_balance' => '3000.25', 'locked_balance' => '2000.25']);
+    $this->assertDatabaseCount('wallet_transactions', 1);
+    $this->assertDatabaseCount('transactions', 1);
+});
+
+test('deposits credit the wallet once after admin approval and return 409 for a conflicting review', function (string $method, string $action, array $review): void {
     ['customer' => $customer, 'administrator' => $administrator, 'depositAccount' => $account] = paymentWalletScenario(withWallet: true);
     Sanctum::actingAs($customer, ['access']);
     $payload = ['amount' => '5000.50', 'lastSixTranId' => '012345', 'PaymentAccountId' => $account->id, 'PaymentMethodId' => $account->payment_method_id, 'clientReference' => (string) Str::uuid7()];
 
-    $transactionId = $this->postJson('/api/payment/deposit', $payload)->assertOk()->assertJsonPath('data.status', 'pending')->json('data.id');
+    $transactionId = $this->postJson('/api/payment/deposit', $payload)->assertOk()->assertJsonPath('data.status', 'pending')->assertJsonPath('data.approvedUserName', null)->assertJsonPath('data.requesterName', $customer->name)->assertJsonPath('data.requesterEmail', $customer->email)->json('data.id');
     $this->postJson('/api/payment/deposit', $payload)->assertOk()->assertJsonPath('data.id', $transactionId);
     $this->assertDatabaseCount('transactions', 1);
     $this->assertDatabaseCount('wallet_transactions', 0);
     Sanctum::actingAs($administrator, ['access']);
 
-    $this->patchJson('/api/admin/payment/deposit/'.$transactionId.'/status', ['status' => 'approved'])->assertOk()->assertJsonPath('data.approverUserId', $administrator->id);
+    $this->{$method}('/api/admin/payment/deposit/'.$transactionId.'/'.$action, $review)->assertOk()->assertJsonPath('data.status', 'approved')->assertJsonPath('data.approverUserId', $administrator->id)->assertJsonPath('data.approvedUserName', $administrator->name)->assertJsonPath('data.requesterName', $customer->name)->assertJsonPath('data.requesterEmail', $customer->email);
+    $this->{$method}('/api/admin/payment/deposit/'.$transactionId.'/'.$action, $review)->assertOk();
     $this->patchJson('/api/admin/payment/deposit/'.$transactionId.'/status', ['status' => 'approved'])->assertOk();
     $this->patchJson('/api/admin/payment/deposit/'.$transactionId.'/status', ['status' => 'rejected'])->assertConflict()->assertJsonPath('status', 409);
+
+    foreach ([
+        ['/api/admin/payment/deposit', 'data.items.0'],
+        ['/api/admin/accounts/'.$customer->id.'/history', 'data.payments.items.0'],
+        ['/api/admin/accounts/'.$customer->id.'/wallet/history', 'data.transactions.items.0'],
+        ['/api/admin/accounts/'.$customer->id.'/wallet/transactions/'.$transactionId, 'data.transaction'],
+    ] as [$url, $itemPath]) {
+        $this->getJson($url)->assertOk()
+            ->assertJsonPath($itemPath.'.requesterName', $customer->name)
+            ->assertJsonPath($itemPath.'.requesterEmail', $customer->email)
+            ->assertJsonPath($itemPath.'.approvedUserName', $administrator->name);
+    }
 
     $this->assertDatabaseHas('wallet', ['user_id' => $customer->id, 'avaliable_balance' => '5000.50', 'locked_balance' => 0]);
     $this->assertDatabaseCount('wallet_transactions', 1);
     $this->assertDatabaseHas('wallet_transactions', ['type' => 'deposit', 'amount' => '5000.50', 'balance_before' => 0, 'balance_after' => '5000.50']);
-});
+})->with([
+    'status review' => ['patchJson', 'status', ['status' => 'approved']],
+    'explicit approval' => ['postJson', 'approve', []],
+    'explicit approval ignores a supplied rejection' => ['postJson', 'approve', ['status' => 'rejected']],
+]);
 
 test('admin rejection records the reviewer without crediting a deposit', function (): void {
     ['customer' => $customer, 'administrator' => $administrator, 'depositAccount' => $account] = paymentWalletScenario();
@@ -66,33 +106,53 @@ test('admin rejection records the reviewer without crediting a deposit', functio
     Sanctum::actingAs($administrator, ['access']);
 
     $this->patchJson('/api/admin/payment/deposit/'.$transaction->id.'/status', ['status' => 'rejected'])->assertOk()->assertJsonPath('data.status', 'rejected')->assertJsonPath('data.declinedUserId', $administrator->id);
+    $this->postJson('/api/admin/payment/deposit/'.$transaction->id.'/approve')->assertConflict();
 
     $this->assertDatabaseHas('transactions', ['id' => $transaction->id, 'status' => 'rejected', 'declined_user_id' => $administrator->id]);
     $this->assertDatabaseCount('wallet_transactions', 0);
 });
 
-test('withdrawals lock funds once and approval pays without debiting the available balance again', function (): void {
+test('withdrawals lock funds once and approval pays without debiting the available balance again', function (string $method, string $action, array $review): void {
     ['customer' => $customer, 'administrator' => $administrator, 'withdrawalAccount' => $account] = paymentWalletScenario();
     $customer->wallets()->create(['avaliable_balance' => '10000.50', 'locked_balance' => '0.00', 'version' => (string) Str::uuid7()]);
     $payload = withdrawalPayload($account);
     Sanctum::actingAs($customer, ['access']);
 
-    $withdrawalId = $this->postJson('/api/payment/withdrawal', $payload)->assertOk()->json('data.id');
+    $withdrawalId = $this->postJson('/api/payment/withdrawal', $payload)->assertOk()->assertJsonPath('data.approvedUserName', null)->assertJsonPath('data.requesterName', $customer->name)->assertJsonPath('data.requesterEmail', $customer->email)->json('data.id');
     $this->postJson('/api/payment/withdrawal', $payload)->assertOk()->assertJsonPath('data.id', $withdrawalId);
     $this->postJson('/api/payment/withdrawal', [...$payload, 'amount' => '3000.25'])->assertConflict();
     $this->assertDatabaseHas('wallet', ['user_id' => $customer->id, 'avaliable_balance' => '8000.25', 'locked_balance' => '2000.25']);
     $this->assertDatabaseCount('withdraw_requests', 1);
     Sanctum::actingAs($administrator, ['access']);
-    $review = ['status' => 'approved', 'lastSixTranId' => '987654'];
+    $this->{$method}('/api/admin/payment/withdrawal/'.$withdrawalId.'/'.$action, $review)->assertOk()->assertJsonPath('data.status', 'approved')->assertJsonPath('data.approverUserId', $administrator->id)->assertJsonPath('data.approvedUserName', $administrator->name)->assertJsonPath('data.requesterName', $customer->name)->assertJsonPath('data.requesterEmail', $customer->email);
+    $this->{$method}('/api/admin/payment/withdrawal/'.$withdrawalId.'/'.$action, $review)->assertOk();
+    $this->patchJson('/api/admin/payment/withdrawal/'.$withdrawalId.'/status', ['status' => 'approved', 'lastSixTranId' => '987654'])->assertOk();
 
-    $this->patchJson('/api/admin/payment/withdrawal/'.$withdrawalId.'/status', $review)->assertOk()->assertJsonPath('data.approverUserId', $administrator->id);
-    $this->patchJson('/api/admin/payment/withdrawal/'.$withdrawalId.'/status', $review)->assertOk();
+    $transactionId = WithdrawRequest::query()->findOrFail($withdrawalId)->transaction_id;
+    foreach ([
+        ['/api/admin/payment/withdrawal', 'data.items.0'],
+        ['/api/admin/accounts/'.$customer->id.'/history', 'data.withdrawals.items.0'],
+        ['/api/admin/accounts/'.$customer->id.'/history', 'data.payments.items.0'],
+        ['/api/admin/accounts/'.$customer->id.'/wallet/history', 'data.withdrawalRequests.items.0'],
+        ['/api/admin/accounts/'.$customer->id.'/wallet/history', 'data.transactions.items.0'],
+        ['/api/admin/accounts/'.$customer->id.'/wallet/withdrawal-requests/'.$withdrawalId, 'data.withdrawalRequest'],
+        ['/api/admin/accounts/'.$customer->id.'/wallet/transactions/'.$transactionId, 'data.transaction'],
+    ] as [$url, $itemPath]) {
+        $this->getJson($url)->assertOk()
+            ->assertJsonPath($itemPath.'.requesterName', $customer->name)
+            ->assertJsonPath($itemPath.'.requesterEmail', $customer->email)
+            ->assertJsonPath($itemPath.'.approvedUserName', $administrator->name);
+    }
 
     $this->assertDatabaseHas('wallet', ['user_id' => $customer->id, 'avaliable_balance' => '8000.25', 'locked_balance' => 0]);
     $this->assertDatabaseCount('wallet_transactions', 1);
     $this->assertDatabaseCount('transactions', 1);
     $this->assertDatabaseHas('transactions', ['type' => 'withdraw', 'amount' => '2000.25', 'last_six_tran_id' => '987654', 'approver_user_id' => $administrator->id]);
-});
+})->with([
+    'status review' => ['patchJson', 'status', ['status' => 'approved', 'lastSixTranId' => '987654']],
+    'explicit approval' => ['postJson', 'approve', ['lastSixTranId' => '987654']],
+    'explicit approval ignores a supplied decline' => ['postJson', 'approve', ['status' => 'declined', 'lastSixTranId' => '987654']],
+]);
 
 test('declining a withdrawal refunds locked funds once and returns 409 for later approval', function (): void {
     ['customer' => $customer, 'administrator' => $administrator, 'withdrawalAccount' => $account] = paymentWalletScenario();
@@ -104,6 +164,7 @@ test('declining a withdrawal refunds locked funds once and returns 409 for later
     $this->patchJson('/api/admin/payment/withdrawal/'.$withdrawalId.'/status', ['status' => 'declined'])->assertOk()->assertJsonPath('data.declinedUserId', $administrator->id);
     $this->patchJson('/api/admin/payment/withdrawal/'.$withdrawalId.'/status', ['status' => 'declined'])->assertOk();
     $this->patchJson('/api/admin/payment/withdrawal/'.$withdrawalId.'/status', ['status' => 'approved', 'lastSixTranId' => '123456'])->assertConflict();
+    $this->postJson('/api/admin/payment/withdrawal/'.$withdrawalId.'/approve', ['lastSixTranId' => '123456'])->assertConflict();
 
     $this->assertDatabaseHas('wallet', ['user_id' => $customer->id, 'avaliable_balance' => '10000.50', 'locked_balance' => 0]);
     $this->assertDatabaseCount('wallet_transactions', 2);
@@ -284,19 +345,23 @@ test('deposit retries reject changed amounts and ignore customer supplied review
     $this->assertDatabaseCount('wallet_transactions', 0);
 });
 
-test('admin withdrawal approval requires payment confirmation and rolls back invalid requests', function (): void {
+test('admin withdrawal approval requires payment confirmation and returns 422 without changing funds', function (string $method, string $action, array $review): void {
     ['customer' => $customer, 'administrator' => $administrator, 'withdrawalAccount' => $account] = paymentWalletScenario();
     $customer->wallets()->create(['avaliable_balance' => '5000.50', 'locked_balance' => '0.00', 'version' => (string) Str::uuid7()]);
     Sanctum::actingAs($customer, ['access']);
     $withdrawalId = $this->postJson('/api/payment/withdrawal', withdrawalPayload($account))->assertOk()->json('data.id');
     Sanctum::actingAs($administrator, ['access']);
 
-    $this->patchJson('/api/admin/payment/withdrawal/'.$withdrawalId.'/status', ['status' => 'approved'])->assertUnprocessable()->assertJsonValidationErrors('lastSixTranId');
+    $this->{$method}('/api/admin/payment/withdrawal/'.$withdrawalId.'/'.$action, $review)->assertUnprocessable()->assertJsonValidationErrors('lastSixTranId');
 
     $this->assertDatabaseHas('withdraw_requests', ['id' => $withdrawalId, 'status' => 'requested', 'transaction_id' => null]);
     $this->assertDatabaseHas('wallet', ['user_id' => $customer->id, 'avaliable_balance' => '3000.25', 'locked_balance' => '2000.25']);
     $this->assertDatabaseCount('transactions', 0);
-});
+})->with([
+    'status review without confirmation' => ['patchJson', 'status', ['status' => 'approved']],
+    'explicit approval without confirmation' => ['postJson', 'approve', []],
+    'explicit approval with short confirmation' => ['postJson', 'approve', ['lastSixTranId' => '12345']],
+]);
 
 test('admin deposit queues filter real records by customer status and date', function (): void {
     ['customer' => $customer, 'administrator' => $administrator, 'depositAccount' => $account] = paymentWalletScenario();

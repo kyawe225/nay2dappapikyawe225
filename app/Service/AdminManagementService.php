@@ -137,8 +137,8 @@ class AdminManagementService implements IAdminManagementService
             return ResponseModel::NotFound('Account was not found!', null);
         }
         $perPage = $request->integer('perPage', 20);
-        $transactions = $user->transactions()->latest()->latest('id')->paginate($perPage, ['*'], 'paymentsPage');
-        $withdrawals = $user->withdrawRequests()->latest()->latest('id')->paginate($perPage, ['*'], 'withdrawalsPage');
+        $transactions = $user->transactions()->with(['approver', 'user'])->latest()->latest('id')->paginate($perPage, ['*'], 'paymentsPage');
+        $withdrawals = $user->withdrawRequests()->with(['approver', 'user'])->latest()->latest('id')->paginate($perPage, ['*'], 'withdrawalsPage');
         $movements = WalletTransaction::query()->whereHas('wallet', fn (Builder $query): Builder => $query->where('user_id', $user->id))->latest()->latest('id')->paginate($perPage, ['*'], 'movementsPage');
 
         return ResponseModel::ok('Account history fetched successfully!', [

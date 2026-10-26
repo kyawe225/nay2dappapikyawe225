@@ -28,21 +28,21 @@ class PaymentService implements IPaymentService
 
     public function DepositHistory(User $user): ResponseModel
     {
-        $transactions = $user->transactions()->where('type', 'deposit')->latest()->latest('id')->get();
+        $transactions = $user->transactions()->with(['approver', 'user'])->where('type', 'deposit')->latest()->latest('id')->get();
 
         return ResponseModel::ok('Deposit transactions fetched successfully!', TransactionResource::collection($transactions));
     }
 
     public function WithdrawHistory(User $user): ResponseModel
     {
-        $transactions = $user->transactions()->where('type', 'withdraw')->latest()->latest('id')->get();
+        $transactions = $user->transactions()->with(['approver', 'user'])->where('type', 'withdraw')->latest()->latest('id')->get();
 
         return ResponseModel::ok('Withdrawal transactions fetched successfully!', TransactionResource::collection($transactions));
     }
 
     public function WithdrawRequestHistory(User $user): ResponseModel
     {
-        $withdrawals = $user->withdrawRequests()->latest()->latest('id')->get();
+        $withdrawals = $user->withdrawRequests()->with(['approver', 'user'])->latest()->latest('id')->get();
 
         return ResponseModel::ok('Withdrawal requests fetched successfully!', WithdrawResource::collection($withdrawals));
     }
@@ -154,7 +154,7 @@ class PaymentService implements IPaymentService
 
     public function DepositRequests(PaymentHistoryRequest $request): ResponseModel
     {
-        $query = Transaction::query()->where('type', 'deposit');
+        $query = Transaction::query()->with(['approver', 'user'])->where('type', 'deposit');
         $this->FilterHistory($query, $request, 'payment_user_id');
         $transactions = $query->latest()->latest('id')->paginate($request->integer('perPage', 20));
 
@@ -166,7 +166,7 @@ class PaymentService implements IPaymentService
 
     public function WithdrawalRequests(PaymentHistoryRequest $request): ResponseModel
     {
-        $query = WithdrawRequest::query();
+        $query = WithdrawRequest::query()->with(['approver', 'user']);
         $this->FilterHistory($query, $request, 'requested_payment_user_id');
         $withdrawals = $query->latest()->latest('id')->paginate($request->integer('perPage', 20));
 

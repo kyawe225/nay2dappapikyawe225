@@ -7,6 +7,13 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class PaymentReviewRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        if ($this->routeIs('admin.payment.deposit.approve', 'admin.payment.withdrawal.approve')) {
+            $this->merge(['status' => 'approved']);
+        }
+    }
+
     /**
      * Determine if the user is authorized to make this request.
      */
