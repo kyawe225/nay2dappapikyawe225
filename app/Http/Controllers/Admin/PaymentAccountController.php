@@ -7,7 +7,9 @@ use App\Http\Requests\Admin\DepositAccountRequest;
 use App\Http\Requests\Admin\PaymentAccountStatusRequest;
 use App\Http\ServiceContractor\IPaymentAccountService;
 use Illuminate\Http\JsonResponse;
+use Knuckles\Scribe\Attributes\Group;
 
+#[Group("Admin Payment Accounts Handler", "APIs for managing admin and users Payment Accounts")]
 class PaymentAccountController extends Controller
 {
     public function __construct(private IPaymentAccountService $service) {}

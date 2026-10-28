@@ -8,7 +8,9 @@ use App\Http\ServiceContractor\IAuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Knuckles\Scribe\Attributes\Group;
 
+#[Group("Admin and User Auth Things", "APIs for managing users")]
 class AuthController extends Controller
 {
     public function __construct(private IAuthService $service) {}

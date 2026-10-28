@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\AuditLogRequest;
 use App\Service\AdminActivityService;
 use Illuminate\Http\JsonResponse;
 
+#[Group("Admin audit Log Handler", "APIs for managing admin aduit Logs")]
 class AuditLogController extends Controller
 {
     public function __construct(private AdminActivityService $activities) {}

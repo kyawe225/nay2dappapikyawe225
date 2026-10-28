@@ -7,7 +7,9 @@ use App\Http\Requests\Admin\AdminListRequest;
 use App\Http\Requests\Admin\SupportTypeRequest;
 use App\Http\ServiceContractor\ISupportTypeService;
 use Illuminate\Http\JsonResponse;
+use Knuckles\Scribe\Attributes\Group;
 
+#[Group("Admin Support Type Handler", "APIs for managing admin and users Support Type")]
 class SupportTypeController extends Controller
 {
     public function __construct(private ISupportTypeService $service) {}

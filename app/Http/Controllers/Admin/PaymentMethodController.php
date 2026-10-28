@@ -7,7 +7,9 @@ use App\Http\Requests\Admin\AdminListRequest;
 use App\Http\Requests\Admin\PaymentMethodRequest;
 use App\Http\ServiceContractor\IPaymentMethodService;
 use Illuminate\Http\JsonResponse;
+use Knuckles\Scribe\Attributes\Group;
 
+#[Group("Admin Payment Method Handler", "APIs for managing admin and users Payment Method")]
 class PaymentMethodController extends Controller
 {
     public function __construct(private IPaymentMethodService $service) {}

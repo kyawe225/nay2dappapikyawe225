@@ -1,0 +1,296 @@
+name: 'Customer Payment Handler'
+description: 'APIs for managing users payments'
+endpoints:
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: api/payment/deposit
+    metadata:
+      custom: []
+      groupName: 'Customer Payment Handler'
+      groupDescription: 'APIs for managing users payments'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      lastSixTranId:
+        custom: []
+        name: lastSixTranId
+        description: 'Must be 6 characters.'
+        required: true
+        example: bngzmi
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      amount:
+        custom: []
+        name: amount
+        description: 'Must match the regex /^\d{1,50}(\.\d{1,2})?$/.'
+        required: true
+        example: '6425593142326822'
+        type: number
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      PaymentAccountId:
+        custom: []
+        name: PaymentAccountId
+        description: 'Must be a valid UUID. Must match an existing stored value.'
+        required: true
+        example: a232abbe-3006-3f67-bed4-124abab91dce
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      PaymentMethodId:
+        custom: []
+        name: PaymentMethodId
+        description: 'Must be a valid UUID. Must match an existing stored value.'
+        required: true
+        example: bfc53181-d647-36b2-9080-f9c2b76006f4
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      clientReference:
+        custom: []
+        name: clientReference
+        description: 'Must be a valid UUID.'
+        required: false
+        example: 5d093e7f-5aae-3aa3-bece-f6e784dcbd67
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      lastSixTranId: bngzmi
+      amount: '6425593142326822'
+      PaymentAccountId: a232abbe-3006-3f67-bed4-124abab91dce
+      PaymentMethodId: bfc53181-d647-36b2-9080-f9c2b76006f4
+      clientReference: 5d093e7f-5aae-3aa3-bece-f6e784dcbd67
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: api/payment/withdrawal
+    metadata:
+      custom: []
+      groupName: 'Customer Payment Handler'
+      groupDescription: 'APIs for managing users payments'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      amount:
+        custom: []
+        name: amount
+        description: 'Must match the regex /^\d{1,50}(\.\d{1,2})?$/.'
+        required: true
+        example: '6425593142326822'
+        type: number
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      paymentAccountId:
+        custom: []
+        name: paymentAccountId
+        description: 'Must be a valid UUID. Must match an existing stored value.'
+        required: true
+        example: a232abbe-3006-3f67-bed4-124abab91dce
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      paymentMethodId:
+        custom: []
+        name: paymentMethodId
+        description: 'Must be a valid UUID. Must match an existing stored value.'
+        required: true
+        example: bfc53181-d647-36b2-9080-f9c2b76006f4
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      clientReference:
+        custom: []
+        name: clientReference
+        description: 'Must be a valid UUID.'
+        required: false
+        example: 5d093e7f-5aae-3aa3-bece-f6e784dcbd67
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      amount: '6425593142326822'
+      paymentAccountId: a232abbe-3006-3f67-bed4-124abab91dce
+      paymentMethodId: bfc53181-d647-36b2-9080-f9c2b76006f4
+      clientReference: 5d093e7f-5aae-3aa3-bece-f6e784dcbd67
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: api/payment/deposit/history
+    metadata:
+      custom: []
+      groupName: 'Customer Payment Handler'
+      groupDescription: 'APIs for managing users payments'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          x-request-id: 01a181a9-0793-72fe-8ffa-1cc94a37fd0b
+          access-control-allow-origin: '*'
+        description: null
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: api/payment/withdrawal/history
+    metadata:
+      custom: []
+      groupName: 'Customer Payment Handler'
+      groupDescription: 'APIs for managing users payments'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          x-request-id: 01a181a9-0798-71b9-8dd6-fa4730d8b6c9
+          access-control-allow-origin: '*'
+        description: null
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: api/payment/withdrawal/request/history
+    metadata:
+      custom: []
+      groupName: 'Customer Payment Handler'
+      groupDescription: 'APIs for managing users payments'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          x-request-id: 01a181a9-079c-72ed-a58c-58e5a60ab26a
+          access-control-allow-origin: '*'
+        description: null
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null

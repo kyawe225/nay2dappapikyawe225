@@ -9,7 +9,9 @@ use App\Http\ServiceContractor\IPaymentService;
 use App\Models\Transaction;
 use App\Models\WithdrawRequest;
 use Illuminate\Http\JsonResponse;
+use Knuckles\Scribe\Attributes\Group;
 
+#[Group("Admin Payment Handler", "APIs for managing admin and users Payments")]
 class PaymentController extends Controller
 {
     public function __construct(private IPaymentService $service) {}

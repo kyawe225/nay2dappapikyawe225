@@ -7,7 +7,9 @@ use App\Http\Requests\Admin\AdminListRequest;
 use App\Http\Requests\Admin\UserManagementRequest;
 use App\Http\ServiceContractor\IUserService;
 use Illuminate\Http\JsonResponse;
+use Knuckles\Scribe\Attributes\Group;
 
+#[Group("Admin User Handler", "APIs for managing admin and users accounts")]
 class UserController extends Controller
 {
     public function __construct(private IUserService $service) {}

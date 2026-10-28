@@ -7,7 +7,9 @@ use App\Http\Requests\GameHistoryRequest;
 use App\Http\Requests\Web\BetRequest;
 use App\Http\ServiceContractor\IBetService;
 use Illuminate\Http\JsonResponse;
+use Knuckles\Scribe\Attributes\Group;
 
+#[Group("Customer Betting Handler", "APIs for managing users bettings")]
 class BetController extends Controller
 {
     public function __construct(private IBetService $service) {}

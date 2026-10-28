@@ -1,0 +1,637 @@
+name: 'Customer Betting Handler'
+description: 'APIs for managing users bettings'
+endpoints:
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: 'api/{game}/odds'
+    metadata:
+      custom: []
+      groupName: 'Customer Betting Handler'
+      groupDescription: 'APIs for managing users bettings'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      drawDate:
+        custom: []
+        name: drawDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: false
+        example: '2026-10-28'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      timeType:
+        custom: []
+        name: timeType
+        description: ''
+        required: false
+        example: am
+        type: string
+        enumValues:
+          - am
+          - pm
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      status:
+        custom: []
+        name: status
+        description: ''
+        required: false
+        example: lost
+        type: string
+        enumValues:
+          - active
+          - settled
+          - cancelled
+          - lost
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      resultStatus:
+        custom: []
+        name: resultStatus
+        description: ''
+        required: false
+        example: won
+        type: string
+        enumValues:
+          - pending
+          - won
+          - lost
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      paymentUserId:
+        custom: []
+        name: paymentUserId
+        description: 'Must be a valid UUID. Must match an existing stored value.'
+        required: false
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      page:
+        custom: []
+        name: page
+        description: 'Must be at least 1.'
+        required: false
+        example: 67
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      perPage:
+        custom: []
+        name: perPage
+        description: 'Must be at least 1. Must not be greater than 100.'
+        required: false
+        example: 16
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      drawDate: '2026-10-28'
+      timeType: am
+      status: lost
+      resultStatus: won
+      paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+      page: 67
+      perPage: 16
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 404
+        content: |-
+          {
+              "message": "The route api/twod|threed/odds could not be found."
+          }
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          x-request-id: 01a181a9-07b3-71ed-a11a-773722b26975
+          access-control-allow-origin: '*'
+        description: null
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: 'api/{game}/results'
+    metadata:
+      custom: []
+      groupName: 'Customer Betting Handler'
+      groupDescription: 'APIs for managing users bettings'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      drawDate:
+        custom: []
+        name: drawDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: false
+        example: '2026-10-28'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      timeType:
+        custom: []
+        name: timeType
+        description: ''
+        required: false
+        example: am
+        type: string
+        enumValues:
+          - am
+          - pm
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      status:
+        custom: []
+        name: status
+        description: ''
+        required: false
+        example: cancelled
+        type: string
+        enumValues:
+          - active
+          - settled
+          - cancelled
+          - lost
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      resultStatus:
+        custom: []
+        name: resultStatus
+        description: ''
+        required: false
+        example: lost
+        type: string
+        enumValues:
+          - pending
+          - won
+          - lost
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      paymentUserId:
+        custom: []
+        name: paymentUserId
+        description: 'Must be a valid UUID. Must match an existing stored value.'
+        required: false
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      page:
+        custom: []
+        name: page
+        description: 'Must be at least 1.'
+        required: false
+        example: 67
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      perPage:
+        custom: []
+        name: perPage
+        description: 'Must be at least 1. Must not be greater than 100.'
+        required: false
+        example: 16
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      drawDate: '2026-10-28'
+      timeType: am
+      status: cancelled
+      resultStatus: lost
+      paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+      page: 67
+      perPage: 16
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 404
+        content: |-
+          {
+              "message": "The route api/twod|threed/results could not be found."
+          }
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          x-request-id: 01a181a9-07e2-736b-a93b-c1ead45ec2e6
+          access-control-allow-origin: '*'
+        description: null
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: 'api/{game}/bets'
+    metadata:
+      custom: []
+      groupName: 'Customer Betting Handler'
+      groupDescription: 'APIs for managing users bettings'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      drawDate:
+        custom: []
+        name: drawDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: false
+        example: '2026-10-28'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      timeType:
+        custom: []
+        name: timeType
+        description: ''
+        required: false
+        example: am
+        type: string
+        enumValues:
+          - am
+          - pm
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      status:
+        custom: []
+        name: status
+        description: ''
+        required: false
+        example: settled
+        type: string
+        enumValues:
+          - active
+          - settled
+          - cancelled
+          - lost
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      resultStatus:
+        custom: []
+        name: resultStatus
+        description: ''
+        required: false
+        example: pending
+        type: string
+        enumValues:
+          - pending
+          - won
+          - lost
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      paymentUserId:
+        custom: []
+        name: paymentUserId
+        description: 'Must be a valid UUID. Must match an existing stored value.'
+        required: false
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      page:
+        custom: []
+        name: page
+        description: 'Must be at least 1.'
+        required: false
+        example: 67
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      perPage:
+        custom: []
+        name: perPage
+        description: 'Must be at least 1. Must not be greater than 100.'
+        required: false
+        example: 16
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      drawDate: '2026-10-28'
+      timeType: am
+      status: settled
+      resultStatus: pending
+      paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+      page: 67
+      perPage: 16
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 404
+        content: |-
+          {
+              "message": "The route api/twod|threed/bets could not be found."
+          }
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          x-request-id: 01a181a9-07e8-73d7-a0ba-805a499672bf
+          access-control-allow-origin: '*'
+        description: null
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: 'api/{game}/bets/{bet}'
+    metadata:
+      custom: []
+      groupName: 'Customer Betting Handler'
+      groupDescription: 'APIs for managing users bettings'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      bet:
+        custom: []
+        name: bet
+        description: 'The bet.'
+        required: true
+        example: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+      bet: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 404
+        content: |-
+          {
+              "message": "The route api/twod|threed/bets/BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc could not be found."
+          }
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          x-request-id: 01a181a9-07ec-71f5-86f6-24710257cfb3
+          access-control-allow-origin: '*'
+        description: null
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: 'api/{game}/bets'
+    metadata:
+      custom: []
+      groupName: 'Customer Betting Handler'
+      groupDescription: 'APIs for managing users bettings'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      drawDate:
+        custom: []
+        name: drawDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: true
+        example: '2026-10-28'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      timeType:
+        custom: []
+        name: timeType
+        description: ''
+        required: true
+        example: pm
+        type: string
+        enumValues:
+          - am
+          - pm
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      clientReference:
+        custom: []
+        name: clientReference
+        description: 'Must be a valid UUID.'
+        required: true
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      entries:
+        custom: []
+        name: entries
+        description: ''
+        required: true
+        example:
+          - []
+        type: 'object[]'
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      'entries[].number':
+        custom: []
+        name: 'entries[].number'
+        description: 'Must match the regex /\A[0-9]{3}\z/.'
+        required: true
+        example: A564z
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      'entries[].stakeAmount':
+        custom: []
+        name: 'entries[].stakeAmount'
+        description: 'Must match the regex /\A[0-9]{1,50}(\.[0-9]{1,2})?\z/.'
+        required: true
+        example: A4255931z
+        type: number
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      drawDate: '2026-10-28'
+      timeType: pm
+      clientReference: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+      entries:
+        -
+          number: A564z
+          stakeAmount: A4255931z
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null

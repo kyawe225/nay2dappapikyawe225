@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\WithdrawalAccountRequest;
 use App\Http\ServiceContractor\IPaymentAccountService;
 use Illuminate\Http\JsonResponse;
+use Knuckles\Scribe\Attributes\Group;
 
+#[Group("Customer Payment Account Handler", "APIs for managing users Payment Accounts")]
 class PaymentAccountController extends Controller
 {
     public function __construct(private IPaymentAccountService $service) {}

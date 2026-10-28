@@ -7,7 +7,9 @@ use App\Http\Requests\Admin\WalletHistoryRequest;
 use App\Http\Requests\Admin\WalletManagementRequest;
 use App\Http\ServiceContractor\IWalletService;
 use Illuminate\Http\JsonResponse;
+use Knuckles\Scribe\Attributes\Group;
 
+#[Group("Admin Wallet Handler", "APIs for managing admin and users Wallet")]
 class WalletController extends Controller
 {
     public function __construct(private IWalletService $service) {}

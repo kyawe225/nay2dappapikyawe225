@@ -10,6 +10,9 @@ use App\Http\Requests\Admin\SettlementRequest;
 use App\Http\Requests\GameHistoryRequest;
 use App\Http\ServiceContractor\IBetService;
 use Illuminate\Http\JsonResponse;
+use Knuckles\Scribe\Attributes\Group;
+
+#[Group("Admin Bet Handler", "APIs for managing admin and users bets")]
 
 class BetController extends Controller
 {

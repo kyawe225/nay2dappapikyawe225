@@ -9,7 +9,9 @@ use App\Http\Requests\ProfileRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Http\ServiceContractor\IUserService;
 use Illuminate\Http\JsonResponse;
+use Knuckles\Scribe\Attributes\Group;
 
+#[Group("Customer Profile Handler", "APIs for managing users Profile")]
 class UserController extends Controller
 {
     public function __construct(private IUserService $service) {}

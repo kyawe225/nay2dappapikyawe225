@@ -1,0 +1,1120 @@
+name: 'Admin Bet Handler'
+description: 'APIs for managing admin and users bets'
+endpoints:
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: 'api/admin/{game}/odds'
+    metadata:
+      custom: []
+      groupName: 'Admin Bet Handler'
+      groupDescription: 'APIs for managing admin and users bets'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      drawDate:
+        custom: []
+        name: drawDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: false
+        example: '2026-10-28'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      timeType:
+        custom: []
+        name: timeType
+        description: ''
+        required: false
+        example: am
+        type: string
+        enumValues:
+          - am
+          - pm
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      status:
+        custom: []
+        name: status
+        description: ''
+        required: false
+        example: cancelled
+        type: string
+        enumValues:
+          - active
+          - settled
+          - cancelled
+          - lost
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      resultStatus:
+        custom: []
+        name: resultStatus
+        description: ''
+        required: false
+        example: pending
+        type: string
+        enumValues:
+          - pending
+          - won
+          - lost
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      paymentUserId:
+        custom: []
+        name: paymentUserId
+        description: 'Must be a valid UUID. Must match an existing stored value.'
+        required: false
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      page:
+        custom: []
+        name: page
+        description: 'Must be at least 1.'
+        required: false
+        example: 67
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      perPage:
+        custom: []
+        name: perPage
+        description: 'Must be at least 1. Must not be greater than 100.'
+        required: false
+        example: 16
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      drawDate: '2026-10-28'
+      timeType: am
+      status: cancelled
+      resultStatus: pending
+      paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+      page: 67
+      perPage: 16
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 404
+        content: |-
+          {
+              "message": "The route api/admin/twod|threed/odds could not be found."
+          }
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          x-request-id: 01a181a9-08c5-7165-9451-83872ceb993b
+          access-control-allow-origin: '*'
+        description: null
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: 'api/admin/{game}/odds'
+    metadata:
+      custom: []
+      groupName: 'Admin Bet Handler'
+      groupDescription: 'APIs for managing admin and users bets'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      name:
+        custom: []
+        name: name
+        description: 'Must not be greater than 255 characters.'
+        required: true
+        example: b
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      oddNumber:
+        custom: []
+        name: oddNumber
+        description: 'Must match the regex /^\d{1,16}(\.\d{1,4})?$/.'
+        required: true
+        example: '642559'
+        type: number
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      startDate:
+        custom: []
+        name: startDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: false
+        example: '2026-10-28'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      payoutMode:
+        custom: []
+        name: payoutMode
+        description: ''
+        required: true
+        example: profit
+        type: string
+        enumValues:
+          - total
+          - profit
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      name: b
+      oddNumber: '642559'
+      startDate: '2026-10-28'
+      payoutMode: profit
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - PATCH
+    uri: 'api/admin/{game}/odds/{id}'
+    metadata:
+      custom: []
+      groupName: 'Admin Bet Handler'
+      groupDescription: 'APIs for managing admin and users bets'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      id:
+        custom: []
+        name: id
+        description: 'The ID of the odd.'
+        required: true
+        example: architecto
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+      id: architecto
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      name:
+        custom: []
+        name: name
+        description: 'Must not be greater than 255 characters.'
+        required: true
+        example: b
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      oddNumber:
+        custom: []
+        name: oddNumber
+        description: 'Must match the regex /^\d{1,16}(\.\d{1,4})?$/.'
+        required: true
+        example: '642559'
+        type: number
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      startDate:
+        custom: []
+        name: startDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: false
+        example: '2026-10-28'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      payoutMode:
+        custom: []
+        name: payoutMode
+        description: ''
+        required: true
+        example: total
+        type: string
+        enumValues:
+          - total
+          - profit
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      name: b
+      oddNumber: '642559'
+      startDate: '2026-10-28'
+      payoutMode: total
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: 'api/admin/{game}/bets'
+    metadata:
+      custom: []
+      groupName: 'Admin Bet Handler'
+      groupDescription: 'APIs for managing admin and users bets'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      drawDate:
+        custom: []
+        name: drawDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: false
+        example: '2026-10-28'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      timeType:
+        custom: []
+        name: timeType
+        description: ''
+        required: false
+        example: pm
+        type: string
+        enumValues:
+          - am
+          - pm
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      status:
+        custom: []
+        name: status
+        description: ''
+        required: false
+        example: lost
+        type: string
+        enumValues:
+          - active
+          - settled
+          - cancelled
+          - lost
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      resultStatus:
+        custom: []
+        name: resultStatus
+        description: ''
+        required: false
+        example: lost
+        type: string
+        enumValues:
+          - pending
+          - won
+          - lost
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      paymentUserId:
+        custom: []
+        name: paymentUserId
+        description: 'Must be a valid UUID. Must match an existing stored value.'
+        required: false
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      page:
+        custom: []
+        name: page
+        description: 'Must be at least 1.'
+        required: false
+        example: 67
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      perPage:
+        custom: []
+        name: perPage
+        description: 'Must be at least 1. Must not be greater than 100.'
+        required: false
+        example: 16
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      drawDate: '2026-10-28'
+      timeType: pm
+      status: lost
+      resultStatus: lost
+      paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+      page: 67
+      perPage: 16
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 404
+        content: |-
+          {
+              "message": "The route api/admin/twod|threed/bets could not be found."
+          }
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          x-request-id: 01a181a9-08d2-709c-baf7-2ce9111a6e3b
+          access-control-allow-origin: '*'
+        description: null
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: 'api/admin/{game}/results'
+    metadata:
+      custom: []
+      groupName: 'Admin Bet Handler'
+      groupDescription: 'APIs for managing admin and users bets'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      drawDate:
+        custom: []
+        name: drawDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: false
+        example: '2026-10-28'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      timeType:
+        custom: []
+        name: timeType
+        description: ''
+        required: false
+        example: pm
+        type: string
+        enumValues:
+          - am
+          - pm
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      status:
+        custom: []
+        name: status
+        description: ''
+        required: false
+        example: settled
+        type: string
+        enumValues:
+          - active
+          - settled
+          - cancelled
+          - lost
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      resultStatus:
+        custom: []
+        name: resultStatus
+        description: ''
+        required: false
+        example: won
+        type: string
+        enumValues:
+          - pending
+          - won
+          - lost
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      paymentUserId:
+        custom: []
+        name: paymentUserId
+        description: 'Must be a valid UUID. Must match an existing stored value.'
+        required: false
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      page:
+        custom: []
+        name: page
+        description: 'Must be at least 1.'
+        required: false
+        example: 67
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      perPage:
+        custom: []
+        name: perPage
+        description: 'Must be at least 1. Must not be greater than 100.'
+        required: false
+        example: 16
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      drawDate: '2026-10-28'
+      timeType: pm
+      status: settled
+      resultStatus: won
+      paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+      page: 67
+      perPage: 16
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 404
+        content: |-
+          {
+              "message": "The route api/admin/twod|threed/results could not be found."
+          }
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          x-request-id: 01a181a9-08d8-710f-be8c-86c06386722e
+          access-control-allow-origin: '*'
+        description: null
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: 'api/admin/{game}/results'
+    metadata:
+      custom: []
+      groupName: 'Admin Bet Handler'
+      groupDescription: 'APIs for managing admin and users bets'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      drawDate:
+        custom: []
+        name: drawDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: true
+        example: '2026-10-28'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      timeType:
+        custom: []
+        name: timeType
+        description: ''
+        required: true
+        example: am
+        type: string
+        enumValues:
+          - am
+          - pm
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      winningNumber:
+        custom: []
+        name: winningNumber
+        description: 'Must match the regex /^\d{3}$/.'
+        required: true
+        example: '564'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      name:
+        custom: []
+        name: name
+        description: 'Must not be greater than 255 characters.'
+        required: false
+        example: 'y'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      odds:
+        custom: []
+        name: odds
+        description: ''
+        required: false
+        example: null
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      oddNumber:
+        custom: []
+        name: oddNumber
+        description: ''
+        required: false
+        example: null
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      payoutMode:
+        custom: []
+        name: payoutMode
+        description: ''
+        required: false
+        example: null
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      openTime:
+        custom: []
+        name: openTime
+        description: ''
+        required: false
+        example: null
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      cutoffTime:
+        custom: []
+        name: cutoffTime
+        description: ''
+        required: false
+        example: null
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      drawDate: '2026-10-28'
+      timeType: am
+      winningNumber: '564'
+      name: 'y'
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: 'api/admin/{game}/results/preview'
+    metadata:
+      custom: []
+      groupName: 'Admin Bet Handler'
+      groupDescription: 'APIs for managing admin and users bets'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      drawDate:
+        custom: []
+        name: drawDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: true
+        example: '2026-10-28'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      timeType:
+        custom: []
+        name: timeType
+        description: ''
+        required: true
+        example: pm
+        type: string
+        enumValues:
+          - am
+          - pm
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      previewToken:
+        custom: []
+        name: previewToken
+        description: 'Must be 64 characters.'
+        required: false
+        example: bngzmiyvdljnikhwaykcmyuwpwlvqwrsitcpscqldzsnrwtujwvlxjklqppwqbew
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      drawDate: '2026-10-28'
+      timeType: pm
+      previewToken: bngzmiyvdljnikhwaykcmyuwpwlvqwrsitcpscqldzsnrwtujwvlxjklqppwqbew
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: 'api/admin/{game}/results/settle'
+    metadata:
+      custom: []
+      groupName: 'Admin Bet Handler'
+      groupDescription: 'APIs for managing admin and users bets'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      drawDate:
+        custom: []
+        name: drawDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: true
+        example: '2026-10-28'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      timeType:
+        custom: []
+        name: timeType
+        description: ''
+        required: true
+        example: pm
+        type: string
+        enumValues:
+          - am
+          - pm
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      previewToken:
+        custom: []
+        name: previewToken
+        description: 'Must be 64 characters.'
+        required: true
+        example: bngzmiyvdljnikhwaykcmyuwpwlvqwrsitcpscqldzsnrwtujwvlxjklqppwqbew
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      drawDate: '2026-10-28'
+      timeType: pm
+      previewToken: bngzmiyvdljnikhwaykcmyuwpwlvqwrsitcpscqldzsnrwtujwvlxjklqppwqbew
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: 'api/admin/{game}/results/recalculate'
+    metadata:
+      custom: []
+      groupName: 'Admin Bet Handler'
+      groupDescription: 'APIs for managing admin and users bets'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      drawDate:
+        custom: []
+        name: drawDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: true
+        example: '2026-10-28'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      timeType:
+        custom: []
+        name: timeType
+        description: ''
+        required: true
+        example: pm
+        type: string
+        enumValues:
+          - am
+          - pm
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      previewToken:
+        custom: []
+        name: previewToken
+        description: 'Must be 64 characters.'
+        required: false
+        example: bngzmiyvdljnikhwaykcmyuwpwlvqwrsitcpscqldzsnrwtujwvlxjklqppwqbew
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      drawDate: '2026-10-28'
+      timeType: pm
+      previewToken: bngzmiyvdljnikhwaykcmyuwpwlvqwrsitcpscqldzsnrwtujwvlxjklqppwqbew
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: 'api/admin/{game}/results/cancel'
+    metadata:
+      custom: []
+      groupName: 'Admin Bet Handler'
+      groupDescription: 'APIs for managing admin and users bets'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      drawDate:
+        custom: []
+        name: drawDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: true
+        example: '2026-10-28'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      timeType:
+        custom: []
+        name: timeType
+        description: ''
+        required: true
+        example: am
+        type: string
+        enumValues:
+          - am
+          - pm
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      reason:
+        custom: []
+        name: reason
+        description: 'Must not be greater than 700 characters.'
+        required: true
+        example: b
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      drawDate: '2026-10-28'
+      timeType: am
+      reason: b
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
