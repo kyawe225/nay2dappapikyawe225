@@ -51,7 +51,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-081b-729c-b724-1b17e608079e
+          x-request-id: 01a1859e-bc6e-724d-95cf-cb8ae5bf1ca5
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -99,7 +99,7 @@ endpoints:
         name: fromDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -110,7 +110,7 @@ endpoints:
         name: toDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -165,7 +165,7 @@ endpoints:
         name: transactionType
         description: ''
         required: false
-        example: deposit
+        example: withdraw
         type: string
         enumValues:
           - deposit
@@ -178,7 +178,7 @@ endpoints:
         name: transactionStatus
         description: ''
         required: false
-        example: pending_approval
+        example: rejected
         type: string
         enumValues:
           - pending
@@ -207,7 +207,7 @@ endpoints:
         name: movementType
         description: ''
         required: false
-        example: withdraw_rejected
+        example: deposit
         type: string
         enumValues:
           - deposit
@@ -258,16 +258,16 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      fromDate: '2026-10-28'
-      toDate: '2026-10-28'
+      fromDate: '2026-10-29'
+      toDate: '2026-10-29'
       perPage: 1
       transactionsPage: 22
       withdrawalRequestsPage: 67
       walletTransactionsPage: 66
-      transactionType: deposit
-      transactionStatus: pending_approval
+      transactionType: withdraw
+      transactionStatus: rejected
       withdrawalStatus: requested
-      movementType: withdraw_rejected
+      movementType: deposit
       direction: in
       referenceType: m
       referenceId: i
@@ -280,7 +280,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-0822-728a-8fe8-eb6200bf5ede
+          x-request-id: 01a1859e-bc78-72c5-87b9-8da0beb97cf9
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -348,7 +348,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-0826-7189-9569-fcf668243784
+          x-request-id: 01a1859e-bc81-703d-a6cd-2a8714d93308
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -416,7 +416,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-082a-73d2-be62-ea86613ffc6e
+          x-request-id: 01a1859e-bc88-7344-ac24-8679feac7ccd
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -484,7 +484,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-082d-71f0-9c80-8f35f2d6c54f
+          x-request-id: 01a1859e-bc8e-73e4-ae69-b791dab39c0b
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -708,7 +708,7 @@ endpoints:
         name: direction
         description: ''
         required: true
-        example: out
+        example: in
         type: string
         enumValues:
           - in
@@ -796,7 +796,7 @@ endpoints:
     cleanBodyParameters:
       reason: b
       amount: A4255931z
-      direction: out
+      direction: in
       clientReference: cd1eb1ea-4697-3b9a-9dd0-988044a83af6
     fileParameters: []
     responses: []

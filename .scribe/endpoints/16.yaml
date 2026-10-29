@@ -29,7 +29,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: rejected
+        example: pending_approval
         type: string
         enumValues:
           - pending
@@ -57,7 +57,7 @@ endpoints:
         name: fromDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -68,7 +68,7 @@ endpoints:
         name: toDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -97,10 +97,10 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      status: rejected
+      status: pending_approval
       paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
-      fromDate: '2026-10-28'
-      toDate: '2026-10-28'
+      fromDate: '2026-10-29'
+      toDate: '2026-10-29'
       page: 67
       perPage: 16
     fileParameters: []
@@ -112,7 +112,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-0904-7376-bcb2-f6e9b79272bb
+          x-request-id: 01a1859e-bd95-72a4-83b1-0b8605e59ed6
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -160,7 +160,7 @@ endpoints:
         name: status
         description: ''
         required: true
-        example: approved
+        example: rejected
         type: string
         enumValues:
           - approved
@@ -180,7 +180,7 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      status: approved
+      status: rejected
       lastSixTranId: bngzmi
     fileParameters: []
     responses: []
@@ -229,7 +229,7 @@ endpoints:
         name: status
         description: ''
         required: true
-        example: approved
+        example: rejected
         type: string
         enumValues:
           - approved
@@ -249,7 +249,7 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      status: approved
+      status: rejected
       lastSixTranId: bngzmi
     fileParameters: []
     responses: []
@@ -286,7 +286,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: declined
+        example: approved
         type: string
         enumValues:
           - pending
@@ -314,7 +314,7 @@ endpoints:
         name: fromDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -325,7 +325,7 @@ endpoints:
         name: toDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -354,10 +354,10 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      status: declined
+      status: approved
       paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
-      fromDate: '2026-10-28'
-      toDate: '2026-10-28'
+      fromDate: '2026-10-29'
+      toDate: '2026-10-29'
       page: 67
       perPage: 16
     fileParameters: []
@@ -369,7 +369,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-0bc5-70b8-9954-81b2c514013b
+          x-request-id: 01a1859e-bdbc-7332-adc9-485b70f45f85
           access-control-allow-origin: '*'
         description: null
     responseFields: []

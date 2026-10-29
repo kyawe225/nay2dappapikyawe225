@@ -34,7 +34,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a8-fa5f-727f-87ba-0370681698a2
+          x-request-id: 01a1859e-bbc9-7055-adb8-07054f72b9c0
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -87,7 +87,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-072d-733b-9973-10039095ac2f
+          x-request-id: 01a1859e-bc02-739d-b7ef-3feb59209401
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -128,7 +128,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-0808-737c-ab7a-8204655cc2d1
+          x-request-id: 01a1859e-bc59-709f-9ce3-d90138eaa46d
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -268,7 +268,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-080e-73c8-8932-440f0c25dcb1
+          x-request-id: 01a1859e-bc5f-73da-ae55-f395836b90fe
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -326,7 +326,7 @@ endpoints:
         name: method
         description: ''
         required: false
-        example: PATCH
+        example: OPTIONS
         type: string
         enumValues:
           - GET
@@ -366,7 +366,7 @@ endpoints:
         name: fromDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -377,7 +377,7 @@ endpoints:
         name: toDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -408,11 +408,11 @@ endpoints:
     cleanBodyParameters:
       actorUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
       requestId: 6b72fe4a-5b40-307c-bc24-f79acf9a1bb9
-      method: PATCH
+      method: OPTIONS
       statusCode: 100
       search: i
-      fromDate: '2026-10-28'
-      toDate: '2026-10-28'
+      fromDate: '2026-10-29'
+      toDate: '2026-10-29'
       page: 43
       perPage: 1
     fileParameters: []
@@ -424,7 +424,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-0815-7116-9605-9d3c35c21899
+          x-request-id: 01a1859e-bc67-71d2-81a5-823c028b285c
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -483,7 +483,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: suspended
+        example: active
         type: string
         enumValues:
           - active
@@ -560,7 +560,7 @@ endpoints:
         deprecated: false
     cleanBodyParameters:
       search: b
-      status: suspended
+      status: active
       roleId: a4855dc5-0acb-33c3-b921-f4291f719ca0
       page: 66
       paymentsPage: 27
@@ -576,7 +576,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-083d-71e6-ad89-decd94b02a4a
+          x-request-id: 01a1859e-bca6-738d-b185-5ac1f66393b8
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -635,7 +635,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: suspended
+        example: inactive
         type: string
         enumValues:
           - active
@@ -712,7 +712,7 @@ endpoints:
         deprecated: false
     cleanBodyParameters:
       search: b
-      status: suspended
+      status: inactive
       roleId: a4855dc5-0acb-33c3-b921-f4291f719ca0
       page: 66
       paymentsPage: 27
@@ -731,7 +731,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-08a4-7387-a5a6-d91e2f636618
+          x-request-id: 01a1859e-bd2f-700e-a24d-3146ec2b666a
           access-control-allow-origin: '*'
         description: null
     responseFields: []

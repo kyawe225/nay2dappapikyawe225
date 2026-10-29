@@ -40,7 +40,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: active
+        example: inactive
         type: string
         enumValues:
           - active
@@ -117,7 +117,7 @@ endpoints:
         deprecated: false
     cleanBodyParameters:
       search: b
-      status: active
+      status: inactive
       roleId: a4855dc5-0acb-33c3-b921-f4291f719ca0
       page: 66
       paymentsPage: 27
@@ -133,7 +133,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-088f-7304-8427-2466fc865b28
+          x-request-id: 01a1859e-bd13-70a7-a11b-899ca8a614f4
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -180,7 +180,7 @@ endpoints:
         name: type
         description: ''
         required: true
-        example: deposit
+        example: withdraw
         type: string
         enumValues:
           - deposit
@@ -225,7 +225,7 @@ endpoints:
         deprecated: false
     cleanBodyParameters:
       name: b
-      type: deposit
+      type: withdraw
       description: 'Et animi quos velit et fugiat.'
       imageLocation: d
       status: inactive
@@ -281,7 +281,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-0897-7331-a1cd-5eb6f2a7fc7d
+          x-request-id: 01a1859e-bd1e-7252-8af0-43e7e21cefc2
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -340,7 +340,7 @@ endpoints:
         name: type
         description: ''
         required: false
-        example: deposit
+        example: withdraw
         type: string
         enumValues:
           - deposit
@@ -375,7 +375,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: inactive
+        example: active
         type: string
         enumValues:
           - active
@@ -385,10 +385,10 @@ endpoints:
         deprecated: false
     cleanBodyParameters:
       name: b
-      type: deposit
+      type: withdraw
       description: 'Et animi quos velit et fugiat.'
       imageLocation: d
-      status: inactive
+      status: active
     fileParameters: []
     responses: []
     responseFields: []

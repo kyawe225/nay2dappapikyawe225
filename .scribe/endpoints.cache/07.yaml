@@ -36,7 +36,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-07a1-7226-9dd0-2cdbce53d126
+          x-request-id: 01a1859e-bc2f-70bb-9284-20f103a80d9f
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -72,7 +72,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: rejected
+        example: requested
         type: string
         enumValues:
           - pending
@@ -100,7 +100,7 @@ endpoints:
         name: fromDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -111,7 +111,7 @@ endpoints:
         name: toDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -140,10 +140,10 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      status: rejected
+      status: requested
       paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
-      fromDate: '2026-10-28'
-      toDate: '2026-10-28'
+      fromDate: '2026-10-29'
+      toDate: '2026-10-29'
       page: 67
       perPage: 16
     fileParameters: []
@@ -155,7 +155,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-07a8-72da-86e7-581047c935df
+          x-request-id: 01a1859e-bc34-728f-a3b9-dbab9c32815f
           access-control-allow-origin: '*'
         description: null
     responseFields: []

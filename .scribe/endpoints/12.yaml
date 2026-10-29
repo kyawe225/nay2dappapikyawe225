@@ -40,7 +40,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: active
+        example: inactive
         type: string
         enumValues:
           - active
@@ -117,7 +117,7 @@ endpoints:
         deprecated: false
     cleanBodyParameters:
       search: b
-      status: active
+      status: inactive
       roleId: a4855dc5-0acb-33c3-b921-f4291f719ca0
       page: 66
       paymentsPage: 27
@@ -133,7 +133,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-0879-7127-8abf-95fdbd77fbe3
+          x-request-id: 01a1859e-bcf5-737f-91dd-f69007961b80
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -241,7 +241,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-0882-7059-a605-fecbe38645c0
+          x-request-id: 01a1859e-bd02-73a9-8262-763329d581cd
           access-control-allow-origin: '*'
         description: null
     responseFields: []

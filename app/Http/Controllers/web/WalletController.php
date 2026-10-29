@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PaymentHistoryRequest;
 use App\Http\ServiceContractor\IPaymentService;
+use Illuminate\Container\Attributes\Authenticated;
 use Illuminate\Http\JsonResponse;
 use Knuckles\Scribe\Attributes\Group;
 
 #[Group("Customer Wallet Handler", "APIs for managing users Wallet")]
+#[Authenticated]
 class WalletController extends Controller
 {
     public function __construct(private IPaymentService $service) {}

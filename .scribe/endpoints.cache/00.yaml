@@ -16,7 +16,7 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
       Content-Type: application/json
@@ -59,7 +59,7 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
       Content-Type: application/json
@@ -126,7 +126,7 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
       Content-Type: application/json
@@ -146,7 +146,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-05a5-72b0-9745-fb07a825500e
+          x-request-id: 01a1859e-bbf2-7363-a2d9-e1cab6ca60ee
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -167,7 +167,7 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
       Content-Type: application/json
@@ -234,7 +234,7 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
       Content-Type: application/json

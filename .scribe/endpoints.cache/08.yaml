@@ -43,7 +43,7 @@ endpoints:
         name: drawDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -54,7 +54,7 @@ endpoints:
         name: timeType
         description: ''
         required: false
-        example: am
+        example: pm
         type: string
         enumValues:
           - am
@@ -67,7 +67,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: lost
+        example: cancelled
         type: string
         enumValues:
           - active
@@ -125,9 +125,9 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      drawDate: '2026-10-28'
-      timeType: am
-      status: lost
+      drawDate: '2026-10-29'
+      timeType: pm
+      status: cancelled
       resultStatus: won
       paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
       page: 67
@@ -144,7 +144,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-07b3-71ed-a11a-773722b26975
+          x-request-id: 01a1859e-bc3e-73d5-a4fe-2df92442acf8
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -192,7 +192,7 @@ endpoints:
         name: drawDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -203,156 +203,7 @@ endpoints:
         name: timeType
         description: ''
         required: false
-        example: am
-        type: string
-        enumValues:
-          - am
-          - pm
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      status:
-        custom: []
-        name: status
-        description: ''
-        required: false
-        example: cancelled
-        type: string
-        enumValues:
-          - active
-          - settled
-          - cancelled
-          - lost
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      resultStatus:
-        custom: []
-        name: resultStatus
-        description: ''
-        required: false
-        example: lost
-        type: string
-        enumValues:
-          - pending
-          - won
-          - lost
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      paymentUserId:
-        custom: []
-        name: paymentUserId
-        description: 'Must be a valid UUID. Must match an existing stored value.'
-        required: false
-        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      page:
-        custom: []
-        name: page
-        description: 'Must be at least 1.'
-        required: false
-        example: 67
-        type: integer
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      perPage:
-        custom: []
-        name: perPage
-        description: 'Must be at least 1. Must not be greater than 100.'
-        required: false
-        example: 16
-        type: integer
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-    cleanBodyParameters:
-      drawDate: '2026-10-28'
-      timeType: am
-      status: cancelled
-      resultStatus: lost
-      paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
-      page: 67
-      perPage: 16
-    fileParameters: []
-    responses:
-      -
-        custom: []
-        status: 404
-        content: |-
-          {
-              "message": "The route api/twod|threed/results could not be found."
-          }
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a181a9-07e2-736b-a93b-c1ead45ec2e6
-          access-control-allow-origin: '*'
-        description: null
-    responseFields: []
-    auth: []
-    controller: null
-    method: null
-    route: null
-  -
-    custom: []
-    httpMethods:
-      - GET
-    uri: 'api/{game}/bets'
-    metadata:
-      custom: []
-      groupName: 'Customer Betting Handler'
-      groupDescription: 'APIs for managing users bettings'
-      subgroup: ''
-      subgroupDescription: ''
-      title: ''
-      description: ''
-      authenticated: false
-      deprecated: false
-    headers:
-      Content-Type: application/json
-      Accept: application/json
-    urlParameters:
-      game:
-        custom: []
-        name: game
-        description: ''
-        required: true
-        example: twod|threed
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-    cleanUrlParameters:
-      game: twod|threed
-    queryParameters: []
-    cleanQueryParameters: []
-    bodyParameters:
-      drawDate:
-        custom: []
-        name: drawDate
-        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
-        required: false
-        example: '2026-10-28'
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      timeType:
-        custom: []
-        name: timeType
-        description: ''
-        required: false
-        example: am
+        example: pm
         type: string
         enumValues:
           - am
@@ -423,9 +274,158 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      drawDate: '2026-10-28'
-      timeType: am
+      drawDate: '2026-10-29'
+      timeType: pm
       status: settled
+      resultStatus: pending
+      paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+      page: 67
+      perPage: 16
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 404
+        content: |-
+          {
+              "message": "The route api/twod|threed/results could not be found."
+          }
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          x-request-id: 01a1859e-bc46-7266-af7b-a445afec1fc2
+          access-control-allow-origin: '*'
+        description: null
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: 'api/{game}/bets'
+    metadata:
+      custom: []
+      groupName: 'Customer Betting Handler'
+      groupDescription: 'APIs for managing users bettings'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      drawDate:
+        custom: []
+        name: drawDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: false
+        example: '2026-10-29'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      timeType:
+        custom: []
+        name: timeType
+        description: ''
+        required: false
+        example: pm
+        type: string
+        enumValues:
+          - am
+          - pm
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      status:
+        custom: []
+        name: status
+        description: ''
+        required: false
+        example: lost
+        type: string
+        enumValues:
+          - active
+          - settled
+          - cancelled
+          - lost
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      resultStatus:
+        custom: []
+        name: resultStatus
+        description: ''
+        required: false
+        example: pending
+        type: string
+        enumValues:
+          - pending
+          - won
+          - lost
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      paymentUserId:
+        custom: []
+        name: paymentUserId
+        description: 'Must be a valid UUID. Must match an existing stored value.'
+        required: false
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      page:
+        custom: []
+        name: page
+        description: 'Must be at least 1.'
+        required: false
+        example: 67
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      perPage:
+        custom: []
+        name: perPage
+        description: 'Must be at least 1. Must not be greater than 100.'
+        required: false
+        example: 16
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      drawDate: '2026-10-29'
+      timeType: pm
+      status: lost
       resultStatus: pending
       paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
       page: 67
@@ -442,7 +442,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-07e8-73d7-a0ba-805a499672bf
+          x-request-id: 01a1859e-bc4c-7325-a7b2-0d365b73d4c3
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -510,7 +510,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-07ec-71f5-86f6-24710257cfb3
+          x-request-id: 01a1859e-bc50-7003-b74a-dee8769c4e12
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -558,7 +558,7 @@ endpoints:
         name: drawDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: true
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -569,7 +569,7 @@ endpoints:
         name: timeType
         description: ''
         required: true
-        example: pm
+        example: am
         type: string
         enumValues:
           - am
@@ -623,8 +623,8 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      drawDate: '2026-10-28'
-      timeType: pm
+      drawDate: '2026-10-29'
+      timeType: am
       clientReference: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
       entries:
         -

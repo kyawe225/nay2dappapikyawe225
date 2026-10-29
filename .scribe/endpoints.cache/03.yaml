@@ -16,7 +16,7 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
       Content-Type: application/json
@@ -36,7 +36,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-0766-71e0-a255-f76eae7a719f
+          x-request-id: 01a1859e-bc08-71f6-b59e-367a1c418ea7
           access-control-allow-origin: '*'
         description: null
     responseFields: []

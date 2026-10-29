@@ -41,7 +41,7 @@ endpoints:
         name: drawDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -65,7 +65,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: cancelled
+        example: active
         type: string
         enumValues:
           - active
@@ -80,7 +80,7 @@ endpoints:
         name: resultStatus
         description: ''
         required: false
-        example: pending
+        example: lost
         type: string
         enumValues:
           - pending
@@ -123,10 +123,10 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      drawDate: '2026-10-28'
+      drawDate: '2026-10-29'
       timeType: am
-      status: cancelled
-      resultStatus: pending
+      status: active
+      resultStatus: lost
       paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
       page: 67
       perPage: 16
@@ -142,7 +142,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-08c5-7165-9451-83872ceb993b
+          x-request-id: 01a1859e-bd45-70ac-bce2-7218dc79b2fd
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -212,7 +212,7 @@ endpoints:
         name: startDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -234,7 +234,7 @@ endpoints:
     cleanBodyParameters:
       name: b
       oddNumber: '642559'
-      startDate: '2026-10-28'
+      startDate: '2026-10-29'
       payoutMode: profit
     fileParameters: []
     responses: []
@@ -317,7 +317,7 @@ endpoints:
         name: startDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -328,7 +328,7 @@ endpoints:
         name: payoutMode
         description: ''
         required: true
-        example: total
+        example: profit
         type: string
         enumValues:
           - total
@@ -339,8 +339,8 @@ endpoints:
     cleanBodyParameters:
       name: b
       oddNumber: '642559'
-      startDate: '2026-10-28'
-      payoutMode: total
+      startDate: '2026-10-29'
+      payoutMode: profit
     fileParameters: []
     responses: []
     responseFields: []
@@ -388,7 +388,7 @@ endpoints:
         name: drawDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -399,7 +399,7 @@ endpoints:
         name: timeType
         description: ''
         required: false
-        example: pm
+        example: am
         type: string
         enumValues:
           - am
@@ -412,7 +412,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: lost
+        example: settled
         type: string
         enumValues:
           - active
@@ -470,9 +470,9 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      drawDate: '2026-10-28'
-      timeType: pm
-      status: lost
+      drawDate: '2026-10-29'
+      timeType: am
+      status: settled
       resultStatus: lost
       paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
       page: 67
@@ -489,7 +489,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-08d2-709c-baf7-2ce9111a6e3b
+          x-request-id: 01a1859e-bd57-73ff-b61d-97af56607528
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -537,7 +537,7 @@ endpoints:
         name: drawDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -576,7 +576,7 @@ endpoints:
         name: resultStatus
         description: ''
         required: false
-        example: won
+        example: lost
         type: string
         enumValues:
           - pending
@@ -619,10 +619,10 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      drawDate: '2026-10-28'
+      drawDate: '2026-10-29'
       timeType: pm
       status: settled
-      resultStatus: won
+      resultStatus: lost
       paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
       page: 67
       perPage: 16
@@ -638,7 +638,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-08d8-710f-be8c-86c06386722e
+          x-request-id: 01a1859e-bd5e-71fe-8883-d7a5ec6fb8a6
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -686,7 +686,7 @@ endpoints:
         name: drawDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: true
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -783,7 +783,7 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      drawDate: '2026-10-28'
+      drawDate: '2026-10-29'
       timeType: am
       winningNumber: '564'
       name: 'y'
@@ -834,7 +834,7 @@ endpoints:
         name: drawDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: true
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -865,7 +865,7 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      drawDate: '2026-10-28'
+      drawDate: '2026-10-29'
       timeType: pm
       previewToken: bngzmiyvdljnikhwaykcmyuwpwlvqwrsitcpscqldzsnrwtujwvlxjklqppwqbew
     fileParameters: []
@@ -915,7 +915,7 @@ endpoints:
         name: drawDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: true
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -926,7 +926,7 @@ endpoints:
         name: timeType
         description: ''
         required: true
-        example: pm
+        example: am
         type: string
         enumValues:
           - am
@@ -946,8 +946,8 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      drawDate: '2026-10-28'
-      timeType: pm
+      drawDate: '2026-10-29'
+      timeType: am
       previewToken: bngzmiyvdljnikhwaykcmyuwpwlvqwrsitcpscqldzsnrwtujwvlxjklqppwqbew
     fileParameters: []
     responses: []
@@ -996,7 +996,7 @@ endpoints:
         name: drawDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: true
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -1027,7 +1027,7 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      drawDate: '2026-10-28'
+      drawDate: '2026-10-29'
       timeType: pm
       previewToken: bngzmiyvdljnikhwaykcmyuwpwlvqwrsitcpscqldzsnrwtujwvlxjklqppwqbew
     fileParameters: []
@@ -1077,7 +1077,7 @@ endpoints:
         name: drawDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: true
-        example: '2026-10-28'
+        example: '2026-10-29'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -1108,7 +1108,7 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      drawDate: '2026-10-28'
+      drawDate: '2026-10-29'
       timeType: am
       reason: b
     fileParameters: []

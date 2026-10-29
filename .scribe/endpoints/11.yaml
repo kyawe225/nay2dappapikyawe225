@@ -40,7 +40,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: active
+        example: inactive
         type: string
         enumValues:
           - active
@@ -117,7 +117,7 @@ endpoints:
         deprecated: false
     cleanBodyParameters:
       search: b
-      status: active
+      status: inactive
       roleId: a4855dc5-0acb-33c3-b921-f4291f719ca0
       page: 66
       paymentsPage: 27
@@ -133,7 +133,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-0862-7119-9f54-54f8ad267c1a
+          x-request-id: 01a1859e-bcd9-707c-85ae-cf54991f7815
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -191,7 +191,7 @@ endpoints:
         name: type
         description: ''
         required: true
-        example: link
+        example: phone
         type: string
         enumValues:
           - link
@@ -216,7 +216,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: active
+        example: inactive
         type: string
         enumValues:
           - active
@@ -227,9 +227,9 @@ endpoints:
     cleanBodyParameters:
       name: b
       supportTypeId: a4855dc5-0acb-33c3-b921-f4291f719ca0
-      type: link
+      type: phone
       value: z
-      status: active
+      status: inactive
     fileParameters: []
     responses: []
     responseFields: []
@@ -282,7 +282,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a181a9-086b-73b7-af61-b4508bfa759e
+          x-request-id: 01a1859e-bce3-71b8-baf7-fa4e0630e54b
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -352,7 +352,7 @@ endpoints:
         name: type
         description: ''
         required: false
-        example: link
+        example: other
         type: string
         enumValues:
           - link
@@ -377,7 +377,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: inactive
+        example: active
         type: string
         enumValues:
           - active
@@ -388,9 +388,9 @@ endpoints:
     cleanBodyParameters:
       name: b
       supportTypeId: a4855dc5-0acb-33c3-b921-f4291f719ca0
-      type: link
+      type: other
       value: z
-      status: inactive
+      status: active
     fileParameters: []
     responses: []
     responseFields: []
