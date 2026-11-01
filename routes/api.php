@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BetController as AdminBetController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -143,3 +144,5 @@ Route::middleware(['auth:sanctum', EnsureActiveAccount::class, 'abilities:access
         Route::patch('payment/withdrawal/{withdrawal}/status', [AdminPaymentController::class, 'ReviewWithdrawal'])->whereUuid('withdrawal')->name('payment.withdrawal.status');
     });
 });
+
+Route::post("admin/auth/login",[AdminAuthController::class,"Login"]);

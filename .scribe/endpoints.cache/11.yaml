@@ -135,7 +135,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a1859e-bcd9-707c-85ae-cf54991f7815
+          x-request-id: 01a195e2-0d3f-70bb-91ea-3264bb07dda2
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -193,7 +193,7 @@ endpoints:
         name: type
         description: ''
         required: true
-        example: phone
+        example: other
         type: string
         enumValues:
           - link
@@ -218,7 +218,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: inactive
+        example: active
         type: string
         enumValues:
           - active
@@ -229,9 +229,9 @@ endpoints:
     cleanBodyParameters:
       name: b
       supportTypeId: a4855dc5-0acb-33c3-b921-f4291f719ca0
-      type: phone
+      type: other
       value: z
-      status: inactive
+      status: active
     fileParameters: []
     responses: []
     responseFields: []
@@ -284,7 +284,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a1859e-bce3-71b8-baf7-fa4e0630e54b
+          x-request-id: 01a195e2-0d4e-7334-9e1a-d46d013fb021
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -379,7 +379,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: active
+        example: inactive
         type: string
         enumValues:
           - active
@@ -392,7 +392,7 @@ endpoints:
       supportTypeId: a4855dc5-0acb-33c3-b921-f4291f719ca0
       type: other
       value: z
-      status: active
+      status: inactive
     fileParameters: []
     responses: []
     responseFields: []

@@ -22,7 +22,27 @@ class AuthService implements IAuthService
     {
         return DB::transaction(function () use ($request): ResponseModel {
             $data = $request->validated();
-            $user = User::query()->where('email', $data['email'])->lockForUpdate()->first();
+            $user = User::query()->where('email', $data['email'])->whereHas("role", function ($query) {
+                $query->where("name", "Customer");
+            })->lockForUpdate()->first();
+            if ($user === null || ! Hash::check($data['password'], $user->password)) {
+                return ResponseModel::unauthorized('Email or password is incorrect.', null);
+            }
+            if ($user->status !== 'active' || ! $user->role()->where('status', 'active')->exists()) {
+                return new ResponseModel(403, 'This account is not active!', null);
+            }
+
+            return ResponseModel::ok('Login successfully.', $this->generateTokens($user));
+        }, 3);
+    }
+
+    public function AdminLogin(LoginRequest $request): ResponseModel
+    {
+        return DB::transaction(function () use ($request): ResponseModel {
+            $data = $request->validated();
+            $user = User::query()->where('email', $data['email'])->whereHas("role", function ($query) {
+                $query->where("name","!=", "Customer");
+            })->lockForUpdate()->first();
             if ($user === null || ! Hash::check($data['password'], $user->password)) {
                 return ResponseModel::unauthorized('Email or password is incorrect.', null);
             }

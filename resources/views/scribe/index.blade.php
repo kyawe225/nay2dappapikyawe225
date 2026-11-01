@@ -446,7 +446,7 @@
     </ul>
 
     <ul class="toc-footer" id="last-updated">
-        <li>Last updated: October 29, 2026</li>
+        <li>Last updated: November 1, 2026</li>
     </ul>
 </div>
 
@@ -486,9 +486,9 @@ You can switch the language used with the tabs at the top right (or from the nav
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"drawDate\": \"2026-10-29\",
-    \"timeType\": \"am\",
-    \"status\": \"active\",
+    \"drawDate\": \"2026-11-01\",
+    \"timeType\": \"pm\",
+    \"status\": \"settled\",
     \"resultStatus\": \"lost\",
     \"paymentUserId\": \"6ff8f7f6-1eb3-3525-be4a-3932c805afed\",
     \"page\": 67,
@@ -508,9 +508,9 @@ const headers = {
 };
 
 let body = {
-    "drawDate": "2026-10-29",
-    "timeType": "am",
-    "status": "active",
+    "drawDate": "2026-11-01",
+    "timeType": "pm",
+    "status": "settled",
     "resultStatus": "lost",
     "paymentUserId": "6ff8f7f6-1eb3-3525-be4a-3932c805afed",
     "page": 67,
@@ -535,7 +535,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bd45-70ac-bce2-7218dc79b2fd
+x-request-id: 01a195e2-0dd7-72fb-ac65-9d80cb75a94d
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -636,10 +636,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="drawDate"                data-endpoint="GETapi-admin--game--odds"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>timeType</code></b>&nbsp;&nbsp;
@@ -648,10 +648,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="timeType"                data-endpoint="GETapi-admin--game--odds"
-               value="am"
+               value="pm"
                data-component="body">
     <br>
-<p>Example: <code>am</code></p>
+<p>Example: <code>pm</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>am</code></li> <li><code>pm</code></li></ul>
         </div>
@@ -662,10 +662,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="GETapi-admin--game--odds"
-               value="active"
+               value="settled"
                data-component="body">
     <br>
-<p>Example: <code>active</code></p>
+<p>Example: <code>settled</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>active</code></li> <li><code>settled</code></li> <li><code>cancelled</code></li> <li><code>lost</code></li></ul>
         </div>
@@ -740,8 +740,8 @@ Must be one of:
     --data "{
     \"name\": \"b\",
     \"oddNumber\": \"642559\",
-    \"startDate\": \"2026-10-29\",
-    \"payoutMode\": \"profit\"
+    \"startDate\": \"2026-11-01\",
+    \"payoutMode\": \"total\"
 }"
 </code></pre></div>
 
@@ -759,8 +759,8 @@ const headers = {
 let body = {
     "name": "b",
     "oddNumber": "642559",
-    "startDate": "2026-10-29",
-    "payoutMode": "profit"
+    "startDate": "2026-11-01",
+    "payoutMode": "total"
 };
 
 fetch(url, {
@@ -889,10 +889,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="startDate"                data-endpoint="POSTapi-admin--game--odds"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>payoutMode</code></b>&nbsp;&nbsp;
@@ -901,10 +901,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="payoutMode"                data-endpoint="POSTapi-admin--game--odds"
-               value="profit"
+               value="total"
                data-component="body">
     <br>
-<p>Example: <code>profit</code></p>
+<p>Example: <code>total</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>total</code></li> <li><code>profit</code></li></ul>
         </div>
@@ -929,8 +929,8 @@ Must be one of:
     --data "{
     \"name\": \"b\",
     \"oddNumber\": \"642559\",
-    \"startDate\": \"2026-10-29\",
-    \"payoutMode\": \"profit\"
+    \"startDate\": \"2026-11-01\",
+    \"payoutMode\": \"total\"
 }"
 </code></pre></div>
 
@@ -948,8 +948,8 @@ const headers = {
 let body = {
     "name": "b",
     "oddNumber": "642559",
-    "startDate": "2026-10-29",
-    "payoutMode": "profit"
+    "startDate": "2026-11-01",
+    "payoutMode": "total"
 };
 
 fetch(url, {
@@ -1090,10 +1090,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="startDate"                data-endpoint="PATCHapi-admin--game--odds--id-"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>payoutMode</code></b>&nbsp;&nbsp;
@@ -1102,10 +1102,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="payoutMode"                data-endpoint="PATCHapi-admin--game--odds--id-"
-               value="profit"
+               value="total"
                data-component="body">
     <br>
-<p>Example: <code>profit</code></p>
+<p>Example: <code>total</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>total</code></li> <li><code>profit</code></li></ul>
         </div>
@@ -1128,10 +1128,10 @@ Must be one of:
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"drawDate\": \"2026-10-29\",
+    \"drawDate\": \"2026-11-01\",
     \"timeType\": \"am\",
-    \"status\": \"settled\",
-    \"resultStatus\": \"lost\",
+    \"status\": \"lost\",
+    \"resultStatus\": \"won\",
     \"paymentUserId\": \"6ff8f7f6-1eb3-3525-be4a-3932c805afed\",
     \"page\": 67,
     \"perPage\": 16
@@ -1150,10 +1150,10 @@ const headers = {
 };
 
 let body = {
-    "drawDate": "2026-10-29",
+    "drawDate": "2026-11-01",
     "timeType": "am",
-    "status": "settled",
-    "resultStatus": "lost",
+    "status": "lost",
+    "resultStatus": "won",
     "paymentUserId": "6ff8f7f6-1eb3-3525-be4a-3932c805afed",
     "page": 67,
     "perPage": 16
@@ -1177,7 +1177,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bd57-73ff-b61d-97af56607528
+x-request-id: 01a195e2-0dee-7016-a15b-e805d0369c7c
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -1278,10 +1278,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="drawDate"                data-endpoint="GETapi-admin--game--bets"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>timeType</code></b>&nbsp;&nbsp;
@@ -1304,10 +1304,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="GETapi-admin--game--bets"
-               value="settled"
+               value="lost"
                data-component="body">
     <br>
-<p>Example: <code>settled</code></p>
+<p>Example: <code>lost</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>active</code></li> <li><code>settled</code></li> <li><code>cancelled</code></li> <li><code>lost</code></li></ul>
         </div>
@@ -1318,10 +1318,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="resultStatus"                data-endpoint="GETapi-admin--game--bets"
-               value="lost"
+               value="won"
                data-component="body">
     <br>
-<p>Example: <code>lost</code></p>
+<p>Example: <code>won</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>pending</code></li> <li><code>won</code></li> <li><code>lost</code></li></ul>
         </div>
@@ -1380,10 +1380,10 @@ Must be one of:
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"drawDate\": \"2026-10-29\",
+    \"drawDate\": \"2026-11-01\",
     \"timeType\": \"pm\",
     \"status\": \"settled\",
-    \"resultStatus\": \"lost\",
+    \"resultStatus\": \"won\",
     \"paymentUserId\": \"6ff8f7f6-1eb3-3525-be4a-3932c805afed\",
     \"page\": 67,
     \"perPage\": 16
@@ -1402,10 +1402,10 @@ const headers = {
 };
 
 let body = {
-    "drawDate": "2026-10-29",
+    "drawDate": "2026-11-01",
     "timeType": "pm",
     "status": "settled",
-    "resultStatus": "lost",
+    "resultStatus": "won",
     "paymentUserId": "6ff8f7f6-1eb3-3525-be4a-3932c805afed",
     "page": 67,
     "perPage": 16
@@ -1429,7 +1429,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bd5e-71fe-8883-d7a5ec6fb8a6
+x-request-id: 01a195e2-0df7-7108-8428-f70cef254dbd
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -1530,10 +1530,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="drawDate"                data-endpoint="GETapi-admin--game--results"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>timeType</code></b>&nbsp;&nbsp;
@@ -1570,10 +1570,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="resultStatus"                data-endpoint="GETapi-admin--game--results"
-               value="lost"
+               value="won"
                data-component="body">
     <br>
-<p>Example: <code>lost</code></p>
+<p>Example: <code>won</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>pending</code></li> <li><code>won</code></li> <li><code>lost</code></li></ul>
         </div>
@@ -1632,8 +1632,8 @@ Must be one of:
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"drawDate\": \"2026-10-29\",
-    \"timeType\": \"am\",
+    \"drawDate\": \"2026-11-01\",
+    \"timeType\": \"pm\",
     \"winningNumber\": \"564\",
     \"name\": \"y\"
 }"
@@ -1651,8 +1651,8 @@ const headers = {
 };
 
 let body = {
-    "drawDate": "2026-10-29",
-    "timeType": "am",
+    "drawDate": "2026-11-01",
+    "timeType": "pm",
     "winningNumber": "564",
     "name": "y"
 };
@@ -1759,10 +1759,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="drawDate"                data-endpoint="POSTapi-admin--game--results"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>timeType</code></b>&nbsp;&nbsp;
@@ -1771,10 +1771,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="timeType"                data-endpoint="POSTapi-admin--game--results"
-               value="am"
+               value="pm"
                data-component="body">
     <br>
-<p>Example: <code>am</code></p>
+<p>Example: <code>pm</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>am</code></li> <li><code>pm</code></li></ul>
         </div>
@@ -1881,7 +1881,7 @@ Must be one of:
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"drawDate\": \"2026-10-29\",
+    \"drawDate\": \"2026-11-01\",
     \"timeType\": \"pm\",
     \"previewToken\": \"bngzmiyvdljnikhwaykcmyuwpwlvqwrsitcpscqldzsnrwtujwvlxjklqppwqbew\"
 }"
@@ -1899,7 +1899,7 @@ const headers = {
 };
 
 let body = {
-    "drawDate": "2026-10-29",
+    "drawDate": "2026-11-01",
     "timeType": "pm",
     "previewToken": "bngzmiyvdljnikhwaykcmyuwpwlvqwrsitcpscqldzsnrwtujwvlxjklqppwqbew"
 };
@@ -2006,10 +2006,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="drawDate"                data-endpoint="POSTapi-admin--game--results-preview"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>timeType</code></b>&nbsp;&nbsp;
@@ -2056,7 +2056,7 @@ Must be one of:
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"drawDate\": \"2026-10-29\",
+    \"drawDate\": \"2026-11-01\",
     \"timeType\": \"am\",
     \"previewToken\": \"bngzmiyvdljnikhwaykcmyuwpwlvqwrsitcpscqldzsnrwtujwvlxjklqppwqbew\"
 }"
@@ -2074,7 +2074,7 @@ const headers = {
 };
 
 let body = {
-    "drawDate": "2026-10-29",
+    "drawDate": "2026-11-01",
     "timeType": "am",
     "previewToken": "bngzmiyvdljnikhwaykcmyuwpwlvqwrsitcpscqldzsnrwtujwvlxjklqppwqbew"
 };
@@ -2181,10 +2181,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="drawDate"                data-endpoint="POSTapi-admin--game--results-settle"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>timeType</code></b>&nbsp;&nbsp;
@@ -2231,7 +2231,7 @@ Must be one of:
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"drawDate\": \"2026-10-29\",
+    \"drawDate\": \"2026-11-01\",
     \"timeType\": \"pm\",
     \"previewToken\": \"bngzmiyvdljnikhwaykcmyuwpwlvqwrsitcpscqldzsnrwtujwvlxjklqppwqbew\"
 }"
@@ -2249,7 +2249,7 @@ const headers = {
 };
 
 let body = {
-    "drawDate": "2026-10-29",
+    "drawDate": "2026-11-01",
     "timeType": "pm",
     "previewToken": "bngzmiyvdljnikhwaykcmyuwpwlvqwrsitcpscqldzsnrwtujwvlxjklqppwqbew"
 };
@@ -2356,10 +2356,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="drawDate"                data-endpoint="POSTapi-admin--game--results-recalculate"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>timeType</code></b>&nbsp;&nbsp;
@@ -2406,8 +2406,8 @@ Must be one of:
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"drawDate\": \"2026-10-29\",
-    \"timeType\": \"am\",
+    \"drawDate\": \"2026-11-01\",
+    \"timeType\": \"pm\",
     \"reason\": \"b\"
 }"
 </code></pre></div>
@@ -2424,8 +2424,8 @@ const headers = {
 };
 
 let body = {
-    "drawDate": "2026-10-29",
-    "timeType": "am",
+    "drawDate": "2026-11-01",
+    "timeType": "pm",
     "reason": "b"
 };
 
@@ -2531,10 +2531,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="drawDate"                data-endpoint="POSTapi-admin--game--results-cancel"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>timeType</code></b>&nbsp;&nbsp;
@@ -2543,10 +2543,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="timeType"                data-endpoint="POSTapi-admin--game--results-cancel"
-               value="am"
+               value="pm"
                data-component="body">
     <br>
-<p>Example: <code>am</code></p>
+<p>Example: <code>pm</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>am</code></li> <li><code>pm</code></li></ul>
         </div>
@@ -2614,7 +2614,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bd80-73da-bc32-78cb539b3aae
+x-request-id: 01a195e2-0e2a-70b7-9330-f3f6eb70f0a2
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -3052,10 +3052,10 @@ Must be one of:
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"status\": \"pending_approval\",
+    \"status\": \"approved\",
     \"paymentUserId\": \"6ff8f7f6-1eb3-3525-be4a-3932c805afed\",
-    \"fromDate\": \"2026-10-29\",
-    \"toDate\": \"2026-10-29\",
+    \"fromDate\": \"2026-11-01\",
+    \"toDate\": \"2026-11-01\",
     \"page\": 67,
     \"perPage\": 16
 }"
@@ -3073,10 +3073,10 @@ const headers = {
 };
 
 let body = {
-    "status": "pending_approval",
+    "status": "approved",
     "paymentUserId": "6ff8f7f6-1eb3-3525-be4a-3932c805afed",
-    "fromDate": "2026-10-29",
-    "toDate": "2026-10-29",
+    "fromDate": "2026-11-01",
+    "toDate": "2026-11-01",
     "page": 67,
     "perPage": 16
 };
@@ -3099,7 +3099,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bd95-72a4-83b1-0b8605e59ed6
+x-request-id: 01a195e2-0e49-716f-8c10-3389e66c9eff
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -3187,10 +3187,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="GETapi-admin-payment-deposit"
-               value="pending_approval"
+               value="approved"
                data-component="body">
     <br>
-<p>Example: <code>pending_approval</code></p>
+<p>Example: <code>approved</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>pending</code></li> <li><code>pending_approval</code></li> <li><code>approved</code></li> <li><code>rejected</code></li> <li><code>requested</code></li> <li><code>declined</code></li></ul>
         </div>
@@ -3213,10 +3213,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="fromDate"                data-endpoint="GETapi-admin-payment-deposit"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>toDate</code></b>&nbsp;&nbsp;
@@ -3225,10 +3225,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="toDate"                data-endpoint="GETapi-admin-payment-deposit"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>page</code></b>&nbsp;&nbsp;
@@ -3595,10 +3595,10 @@ Must be one of:
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"status\": \"approved\",
+    \"status\": \"declined\",
     \"paymentUserId\": \"6ff8f7f6-1eb3-3525-be4a-3932c805afed\",
-    \"fromDate\": \"2026-10-29\",
-    \"toDate\": \"2026-10-29\",
+    \"fromDate\": \"2026-11-01\",
+    \"toDate\": \"2026-11-01\",
     \"page\": 67,
     \"perPage\": 16
 }"
@@ -3616,10 +3616,10 @@ const headers = {
 };
 
 let body = {
-    "status": "approved",
+    "status": "declined",
     "paymentUserId": "6ff8f7f6-1eb3-3525-be4a-3932c805afed",
-    "fromDate": "2026-10-29",
-    "toDate": "2026-10-29",
+    "fromDate": "2026-11-01",
+    "toDate": "2026-11-01",
     "page": 67,
     "perPage": 16
 };
@@ -3642,7 +3642,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bdbc-7332-adc9-485b70f45f85
+x-request-id: 01a195e2-0e8a-73a0-9cc6-be8b97d56e80
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -3730,10 +3730,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="GETapi-admin-payment-withdrawal"
-               value="approved"
+               value="declined"
                data-component="body">
     <br>
-<p>Example: <code>approved</code></p>
+<p>Example: <code>declined</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>pending</code></li> <li><code>pending_approval</code></li> <li><code>approved</code></li> <li><code>rejected</code></li> <li><code>requested</code></li> <li><code>declined</code></li></ul>
         </div>
@@ -3756,10 +3756,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="fromDate"                data-endpoint="GETapi-admin-payment-withdrawal"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>toDate</code></b>&nbsp;&nbsp;
@@ -3768,10 +3768,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="toDate"                data-endpoint="GETapi-admin-payment-withdrawal"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>page</code></b>&nbsp;&nbsp;
@@ -3816,7 +3816,7 @@ Must be one of:
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"status\": \"approved\",
+    \"status\": \"rejected\",
     \"lastSixTranId\": \"bngzmi\"
 }"
 </code></pre></div>
@@ -3833,7 +3833,7 @@ const headers = {
 };
 
 let body = {
-    "status": "approved",
+    "status": "rejected",
     "lastSixTranId": "bngzmi"
 };
 
@@ -3939,10 +3939,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="POSTapi-admin-payment-withdrawal--withdrawal_id--approve"
-               value="approved"
+               value="rejected"
                data-component="body">
     <br>
-<p>Example: <code>approved</code></p>
+<p>Example: <code>rejected</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>approved</code></li> <li><code>rejected</code></li></ul>
         </div>
@@ -4143,7 +4143,7 @@ Must be one of:
     --header "Accept: application/json" \
     --data "{
     \"search\": \"b\",
-    \"status\": \"inactive\",
+    \"status\": \"suspended\",
     \"roleId\": \"a4855dc5-0acb-33c3-b921-f4291f719ca0\",
     \"page\": 66,
     \"paymentsPage\": 27,
@@ -4166,7 +4166,7 @@ const headers = {
 
 let body = {
     "search": "b",
-    "status": "inactive",
+    "status": "suspended",
     "roleId": "a4855dc5-0acb-33c3-b921-f4291f719ca0",
     "page": 66,
     "paymentsPage": 27,
@@ -4193,7 +4193,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bd13-70a7-a11b-899ca8a614f4
+x-request-id: 01a195e2-0d93-70bf-9afb-28f27f16627e
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -4293,10 +4293,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="GETapi-admin-payment-methods"
-               value="inactive"
+               value="suspended"
                data-component="body">
     <br>
-<p>Example: <code>inactive</code></p>
+<p>Example: <code>suspended</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>active</code></li> <li><code>inactive</code></li> <li><code>suspended</code></li></ul>
         </div>
@@ -4395,7 +4395,7 @@ Must be one of:
     \"type\": \"withdraw\",
     \"description\": \"Et animi quos velit et fugiat.\",
     \"imageLocation\": \"d\",
-    \"status\": \"inactive\"
+    \"status\": \"active\"
 }"
 </code></pre></div>
 
@@ -4415,7 +4415,7 @@ let body = {
     "type": "withdraw",
     "description": "Et animi quos velit et fugiat.",
     "imageLocation": "d",
-    "status": "inactive"
+    "status": "active"
 };
 
 fetch(url, {
@@ -4557,10 +4557,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="POSTapi-admin-payment-methods"
-               value="inactive"
+               value="active"
                data-component="body">
     <br>
-<p>Example: <code>inactive</code></p>
+<p>Example: <code>active</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>active</code></li> <li><code>inactive</code></li></ul>
         </div>
@@ -4612,7 +4612,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bd1e-7252-8af0-43e7e21cefc2
+x-request-id: 01a195e2-0da0-734e-8c4b-361e2ea9827f
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -5108,7 +5108,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bcd9-707c-85ae-cf54991f7815
+x-request-id: 01a195e2-0d3f-70bb-91ea-3264bb07dda2
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -5308,9 +5308,9 @@ Must be one of:
     --data "{
     \"name\": \"b\",
     \"supportTypeId\": \"a4855dc5-0acb-33c3-b921-f4291f719ca0\",
-    \"type\": \"phone\",
+    \"type\": \"other\",
     \"value\": \"z\",
-    \"status\": \"inactive\"
+    \"status\": \"active\"
 }"
 </code></pre></div>
 
@@ -5328,9 +5328,9 @@ const headers = {
 let body = {
     "name": "b",
     "supportTypeId": "a4855dc5-0acb-33c3-b921-f4291f719ca0",
-    "type": "phone",
+    "type": "other",
     "value": "z",
-    "status": "inactive"
+    "status": "active"
 };
 
 fetch(url, {
@@ -5446,10 +5446,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="type"                data-endpoint="POSTapi-admin-supports"
-               value="phone"
+               value="other"
                data-component="body">
     <br>
-<p>Example: <code>phone</code></p>
+<p>Example: <code>other</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>link</code></li> <li><code>phone</code></li> <li><code>other</code></li></ul>
         </div>
@@ -5472,10 +5472,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="POSTapi-admin-supports"
-               value="inactive"
+               value="active"
                data-component="body">
     <br>
-<p>Example: <code>inactive</code></p>
+<p>Example: <code>active</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>active</code></li> <li><code>inactive</code></li></ul>
         </div>
@@ -5527,7 +5527,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bce3-71b8-baf7-fa4e0630e54b
+x-request-id: 01a195e2-0d4e-7334-9e1a-d46d013fb021
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -5643,7 +5643,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
     \"supportTypeId\": \"a4855dc5-0acb-33c3-b921-f4291f719ca0\",
     \"type\": \"other\",
     \"value\": \"z\",
-    \"status\": \"active\"
+    \"status\": \"inactive\"
 }"
 </code></pre></div>
 
@@ -5663,7 +5663,7 @@ let body = {
     "supportTypeId": "a4855dc5-0acb-33c3-b921-f4291f719ca0",
     "type": "other",
     "value": "z",
-    "status": "active"
+    "status": "inactive"
 };
 
 fetch(url, {
@@ -5818,10 +5818,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="PATCHapi-admin-supports--record-"
-               value="active"
+               value="inactive"
                data-component="body">
     <br>
-<p>Example: <code>active</code></p>
+<p>Example: <code>inactive</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>active</code></li> <li><code>inactive</code></li></ul>
         </div>
@@ -5973,7 +5973,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
     --header "Accept: application/json" \
     --data "{
     \"search\": \"b\",
-    \"status\": \"inactive\",
+    \"status\": \"active\",
     \"roleId\": \"a4855dc5-0acb-33c3-b921-f4291f719ca0\",
     \"page\": 66,
     \"paymentsPage\": 27,
@@ -5996,7 +5996,7 @@ const headers = {
 
 let body = {
     "search": "b",
-    "status": "inactive",
+    "status": "active",
     "roleId": "a4855dc5-0acb-33c3-b921-f4291f719ca0",
     "page": 66,
     "paymentsPage": 27,
@@ -6023,7 +6023,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bcf5-737f-91dd-f69007961b80
+x-request-id: 01a195e2-0d6a-720b-8ce4-59835c1c2ae1
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -6123,10 +6123,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="GETapi-admin-support-types"
-               value="inactive"
+               value="active"
                data-component="body">
     <br>
-<p>Example: <code>inactive</code></p>
+<p>Example: <code>active</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>active</code></li> <li><code>inactive</code></li> <li><code>suspended</code></li></ul>
         </div>
@@ -6396,7 +6396,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bd02-73a9-8262-763329d581cd
+x-request-id: 01a195e2-0d79-7193-89e7-d19a4e981836
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -6796,7 +6796,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
     --header "Accept: application/json" \
     --data "{
     \"search\": \"b\",
-    \"status\": \"active\",
+    \"status\": \"suspended\",
     \"roleId\": \"a4855dc5-0acb-33c3-b921-f4291f719ca0\",
     \"page\": 66,
     \"paymentsPage\": 27,
@@ -6819,7 +6819,7 @@ const headers = {
 
 let body = {
     "search": "b",
-    "status": "active",
+    "status": "suspended",
     "roleId": "a4855dc5-0acb-33c3-b921-f4291f719ca0",
     "page": 66,
     "paymentsPage": 27,
@@ -6846,7 +6846,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bcb2-716b-9f1f-83f8166ccd47
+x-request-id: 01a195e2-0d14-7151-aa65-778ed087c556
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -6946,10 +6946,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="GETapi-admin-accounts"
-               value="active"
+               value="suspended"
                data-component="body">
     <br>
-<p>Example: <code>active</code></p>
+<p>Example: <code>suspended</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>active</code></li> <li><code>inactive</code></li> <li><code>suspended</code></li></ul>
         </div>
@@ -7048,7 +7048,7 @@ Must be one of:
     \"email\": \"zbailey@example.net\",
     \"password\": \"-0pBNvYgxw\",
     \"roleId\": \"3c85cf54-98c1-36ed-b65a-abaafdecdfa9\",
-    \"status\": \"active\"
+    \"status\": \"suspended\"
 }"
 </code></pre></div>
 
@@ -7068,7 +7068,7 @@ let body = {
     "email": "zbailey@example.net",
     "password": "-0pBNvYgxw",
     "roleId": "3c85cf54-98c1-36ed-b65a-abaafdecdfa9",
-    "status": "active"
+    "status": "suspended"
 };
 
 fetch(url, {
@@ -7208,10 +7208,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="POSTapi-admin-accounts"
-               value="active"
+               value="suspended"
                data-component="body">
     <br>
-<p>Example: <code>active</code></p>
+<p>Example: <code>suspended</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>active</code></li> <li><code>suspended</code></li></ul>
         </div>
@@ -7263,7 +7263,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bcc1-73c7-be54-a6968722c45d
+x-request-id: 01a195e2-0d23-73d2-9dd9-f470b4e3e60e
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -7605,7 +7605,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bccc-702e-b692-919cdf486247
+x-request-id: 01a195e2-0d2e-715d-8ba4-04effa4a1e9c
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -7737,7 +7737,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc6e-724d-95cf-cb8ae5bf1ca5
+x-request-id: 01a195e2-0cc1-734d-a549-81da69821621
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -7849,17 +7849,17 @@ You can check the Dev Tools console for debugging information.</code></pre>
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"fromDate\": \"2026-10-29\",
-    \"toDate\": \"2026-10-29\",
+    \"fromDate\": \"2026-11-01\",
+    \"toDate\": \"2026-11-01\",
     \"perPage\": 1,
     \"transactionsPage\": 22,
     \"withdrawalRequestsPage\": 67,
     \"walletTransactionsPage\": 66,
-    \"transactionType\": \"withdraw\",
+    \"transactionType\": \"deposit\",
     \"transactionStatus\": \"rejected\",
     \"withdrawalStatus\": \"requested\",
-    \"movementType\": \"deposit\",
-    \"direction\": \"in\",
+    \"movementType\": \"withdraw_failed\",
+    \"direction\": \"out\",
     \"referenceType\": \"m\",
     \"referenceId\": \"i\"
 }"
@@ -7877,17 +7877,17 @@ const headers = {
 };
 
 let body = {
-    "fromDate": "2026-10-29",
-    "toDate": "2026-10-29",
+    "fromDate": "2026-11-01",
+    "toDate": "2026-11-01",
     "perPage": 1,
     "transactionsPage": 22,
     "withdrawalRequestsPage": 67,
     "walletTransactionsPage": 66,
-    "transactionType": "withdraw",
+    "transactionType": "deposit",
     "transactionStatus": "rejected",
     "withdrawalStatus": "requested",
-    "movementType": "deposit",
-    "direction": "in",
+    "movementType": "withdraw_failed",
+    "direction": "out",
     "referenceType": "m",
     "referenceId": "i"
 };
@@ -7910,7 +7910,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc78-72c5-87b9-8da0beb97cf9
+x-request-id: 01a195e2-0ccf-720b-8a1c-099a82d80e84
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -8011,10 +8011,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="fromDate"                data-endpoint="GETapi-admin-accounts--account--wallet-history"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>toDate</code></b>&nbsp;&nbsp;
@@ -8023,10 +8023,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="toDate"                data-endpoint="GETapi-admin-accounts--account--wallet-history"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>perPage</code></b>&nbsp;&nbsp;
@@ -8083,10 +8083,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="transactionType"                data-endpoint="GETapi-admin-accounts--account--wallet-history"
-               value="withdraw"
+               value="deposit"
                data-component="body">
     <br>
-<p>Example: <code>withdraw</code></p>
+<p>Example: <code>deposit</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>deposit</code></li> <li><code>withdraw</code></li></ul>
         </div>
@@ -8125,10 +8125,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="movementType"                data-endpoint="GETapi-admin-accounts--account--wallet-history"
-               value="deposit"
+               value="withdraw_failed"
                data-component="body">
     <br>
-<p>Example: <code>deposit</code></p>
+<p>Example: <code>withdraw_failed</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>deposit</code></li> <li><code>bet_placed</code></li> <li><code>bet_won</code></li> <li><code>bet_refunded</code></li> <li><code>withdraw_lock</code></li> <li><code>withdraw_rejected</code></li> <li><code>withdraw_requested</code></li> <li><code>withdraw_failed</code></li> <li><code>manual_adjustment</code></li></ul>
         </div>
@@ -8139,10 +8139,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="direction"                data-endpoint="GETapi-admin-accounts--account--wallet-history"
-               value="in"
+               value="out"
                data-component="body">
     <br>
-<p>Example: <code>in</code></p>
+<p>Example: <code>out</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>in</code></li> <li><code>out</code></li></ul>
         </div>
@@ -8218,7 +8218,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc81-703d-a6cd-2a8714d93308
+x-request-id: 01a195e2-0cd9-71bf-9142-50df793d92a0
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -8371,7 +8371,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc88-7344-ac24-8679feac7ccd
+x-request-id: 01a195e2-0ce1-7232-be7d-d5535abbc512
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -8524,7 +8524,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc8e-73e4-ae69-b791dab39c0b
+x-request-id: 01a195e2-0ce7-70d3-80f1-aaf17fd06ae9
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -9953,10 +9953,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"drawDate\": \"2026-10-29\",
-    \"timeType\": \"pm\",
-    \"status\": \"cancelled\",
-    \"resultStatus\": \"won\",
+    \"drawDate\": \"2026-11-01\",
+    \"timeType\": \"am\",
+    \"status\": \"active\",
+    \"resultStatus\": \"pending\",
     \"paymentUserId\": \"6ff8f7f6-1eb3-3525-be4a-3932c805afed\",
     \"page\": 67,
     \"perPage\": 16
@@ -9975,10 +9975,10 @@ const headers = {
 };
 
 let body = {
-    "drawDate": "2026-10-29",
-    "timeType": "pm",
-    "status": "cancelled",
-    "resultStatus": "won",
+    "drawDate": "2026-11-01",
+    "timeType": "am",
+    "status": "active",
+    "resultStatus": "pending",
     "paymentUserId": "6ff8f7f6-1eb3-3525-be4a-3932c805afed",
     "page": 67,
     "perPage": 16
@@ -10002,7 +10002,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc3e-73d5-a4fe-2df92442acf8
+x-request-id: 01a195e2-0c74-7033-8e11-787b3af73aef
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -10103,10 +10103,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="drawDate"                data-endpoint="GETapi--game--odds"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>timeType</code></b>&nbsp;&nbsp;
@@ -10115,10 +10115,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="timeType"                data-endpoint="GETapi--game--odds"
-               value="pm"
+               value="am"
                data-component="body">
     <br>
-<p>Example: <code>pm</code></p>
+<p>Example: <code>am</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>am</code></li> <li><code>pm</code></li></ul>
         </div>
@@ -10129,10 +10129,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="GETapi--game--odds"
-               value="cancelled"
+               value="active"
                data-component="body">
     <br>
-<p>Example: <code>cancelled</code></p>
+<p>Example: <code>active</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>active</code></li> <li><code>settled</code></li> <li><code>cancelled</code></li> <li><code>lost</code></li></ul>
         </div>
@@ -10143,10 +10143,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="resultStatus"                data-endpoint="GETapi--game--odds"
-               value="won"
+               value="pending"
                data-component="body">
     <br>
-<p>Example: <code>won</code></p>
+<p>Example: <code>pending</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>pending</code></li> <li><code>won</code></li> <li><code>lost</code></li></ul>
         </div>
@@ -10205,10 +10205,10 @@ Must be one of:
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"drawDate\": \"2026-10-29\",
+    \"drawDate\": \"2026-11-01\",
     \"timeType\": \"pm\",
     \"status\": \"settled\",
-    \"resultStatus\": \"pending\",
+    \"resultStatus\": \"lost\",
     \"paymentUserId\": \"6ff8f7f6-1eb3-3525-be4a-3932c805afed\",
     \"page\": 67,
     \"perPage\": 16
@@ -10227,10 +10227,10 @@ const headers = {
 };
 
 let body = {
-    "drawDate": "2026-10-29",
+    "drawDate": "2026-11-01",
     "timeType": "pm",
     "status": "settled",
-    "resultStatus": "pending",
+    "resultStatus": "lost",
     "paymentUserId": "6ff8f7f6-1eb3-3525-be4a-3932c805afed",
     "page": 67,
     "perPage": 16
@@ -10254,7 +10254,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc46-7266-af7b-a445afec1fc2
+x-request-id: 01a195e2-0c7f-716f-b1e0-f6bc8c2048fc
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -10355,10 +10355,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="drawDate"                data-endpoint="GETapi--game--results"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>timeType</code></b>&nbsp;&nbsp;
@@ -10395,10 +10395,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="resultStatus"                data-endpoint="GETapi--game--results"
-               value="pending"
+               value="lost"
                data-component="body">
     <br>
-<p>Example: <code>pending</code></p>
+<p>Example: <code>lost</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>pending</code></li> <li><code>won</code></li> <li><code>lost</code></li></ul>
         </div>
@@ -10457,10 +10457,10 @@ Must be one of:
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"drawDate\": \"2026-10-29\",
+    \"drawDate\": \"2026-11-01\",
     \"timeType\": \"pm\",
-    \"status\": \"lost\",
-    \"resultStatus\": \"pending\",
+    \"status\": \"settled\",
+    \"resultStatus\": \"won\",
     \"paymentUserId\": \"6ff8f7f6-1eb3-3525-be4a-3932c805afed\",
     \"page\": 67,
     \"perPage\": 16
@@ -10479,10 +10479,10 @@ const headers = {
 };
 
 let body = {
-    "drawDate": "2026-10-29",
+    "drawDate": "2026-11-01",
     "timeType": "pm",
-    "status": "lost",
-    "resultStatus": "pending",
+    "status": "settled",
+    "resultStatus": "won",
     "paymentUserId": "6ff8f7f6-1eb3-3525-be4a-3932c805afed",
     "page": 67,
     "perPage": 16
@@ -10506,7 +10506,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc4c-7325-a7b2-0d365b73d4c3
+x-request-id: 01a195e2-0c86-7233-a9e7-d384d6528468
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -10607,10 +10607,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="drawDate"                data-endpoint="GETapi--game--bets"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>timeType</code></b>&nbsp;&nbsp;
@@ -10633,10 +10633,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="GETapi--game--bets"
-               value="lost"
+               value="settled"
                data-component="body">
     <br>
-<p>Example: <code>lost</code></p>
+<p>Example: <code>settled</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>active</code></li> <li><code>settled</code></li> <li><code>cancelled</code></li> <li><code>lost</code></li></ul>
         </div>
@@ -10647,10 +10647,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="resultStatus"                data-endpoint="GETapi--game--bets"
-               value="pending"
+               value="won"
                data-component="body">
     <br>
-<p>Example: <code>pending</code></p>
+<p>Example: <code>won</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>pending</code></li> <li><code>won</code></li> <li><code>lost</code></li></ul>
         </div>
@@ -10738,7 +10738,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc50-7003-b74a-dee8769c4e12
+x-request-id: 01a195e2-0c8d-7139-898b-3e5725482a2d
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -10862,8 +10862,8 @@ You can check the Dev Tools console for debugging information.</code></pre>
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"drawDate\": \"2026-10-29\",
-    \"timeType\": \"am\",
+    \"drawDate\": \"2026-11-01\",
+    \"timeType\": \"pm\",
     \"clientReference\": \"6ff8f7f6-1eb3-3525-be4a-3932c805afed\",
     \"entries\": [
         {
@@ -10886,8 +10886,8 @@ const headers = {
 };
 
 let body = {
-    "drawDate": "2026-10-29",
-    "timeType": "am",
+    "drawDate": "2026-11-01",
+    "timeType": "pm",
     "clientReference": "6ff8f7f6-1eb3-3525-be4a-3932c805afed",
     "entries": [
         {
@@ -10999,10 +10999,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="drawDate"                data-endpoint="POSTapi--game--bets"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>timeType</code></b>&nbsp;&nbsp;
@@ -11011,10 +11011,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="timeType"                data-endpoint="POSTapi--game--bets"
-               value="am"
+               value="pm"
                data-component="body">
     <br>
-<p>Example: <code>am</code></p>
+<p>Example: <code>pm</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>am</code></li> <li><code>pm</code></li></ul>
         </div>
@@ -11118,7 +11118,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc14-731c-98d1-3cde273892a1
+x-request-id: 01a195e2-0c3b-72fe-89ce-34d405982de7
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -11924,7 +11924,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc25-72a6-afe2-cad8aacf76ea
+x-request-id: 01a195e2-0c52-72a0-8907-d844b62c62f8
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -12052,7 +12052,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc28-726a-8cfb-6edee25b6fab
+x-request-id: 01a195e2-0c56-73bb-9315-0e174a92423f
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -12180,7 +12180,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc2b-72a7-b027-f089992bed9d
+x-request-id: 01a195e2-0c5a-71af-925e-9fd5941a747a
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -12312,7 +12312,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc0c-7269-8daf-d72c245c55e8
+x-request-id: 01a195e2-0c32-7219-9a73-8c81b56e1533
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -12440,7 +12440,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc0f-7293-858d-ff0a8c6f4366
+x-request-id: 01a195e2-0c36-704b-98f1-9b4d4a3d16db
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -12867,7 +12867,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bbf2-7363-a2d9-e1cab6ca60ee
+x-request-id: 01a195e2-0c14-7111-aac7-649fc1e3b2be
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -13308,7 +13308,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc08-71f6-b59e-367a1c418ea7
+x-request-id: 01a195e2-0c2d-71cb-bebc-cd82e5d520f8
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -13440,7 +13440,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc2f-70bb-9284-20f103a80d9f
+x-request-id: 01a195e2-0c60-7305-8e0c-04e9b366922f
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -13539,10 +13539,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"status\": \"requested\",
+    \"status\": \"pending_approval\",
     \"paymentUserId\": \"6ff8f7f6-1eb3-3525-be4a-3932c805afed\",
-    \"fromDate\": \"2026-10-29\",
-    \"toDate\": \"2026-10-29\",
+    \"fromDate\": \"2026-11-01\",
+    \"toDate\": \"2026-11-01\",
     \"page\": 67,
     \"perPage\": 16
 }"
@@ -13560,10 +13560,10 @@ const headers = {
 };
 
 let body = {
-    "status": "requested",
+    "status": "pending_approval",
     "paymentUserId": "6ff8f7f6-1eb3-3525-be4a-3932c805afed",
-    "fromDate": "2026-10-29",
-    "toDate": "2026-10-29",
+    "fromDate": "2026-11-01",
+    "toDate": "2026-11-01",
     "page": 67,
     "perPage": 16
 };
@@ -13586,7 +13586,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc34-728f-a3b9-dbab9c32815f
+x-request-id: 01a195e2-0c68-7324-b054-09324b6c52d7
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -13674,10 +13674,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="GETapi-wallet-transactions"
-               value="requested"
+               value="pending_approval"
                data-component="body">
     <br>
-<p>Example: <code>requested</code></p>
+<p>Example: <code>pending_approval</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>pending</code></li> <li><code>pending_approval</code></li> <li><code>approved</code></li> <li><code>rejected</code></li> <li><code>requested</code></li> <li><code>declined</code></li></ul>
         </div>
@@ -13700,10 +13700,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="fromDate"                data-endpoint="GETapi-wallet-transactions"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>toDate</code></b>&nbsp;&nbsp;
@@ -13712,10 +13712,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="toDate"                data-endpoint="GETapi-wallet-transactions"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>page</code></b>&nbsp;&nbsp;
@@ -13793,7 +13793,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bbc9-7055-adb8-07054f72b9c0
+x-request-id: 01a195e2-0be5-73ad-8e26-be54e4be6b5d
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -13929,7 +13929,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc02-739d-b7ef-3feb59209401
+x-request-id: 01a195e2-0c27-72d1-af13-2ef99325f907
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -14070,7 +14070,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc59-709f-9ce3-d90138eaa46d
+x-request-id: 01a195e2-0c9b-72b2-a4e4-a41e5e137200
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -14170,7 +14170,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
     --header "Accept: application/json" \
     --data "{
     \"search\": \"b\",
-    \"status\": \"active\",
+    \"status\": \"suspended\",
     \"roleId\": \"a4855dc5-0acb-33c3-b921-f4291f719ca0\",
     \"page\": 66,
     \"paymentsPage\": 27,
@@ -14193,7 +14193,7 @@ const headers = {
 
 let body = {
     "search": "b",
-    "status": "active",
+    "status": "suspended",
     "roleId": "a4855dc5-0acb-33c3-b921-f4291f719ca0",
     "page": 66,
     "paymentsPage": 27,
@@ -14220,7 +14220,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc5f-73da-ae55-f395836b90fe
+x-request-id: 01a195e2-0ca4-7107-8da2-5da6122e494b
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -14320,10 +14320,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="GETapi-admin-activities"
-               value="active"
+               value="suspended"
                data-component="body">
     <br>
-<p>Example: <code>active</code></p>
+<p>Example: <code>suspended</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>active</code></li> <li><code>inactive</code></li> <li><code>suspended</code></li></ul>
         </div>
@@ -14420,11 +14420,11 @@ Must be one of:
     --data "{
     \"actorUserId\": \"6ff8f7f6-1eb3-3525-be4a-3932c805afed\",
     \"requestId\": \"6b72fe4a-5b40-307c-bc24-f79acf9a1bb9\",
-    \"method\": \"OPTIONS\",
+    \"method\": \"PUT\",
     \"statusCode\": 100,
     \"search\": \"i\",
-    \"fromDate\": \"2026-10-29\",
-    \"toDate\": \"2026-10-29\",
+    \"fromDate\": \"2026-11-01\",
+    \"toDate\": \"2026-11-01\",
     \"page\": 43,
     \"perPage\": 1
 }"
@@ -14444,11 +14444,11 @@ const headers = {
 let body = {
     "actorUserId": "6ff8f7f6-1eb3-3525-be4a-3932c805afed",
     "requestId": "6b72fe4a-5b40-307c-bc24-f79acf9a1bb9",
-    "method": "OPTIONS",
+    "method": "PUT",
     "statusCode": 100,
     "search": "i",
-    "fromDate": "2026-10-29",
-    "toDate": "2026-10-29",
+    "fromDate": "2026-11-01",
+    "toDate": "2026-11-01",
     "page": 43,
     "perPage": 1
 };
@@ -14471,7 +14471,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bc67-71d2-81a5-823c028b285c
+x-request-id: 01a195e2-0cb6-7011-92fe-cdd7381a53d0
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -14583,10 +14583,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="method"                data-endpoint="GETapi-admin-audit-logs"
-               value="OPTIONS"
+               value="PUT"
                data-component="body">
     <br>
-<p>Example: <code>OPTIONS</code></p>
+<p>Example: <code>PUT</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>GET</code></li> <li><code>POST</code></li> <li><code>PATCH</code></li> <li><code>PUT</code></li> <li><code>DELETE</code></li> <li><code>HEAD</code></li> <li><code>OPTIONS</code></li></ul>
         </div>
@@ -14621,10 +14621,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="fromDate"                data-endpoint="GETapi-admin-audit-logs"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>toDate</code></b>&nbsp;&nbsp;
@@ -14633,10 +14633,10 @@ Must be one of:
  &nbsp;
                 <input type="text" style="display: none"
                               name="toDate"                data-endpoint="GETapi-admin-audit-logs"
-               value="2026-10-29"
+               value="2026-11-01"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-10-29</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2026-11-01</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>page</code></b>&nbsp;&nbsp;
@@ -14682,7 +14682,7 @@ Must be one of:
     --header "Accept: application/json" \
     --data "{
     \"search\": \"b\",
-    \"status\": \"active\",
+    \"status\": \"inactive\",
     \"roleId\": \"a4855dc5-0acb-33c3-b921-f4291f719ca0\",
     \"page\": 66,
     \"paymentsPage\": 27,
@@ -14705,7 +14705,7 @@ const headers = {
 
 let body = {
     "search": "b",
-    "status": "active",
+    "status": "inactive",
     "roleId": "a4855dc5-0acb-33c3-b921-f4291f719ca0",
     "page": 66,
     "paymentsPage": 27,
@@ -14732,7 +14732,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bca6-738d-b185-5ac1f66393b8
+x-request-id: 01a195e2-0d06-72c2-abdb-f0bf0323d7b0
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -14845,10 +14845,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="GETapi-admin-accounts--account--history"
-               value="active"
+               value="inactive"
                data-component="body">
     <br>
-<p>Example: <code>active</code></p>
+<p>Example: <code>inactive</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>active</code></li> <li><code>inactive</code></li> <li><code>suspended</code></li></ul>
         </div>
@@ -14944,7 +14944,7 @@ Must be one of:
     --header "Accept: application/json" \
     --data "{
     \"search\": \"b\",
-    \"status\": \"inactive\",
+    \"status\": \"active\",
     \"roleId\": \"a4855dc5-0acb-33c3-b921-f4291f719ca0\",
     \"page\": 66,
     \"paymentsPage\": 27,
@@ -14967,7 +14967,7 @@ const headers = {
 
 let body = {
     "search": "b",
-    "status": "inactive",
+    "status": "active",
     "roleId": "a4855dc5-0acb-33c3-b921-f4291f719ca0",
     "page": 66,
     "paymentsPage": 27,
@@ -14994,7 +14994,7 @@ fetch(url, {
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
-x-request-id: 01a1859e-bd2f-700e-a24d-3146ec2b666a
+x-request-id: 01a195e2-0db9-715a-ace5-e3c3f4e4ccca
 access-control-allow-origin: *
  </code></pre></details>         <pre>
 
@@ -15107,10 +15107,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="status"                data-endpoint="GETapi-admin-master--resource-"
-               value="inactive"
+               value="active"
                data-component="body">
     <br>
-<p>Example: <code>inactive</code></p>
+<p>Example: <code>active</code></p>
 Must be one of:
 <ul style="list-style-type: square;"><li><code>active</code></li> <li><code>inactive</code></li> <li><code>suspended</code></li></ul>
         </div>

@@ -49,7 +49,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a1859e-bc6e-724d-95cf-cb8ae5bf1ca5
+          x-request-id: 01a195e2-0cc1-734d-a549-81da69821621
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -97,7 +97,7 @@ endpoints:
         name: fromDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-10-29'
+        example: '2026-11-01'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -108,7 +108,7 @@ endpoints:
         name: toDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-10-29'
+        example: '2026-11-01'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -163,7 +163,7 @@ endpoints:
         name: transactionType
         description: ''
         required: false
-        example: withdraw
+        example: deposit
         type: string
         enumValues:
           - deposit
@@ -205,7 +205,7 @@ endpoints:
         name: movementType
         description: ''
         required: false
-        example: deposit
+        example: withdraw_failed
         type: string
         enumValues:
           - deposit
@@ -225,7 +225,7 @@ endpoints:
         name: direction
         description: ''
         required: false
-        example: in
+        example: out
         type: string
         enumValues:
           - in
@@ -256,17 +256,17 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      fromDate: '2026-10-29'
-      toDate: '2026-10-29'
+      fromDate: '2026-11-01'
+      toDate: '2026-11-01'
       perPage: 1
       transactionsPage: 22
       withdrawalRequestsPage: 67
       walletTransactionsPage: 66
-      transactionType: withdraw
+      transactionType: deposit
       transactionStatus: rejected
       withdrawalStatus: requested
-      movementType: deposit
-      direction: in
+      movementType: withdraw_failed
+      direction: out
       referenceType: m
       referenceId: i
     fileParameters: []
@@ -278,7 +278,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a1859e-bc78-72c5-87b9-8da0beb97cf9
+          x-request-id: 01a195e2-0ccf-720b-8a1c-099a82d80e84
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -346,7 +346,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a1859e-bc81-703d-a6cd-2a8714d93308
+          x-request-id: 01a195e2-0cd9-71bf-9142-50df793d92a0
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -414,7 +414,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a1859e-bc88-7344-ac24-8679feac7ccd
+          x-request-id: 01a195e2-0ce1-7232-be7d-d5535abbc512
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -482,7 +482,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a1859e-bc8e-73e4-ae69-b791dab39c0b
+          x-request-id: 01a195e2-0ce7-70d3-80f1-aaf17fd06ae9
           access-control-allow-origin: '*'
         description: null
     responseFields: []

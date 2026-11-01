@@ -36,7 +36,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a1859e-bbc9-7055-adb8-07054f72b9c0
+          x-request-id: 01a195e2-0be5-73ad-8e26-be54e4be6b5d
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -89,7 +89,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a1859e-bc02-739d-b7ef-3feb59209401
+          x-request-id: 01a195e2-0c27-72d1-af13-2ef99325f907
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -130,7 +130,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a1859e-bc59-709f-9ce3-d90138eaa46d
+          x-request-id: 01a195e2-0c9b-72b2-a4e4-a41e5e137200
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -177,7 +177,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: active
+        example: suspended
         type: string
         enumValues:
           - active
@@ -254,7 +254,7 @@ endpoints:
         deprecated: false
     cleanBodyParameters:
       search: b
-      status: active
+      status: suspended
       roleId: a4855dc5-0acb-33c3-b921-f4291f719ca0
       page: 66
       paymentsPage: 27
@@ -270,7 +270,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a1859e-bc5f-73da-ae55-f395836b90fe
+          x-request-id: 01a195e2-0ca4-7107-8da2-5da6122e494b
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -328,7 +328,7 @@ endpoints:
         name: method
         description: ''
         required: false
-        example: OPTIONS
+        example: PUT
         type: string
         enumValues:
           - GET
@@ -368,7 +368,7 @@ endpoints:
         name: fromDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-10-29'
+        example: '2026-11-01'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -379,7 +379,7 @@ endpoints:
         name: toDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-10-29'
+        example: '2026-11-01'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -410,11 +410,11 @@ endpoints:
     cleanBodyParameters:
       actorUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
       requestId: 6b72fe4a-5b40-307c-bc24-f79acf9a1bb9
-      method: OPTIONS
+      method: PUT
       statusCode: 100
       search: i
-      fromDate: '2026-10-29'
-      toDate: '2026-10-29'
+      fromDate: '2026-11-01'
+      toDate: '2026-11-01'
       page: 43
       perPage: 1
     fileParameters: []
@@ -426,7 +426,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a1859e-bc67-71d2-81a5-823c028b285c
+          x-request-id: 01a195e2-0cb6-7011-92fe-cdd7381a53d0
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -466,158 +466,6 @@ endpoints:
         deprecated: false
     cleanUrlParameters:
       account: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
-    queryParameters: []
-    cleanQueryParameters: []
-    bodyParameters:
-      search:
-        custom: []
-        name: search
-        description: 'Must not be greater than 255 characters.'
-        required: false
-        example: b
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      status:
-        custom: []
-        name: status
-        description: ''
-        required: false
-        example: active
-        type: string
-        enumValues:
-          - active
-          - inactive
-          - suspended
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      roleId:
-        custom: []
-        name: roleId
-        description: 'Must be a valid UUID. Must match an existing stored value.'
-        required: false
-        example: a4855dc5-0acb-33c3-b921-f4291f719ca0
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      page:
-        custom: []
-        name: page
-        description: 'Must be at least 1.'
-        required: false
-        example: 66
-        type: integer
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      paymentsPage:
-        custom: []
-        name: paymentsPage
-        description: 'Must be at least 1.'
-        required: false
-        example: 27
-        type: integer
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      withdrawalsPage:
-        custom: []
-        name: withdrawalsPage
-        description: 'Must be at least 1.'
-        required: false
-        example: 35
-        type: integer
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      movementsPage:
-        custom: []
-        name: movementsPage
-        description: 'Must be at least 1.'
-        required: false
-        example: 43
-        type: integer
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      perPage:
-        custom: []
-        name: perPage
-        description: 'Must be at least 1. Must not be greater than 100.'
-        required: false
-        example: 1
-        type: integer
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-    cleanBodyParameters:
-      search: b
-      status: active
-      roleId: a4855dc5-0acb-33c3-b921-f4291f719ca0
-      page: 66
-      paymentsPage: 27
-      withdrawalsPage: 35
-      movementsPage: 43
-      perPage: 1
-    fileParameters: []
-    responses:
-      -
-        custom: []
-        status: 401
-        content: '{"message":"Unauthenticated."}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a1859e-bca6-738d-b185-5ac1f66393b8
-          access-control-allow-origin: '*'
-        description: null
-    responseFields: []
-    auth: []
-    controller: null
-    method: null
-    route: null
-  -
-    custom: []
-    httpMethods:
-      - GET
-    uri: 'api/admin/master/{resource}'
-    metadata:
-      custom: []
-      groupName: Endpoints
-      groupDescription: ''
-      subgroup: ''
-      subgroupDescription: ''
-      title: ''
-      description: ''
-      authenticated: false
-      deprecated: false
-    headers:
-      Content-Type: application/json
-      Accept: application/json
-    urlParameters:
-      resource:
-        custom: []
-        name: resource
-        description: ''
-        required: true
-        example: payment-methods|support-types|supports
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-    cleanUrlParameters:
-      resource: payment-methods|support-types|supports
     queryParameters: []
     cleanQueryParameters: []
     bodyParameters:
@@ -725,6 +573,158 @@ endpoints:
     responses:
       -
         custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          x-request-id: 01a195e2-0d06-72c2-abdb-f0bf0323d7b0
+          access-control-allow-origin: '*'
+        description: null
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: 'api/admin/master/{resource}'
+    metadata:
+      custom: []
+      groupName: Endpoints
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      resource:
+        custom: []
+        name: resource
+        description: ''
+        required: true
+        example: payment-methods|support-types|supports
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      resource: payment-methods|support-types|supports
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      search:
+        custom: []
+        name: search
+        description: 'Must not be greater than 255 characters.'
+        required: false
+        example: b
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      status:
+        custom: []
+        name: status
+        description: ''
+        required: false
+        example: active
+        type: string
+        enumValues:
+          - active
+          - inactive
+          - suspended
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      roleId:
+        custom: []
+        name: roleId
+        description: 'Must be a valid UUID. Must match an existing stored value.'
+        required: false
+        example: a4855dc5-0acb-33c3-b921-f4291f719ca0
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      page:
+        custom: []
+        name: page
+        description: 'Must be at least 1.'
+        required: false
+        example: 66
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      paymentsPage:
+        custom: []
+        name: paymentsPage
+        description: 'Must be at least 1.'
+        required: false
+        example: 27
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      withdrawalsPage:
+        custom: []
+        name: withdrawalsPage
+        description: 'Must be at least 1.'
+        required: false
+        example: 35
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      movementsPage:
+        custom: []
+        name: movementsPage
+        description: 'Must be at least 1.'
+        required: false
+        example: 43
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      perPage:
+        custom: []
+        name: perPage
+        description: 'Must be at least 1. Must not be greater than 100.'
+        required: false
+        example: 1
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      search: b
+      status: active
+      roleId: a4855dc5-0acb-33c3-b921-f4291f719ca0
+      page: 66
+      paymentsPage: 27
+      withdrawalsPage: 35
+      movementsPage: 43
+      perPage: 1
+    fileParameters: []
+    responses:
+      -
+        custom: []
         status: 404
         content: |-
           {
@@ -733,7 +733,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a1859e-bd2f-700e-a24d-3146ec2b666a
+          x-request-id: 01a195e2-0db9-715a-ace5-e3c3f4e4ccca
           access-control-allow-origin: '*'
         description: null
     responseFields: []

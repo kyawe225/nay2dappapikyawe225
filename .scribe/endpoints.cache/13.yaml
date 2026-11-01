@@ -42,7 +42,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: inactive
+        example: suspended
         type: string
         enumValues:
           - active
@@ -119,7 +119,7 @@ endpoints:
         deprecated: false
     cleanBodyParameters:
       search: b
-      status: inactive
+      status: suspended
       roleId: a4855dc5-0acb-33c3-b921-f4291f719ca0
       page: 66
       paymentsPage: 27
@@ -135,7 +135,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a1859e-bd13-70a7-a11b-899ca8a614f4
+          x-request-id: 01a195e2-0d93-70bf-9afb-28f27f16627e
           access-control-allow-origin: '*'
         description: null
     responseFields: []
@@ -217,7 +217,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: inactive
+        example: active
         type: string
         enumValues:
           - active
@@ -230,7 +230,7 @@ endpoints:
       type: withdraw
       description: 'Et animi quos velit et fugiat.'
       imageLocation: d
-      status: inactive
+      status: active
     fileParameters: []
     responses: []
     responseFields: []
@@ -283,7 +283,7 @@ endpoints:
         headers:
           cache-control: 'no-cache, private'
           content-type: application/json
-          x-request-id: 01a1859e-bd1e-7252-8af0-43e7e21cefc2
+          x-request-id: 01a195e2-0da0-734e-8c4b-361e2ea9827f
           access-control-allow-origin: '*'
         description: null
     responseFields: []
