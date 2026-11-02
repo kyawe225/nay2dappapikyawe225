@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class PaymentMethodResource extends JsonResource
 {
@@ -17,7 +18,7 @@ class PaymentMethodResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'paymentMethodImage' => $this->payment_method_image_location,
+            'paymentMethodImage' => $this->payment_method_image_location === null ? null : Storage::disk('public')->url($this->payment_method_image_location),
             'type' => $this->type,
             'status' => $this->status,
             'description' => $this->description,

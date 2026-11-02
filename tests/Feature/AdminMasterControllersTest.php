@@ -1,17 +1,23 @@
 <?php
 
+use App\Http\ServiceContractor\IMasterService;
 use App\Models\PaymentAccount;
 use App\Models\PaymentMethod;
 use App\Models\Role;
 use App\Models\Support;
+use App\Models\SupportType;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
+use Mockery\MockInterface;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
+    Storage::fake('public');
     $this->seed(RoleSeeder::class);
     $this->administrator = User::factory()->create(['role_id' => Role::query()->where('name', 'Admin')->sole()->id]);
     Sanctum::actingAs($this->administrator, ['access']);
@@ -19,7 +25,7 @@ beforeEach(function (): void {
 
 test('dedicated support type controller validates and supports the complete CRUD flow', function (): void {
     $this->postJson('/api/admin/support-types', [])->assertUnprocessable()->assertJsonValidationErrors(['name', 'imageLocation']);
-    $id = $this->postJson('/api/admin/support-types', ['name' => 'Test support type', 'imageLocation' => 'support/test.png'])->assertOk()->json('data.id');
+    $id = $this->post('/api/admin/support-types', ['name' => 'Test support type', 'imageLocation' => UploadedFile::fake()->image('test.png')], ['Accept' => 'application/json'])->assertOk()->json('data.id');
     $this->getJson('/api/admin/support-types?search=Test')->assertOk()->assertJsonPath('data.pagination.total', 1);
     $this->getJson('/api/admin/support-types/'.$id)->assertOk()->assertJsonPath('data.name', 'Test support type');
     $this->patchJson('/api/admin/support-types/'.$id, ['name' => 'Updated support type'])->assertOk()->assertJsonPath('data.name', 'Updated support type');
@@ -30,7 +36,7 @@ test('dedicated support type controller validates and supports the complete CRUD
 });
 
 test('support types in use cannot be deleted and legacy master routes still work', function (): void {
-    $id = $this->postJson('/api/admin/master/support-types', ['name' => 'In use', 'imageLocation' => 'support/used.png'])->assertOk()->json('data.id');
+    $id = $this->post('/api/admin/master/support-types', ['name' => 'In use', 'imageLocation' => UploadedFile::fake()->image('used.png')], ['Accept' => 'application/json'])->assertOk()->json('data.id');
     Support::query()->create(['name' => 'Test support', 'support_type_id' => $id, 'type' => 'phone', 'value' => '0990000000', 'status' => 'active']);
     $this->deleteJson('/api/admin/support-types/'.$id)->assertConflict();
     $this->getJson('/api/admin/master/support-types')->assertOk()->assertJsonPath('data.pagination.total', 1);
@@ -61,4 +67,65 @@ test('customers cannot access dedicated administrator master endpoints', functio
         $this->getJson('/api/admin/'.$resource)->assertForbidden();
         $this->postJson('/api/admin/'.$resource, [])->assertForbidden();
     }
+});
+
+test('master images are uploaded, returned as URLs, retained and replaced', function (string $resource, string $model, string $column, string $responseField): void {
+    $payload = ['name' => 'Upload test', 'imageLocation' => UploadedFile::fake()->image('icon.png')];
+    if ($resource === 'payment-methods') {
+        $payload += ['type' => 'deposit', 'description' => 'Provider'];
+    }
+    $response = $this->post('/api/admin/'.$resource, $payload, ['Accept' => 'application/json'])->assertOk();
+    $record = $model::findOrFail($response->json('data.id'));
+    $originalPath = $record->{$column};
+    Storage::disk('public')->assertExists($originalPath);
+    $response->assertJsonPath('data.'.$responseField, Storage::disk('public')->url($originalPath));
+
+    $this->patchJson('/api/admin/'.$resource.'/'.$record->id, ['name' => 'Renamed'])->assertOk();
+    expect($record->refresh()->{$column})->toBe($originalPath);
+
+    $response = $this->post('/api/admin/master/'.$resource.'/'.$record->id, [
+        '_method' => 'PATCH', 'imageLocation' => UploadedFile::fake()->image('replacement.jpg'),
+    ], ['Accept' => 'application/json'])->assertOk();
+    $replacementPath = $record->refresh()->{$column};
+    expect($replacementPath)->not->toBe($originalPath);
+    Storage::disk('public')->assertExists($replacementPath);
+    $response->assertJsonPath('data.'.$responseField, Storage::disk('public')->url($replacementPath));
+})->with([
+    ['support-types', SupportType::class, 'image_location', 'imageLocation'],
+    ['payment-methods', PaymentMethod::class, 'payment_method_image_location', 'paymentMethodImage'],
+]);
+
+test('master images reject paths, non images and oversized files', function (string $resource): void {
+    foreach (['images/icon.png', UploadedFile::fake()->create('document.pdf', 10, 'application/pdf'), UploadedFile::fake()->image('large.png')->size(5121)] as $invalidImage) {
+        $this->post('/api/admin/'.$resource, [
+            'name' => 'Invalid upload', 'type' => 'deposit', 'description' => 'Provider', 'imageLocation' => $invalidImage,
+        ], ['Accept' => 'application/json'])->assertUnprocessable()->assertJsonValidationErrors('imageLocation');
+    }
+    expect(Storage::disk('public')->allFiles())->toBe([]);
+})->with(['support-types', 'payment-methods']);
+
+test('failed image storage does not create a master record', function (): void {
+    Storage::shouldReceive('disk')->with('public')->andReturnSelf();
+    Storage::shouldReceive('putFileAs')->once()->andReturn(false);
+    $this->post('/api/admin/support-types', [
+        'name' => 'Failed upload', 'imageLocation' => UploadedFile::fake()->image('icon.png'),
+    ], ['Accept' => 'application/json'])->assertStatus(500)->assertJsonPath('message', 'Image could not be saved. Please try again!');
+    $this->assertDatabaseMissing('support_types', ['name' => 'Failed upload']);
+});
+
+test('failed master save removes the new upload and retains the existing image', function (): void {
+    $id = $this->post('/api/admin/support-types', [
+        'name' => 'Original', 'imageLocation' => UploadedFile::fake()->image('original.png'),
+    ], ['Accept' => 'application/json'])->assertOk()->json('data.id');
+    $supportType = SupportType::findOrFail($id);
+    $originalPath = $supportType->image_location;
+    $this->mock(IMasterService::class, function (MockInterface $mock): void {
+        $mock->shouldReceive('RefreshVersion')->once()->andThrow(new RuntimeException('Simulated save failure'));
+    });
+    $this->withoutExceptionHandling();
+    expect(fn () => $this->post('/api/admin/support-types/'.$supportType->id, [
+        '_method' => 'PATCH', 'imageLocation' => UploadedFile::fake()->image('replacement.png'),
+    ], ['Accept' => 'application/json']))->toThrow(RuntimeException::class, 'Simulated save failure');
+    expect($supportType->refresh()->image_location)->toBe($originalPath)
+        ->and(Storage::disk('public')->allFiles())->toBe([$originalPath]);
 });

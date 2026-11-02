@@ -28,6 +28,8 @@ use App\Response\ResponseModel;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class AdminManagementService implements IAdminManagementService
 {
@@ -56,39 +58,59 @@ class AdminManagementService implements IAdminManagementService
 
     public function Save(string $resource, MasterDataRequest $request, User $user, ?string $recordId = null): ResponseModel
     {
-        return DB::transaction(function () use ($resource, $request, $user, $recordId): ResponseModel {
-            $record = $recordId === null ? $this->Query($resource)->getModel()->newInstance() : $this->Query($resource)->lockForUpdate()->find($recordId);
-            if ($record === null) {
-                return ResponseModel::NotFound('Record was not found!', null);
-            }
-            $data = $request->validated();
-            if ($resource === 'payment-methods' && $recordId !== null && isset($data['type']) && $data['type'] !== $record->type
-                && ($record->paymentAccounts()->exists() || $record->transactions()->exists())) {
-                return ResponseModel::conflict('The type of a payment method with existing accounts or history cannot be changed!', null);
-            }
-            $mapping = ['imageLocation' => $resource === 'payment-methods' ? 'payment_method_image_location' : 'image_location', 'supportTypeId' => 'support_type_id'];
-            foreach ($data as $field => $value) {
-                $record->{$mapping[$field] ?? $field} = $value;
-            }
-            if ($recordId === null && $resource !== 'support-types') {
-                $record->status = $data['status'] ?? 'inactive';
-            }
-            if ($resource === 'supports' && $record->status === 'active') {
-                if (! is_string($record->value) || trim($record->value) === ''
-                    || ($record->type === 'link' && (! filter_var($record->value, FILTER_VALIDATE_URL) || ! in_array(parse_url($record->value, PHP_URL_SCHEME), ['http', 'https'], true)))) {
-                    return ResponseModel::badRequest('An active support contact needs a valid value. Links must use HTTP or HTTPS!', null);
-                }
-            }
-            $record->save();
-            $this->masterService->RefreshVersion();
-            $this->activities->Record($user, 'master.saved', $record->getTable(), $record->id, $data);
-            if ($resource === 'supports') {
-                $record->load('supportType');
-            }
-            $resourceClass = $this->Resource($resource);
+        $imagePath = null;
 
-            return ResponseModel::ok('Record saved successfully!', new $resourceClass($record));
-        }, 3);
+        try {
+            return DB::transaction(function () use ($resource, $request, $user, $recordId, &$imagePath): ResponseModel {
+                $record = $recordId === null ? $this->Query($resource)->getModel()->newInstance() : $this->Query($resource)->lockForUpdate()->find($recordId);
+                if ($record === null) {
+                    return ResponseModel::NotFound('Record was not found!', null);
+                }
+                $data = $request->validated();
+                if ($resource === 'payment-methods' && $recordId !== null && isset($data['type']) && $data['type'] !== $record->type
+                    && ($record->paymentAccounts()->exists() || $record->transactions()->exists())) {
+                    return ResponseModel::conflict('The type of a payment method with existing accounts or history cannot be changed!', null);
+                }
+                if (in_array($resource, ['payment-methods', 'support-types'], true) && $request->hasFile('imageLocation')) {
+                    if ($imagePath === null) {
+                        $storedPath = $request->file('imageLocation')->store($resource, 'public');
+                        if ($storedPath === false) {
+                            return ResponseModel::internalServer('Image could not be saved. Please try again!', null);
+                        }
+                        $imagePath = $storedPath;
+                    }
+                    $data['imageLocation'] = $imagePath;
+                }
+                $mapping = ['imageLocation' => $resource === 'payment-methods' ? 'payment_method_image_location' : 'image_location', 'supportTypeId' => 'support_type_id'];
+                foreach ($data as $field => $value) {
+                    $record->{$mapping[$field] ?? $field} = $value;
+                }
+                if ($recordId === null && $resource !== 'support-types') {
+                    $record->status = $data['status'] ?? 'inactive';
+                }
+                if ($resource === 'supports' && $record->status === 'active') {
+                    if (! is_string($record->value) || trim($record->value) === ''
+                        || ($record->type === 'link' && (! filter_var($record->value, FILTER_VALIDATE_URL) || ! in_array(parse_url($record->value, PHP_URL_SCHEME), ['http', 'https'], true)))) {
+                        return ResponseModel::badRequest('An active support contact needs a valid value. Links must use HTTP or HTTPS!', null);
+                    }
+                }
+                $record->save();
+                $this->masterService->RefreshVersion();
+                $this->activities->Record($user, 'master.saved', $record->getTable(), $record->id, $data);
+                if ($resource === 'supports') {
+                    $record->load('supportType');
+                }
+                $resourceClass = $this->Resource($resource);
+
+                return ResponseModel::ok('Record saved successfully!', new $resourceClass($record));
+            }, 3);
+        } catch (Throwable $exception) {
+            if ($imagePath !== null) {
+                Storage::disk('public')->delete($imagePath);
+            }
+
+            throw $exception;
+        }
     }
 
     public function Delete(string $resource, string $recordId, User $user): ResponseModel

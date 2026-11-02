@@ -229,7 +229,8 @@ function Invoke-Api {
         [string] $Token = '',
         [AllowNull()] $Body = $null,
         [int[]] $ExpectedStatus = @(200),
-        [switch] $RawUser
+        [switch] $RawUser,
+        [string] $ImagePath = ''
     )
     Wait-AuthBudget $Method $Path $Token
     $files = [Collections.Generic.List[string]]::new()
@@ -249,7 +250,12 @@ function Invoke-Api {
             '--connect-timeout', '10', '--max-time', [string] $RequestTimeoutSeconds,
             '--request', $Method, '--url', ($script:ApiRoot + $Path),
             '--output', $responseFile, '--dump-header', $headersFile, '--write-out', '%{http_code}')
-        if ($null -ne $Body) {
+        if ($ImagePath) {
+            foreach ($entry in $Body.GetEnumerator()) {
+                $curlArguments += @('--form-string', "$($entry.Key)=$($entry.Value)")
+            }
+            $curlArguments += @('--form', "imageLocation=@`"$ImagePath`"")
+        } elseif ($null -ne $Body) {
             $bodyFile = [IO.Path]::GetTempFileName(); $files.Add($bodyFile)
             [IO.File]::WriteAllText($bodyFile, (ConvertTo-Json -InputObject $Body -Depth 20 -Compress), $script:Utf8)
             $curlArguments += @('--header', 'Content-Type: application/json', '--data-binary', "@$bodyFile")
@@ -862,7 +868,7 @@ try {
     }
     Invoke-Case 'Dedicated support type controller CRUD and customer permissions' {
         Require-Value $state.Admin.Access 'admin login'
-        $created = Invoke-Api POST '/admin/support-types' $state.Admin.Access -Body @{ name = "curl $runId support"; imageLocation = 'support/curl.png' }
+        $created = Invoke-Api POST '/admin/support-types' $state.Admin.Access -Body @{ name = "curl $runId support" } -ImagePath (Join-Path $PSScriptRoot '../public_html/images/support/1.jpg')
         $id = $created.Json.data.id
         try {
             $shown = Invoke-Api GET "/admin/support-types/$id" $state.Admin.Access
