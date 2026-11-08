@@ -2,8 +2,11 @@
 
 namespace App\Http\ServiceContractor;
 
+use App\Http\Requests\Admin\CalculationScheduleRequest;
+use App\Http\Requests\Admin\CalculationSettingRequest;
 use App\Http\Requests\Admin\CancelDrawRequest;
 use App\Http\Requests\Admin\DrawRequest;
+use App\Http\Requests\Admin\DrawScheduleRequest;
 use App\Http\Requests\Admin\OddRequest;
 use App\Http\Requests\Admin\SettlementRequest;
 use App\Http\Requests\GameHistoryRequest;
@@ -13,6 +16,18 @@ use App\Response\ResponseModel;
 
 interface IBetService
 {
+    public function CalculationSettings(string $game): ResponseModel;
+
+    public function SaveCalculationSetting(string $game, CalculationSettingRequest $request, User $user): ResponseModel;
+
+    public function ScheduleCalculation(string $game, CalculationScheduleRequest $request, User $user): ResponseModel;
+
+    public function CalculateDueResults(): int;
+
+    public function Schedule(string $game, DrawScheduleRequest $request, User $user): ResponseModel;
+
+    public function AvailableDraws(string $game, GameHistoryRequest $request): ResponseModel;
+
     public function Index(string $game, GameHistoryRequest $request, User $user): ResponseModel;
 
     public function Show(string $game, string $betId, User $user): ResponseModel;
@@ -33,9 +48,9 @@ interface IBetService
 
     public function Cancel(string $game, CancelDrawRequest $request, User $user): ResponseModel;
 
-    public function Recalculate(string $game, SettlementRequest $request): ResponseModel;
+    public function Recalculate(string $game, SettlementRequest $request, User $user): ResponseModel;
 
-    public function CalculateResults(string $game, string $drawDate, string $timeType, string $revision): void;
+    public function CalculateResults(string $game, string $drawDate, ?string $timeType, string $revision, bool $force = false): void;
 
-    public function CalculationFailed(string $game, string $drawDate, string $timeType, string $revision): void;
+    public function CalculationFailed(string $game, string $drawDate, ?string $timeType, string $revision): void;
 }

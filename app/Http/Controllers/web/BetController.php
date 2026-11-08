@@ -14,6 +14,13 @@ class BetController extends Controller
 {
     public function __construct(private IBetService $service) {}
 
+    public function AvailableDraws(GameHistoryRequest $request, string $game): JsonResponse
+    {
+        $response = $this->service->AvailableDraws($game, $request);
+
+        return response()->json($response, $response->status);
+    }
+
     public function Index(GameHistoryRequest $request, string $game): JsonResponse
     {
         $response = $this->service->Index($game, $request, auth()->user());

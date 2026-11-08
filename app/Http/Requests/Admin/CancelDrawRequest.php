@@ -16,7 +16,7 @@ class CancelDrawRequest extends FormRequest
     {
         return [
             'drawDate' => 'required|date_format:Y-m-d',
-            'timeType' => 'required|in:am,pm',
+            'timeType' => $this->route('game') === 'threed' ? 'prohibited' : 'required|in:am,pm',
             'reason' => 'required|string|max:700',
         ];
     }

@@ -2,8 +2,11 @@
 
 namespace App\Service;
 
+use App\Http\Requests\Admin\CalculationScheduleRequest;
+use App\Http\Requests\Admin\CalculationSettingRequest;
 use App\Http\Requests\Admin\CancelDrawRequest;
 use App\Http\Requests\Admin\DrawRequest;
+use App\Http\Requests\Admin\DrawScheduleRequest;
 use App\Http\Requests\Admin\OddRequest;
 use App\Http\Requests\Admin\SettlementRequest;
 use App\Http\Requests\GameHistoryRequest;
@@ -34,6 +37,163 @@ class BetService implements IBetService
 {
     public function __construct(private IWalletService $walletService, private AdminActivityService $activities) {}
 
+    public function CalculationSettings(string $game): ResponseModel
+    {
+        $items = DB::table('result_calculation_settings')->where('game', $game)->orderBy('time_type')->get()
+            ->map(fn (object $setting): array => [
+                'calculationMode' => $setting->calculation_mode, 'calculationTime' => $setting->calculation_time,
+                ...($game === 'twod' ? ['timeType' => $setting->time_type] : []),
+            ]);
+
+        return ResponseModel::ok('Calculation settings fetched successfully!', ['items' => $items, 'timezone' => config('betting.timezone')]);
+    }
+
+    public function SaveCalculationSetting(string $game, CalculationSettingRequest $request, User $user): ResponseModel
+    {
+        return DB::transaction(function () use ($game, $request, $user): ResponseModel {
+            $data = $request->validated();
+            DB::table('result_calculation_settings')->where('game', $game)->where('time_type', $data['timeType'] ?? 'draw')->update([
+                'calculation_mode' => $data['calculationMode'], 'calculation_time' => $data['calculationTime'] ?? null, 'updated_at' => now('UTC'),
+            ]);
+            $this->activities->Record($user, 'calculation.setting.updated', 'result_calculation_settings', null, ['game' => $game, ...$data]);
+
+            return $this->CalculationSettings($game);
+        });
+    }
+
+    public function ScheduleCalculation(string $game, CalculationScheduleRequest $request, User $user): ResponseModel
+    {
+        return DB::transaction(function () use ($game, $request, $user): ResponseModel {
+            $data = $request->validated();
+            $this->LockSession($game, $data['drawDate'], $data['timeType'] ?? null);
+            $draw = $this->FindDraw($game, $data['drawDate'], $data['timeType'] ?? null);
+            if ($draw === null) {
+                return ResponseModel::NotFound('Draw was not found!', null);
+            }
+            if ($draw->settled_at !== null || $draw->cancelled_at !== null || $draw->calculation_status === 'completed') {
+                return ResponseModel::conflict('Calculation settings cannot change for a completed result!', null);
+            }
+            $draw->fill($this->CalculationAttributes($data));
+            $draw->calculation_status = 'pending';
+            if ($draw->winning_number !== null) {
+                $draw->result_revision = (string) Str::uuid7();
+            }
+            $draw->save();
+            $this->QueueCalculation($game, $draw);
+            $this->activities->Record($user, 'calculation.scheduled', $game.'_draws', $draw->id, $data);
+
+            return ResponseModel::ok('Calculation schedule updated successfully!', new DrawResource($draw->refresh()));
+        }, 3);
+    }
+
+    /** @param array<string, mixed> $data
+     * @return array{calculation_mode: string, calculation_time: ?string, calculation_scheduled_at: ?CarbonImmutable}
+     */
+    private function CalculationAttributes(array $data): array
+    {
+        $mode = $data['calculationMode'];
+        $time = $mode === 'scheduled' ? $data['calculationTime'] : null;
+
+        return [
+            'calculation_mode' => $mode, 'calculation_time' => $time,
+            'calculation_scheduled_at' => $time === null ? null : CarbonImmutable::parse($data['drawDate'].' '.$time, config('betting.timezone'))->utc(),
+        ];
+    }
+
+    private function QueueCalculation(string $game, Model $draw): void
+    {
+        if ($draw->winning_number !== null && $draw->calculation_status !== 'completed' && $this->CalculationIsDue($draw)) {
+            $draw->calculation_status = 'pending';
+            $draw->save();
+            CalculateBetResults::dispatch($game, $draw->draw_date->toDateString(), $game === 'twod' ? $draw->time_type : null, $draw->result_revision)->afterCommit();
+        }
+    }
+
+    private function CalculationIsDue(Model $draw): bool
+    {
+        return $draw->calculation_mode === 'immediate'
+            || ($draw->calculation_mode === 'scheduled' && $draw->calculation_scheduled_at !== null && $draw->calculation_scheduled_at->lessThanOrEqualTo(now('UTC')));
+    }
+
+    public function CalculateDueResults(): int
+    {
+        $count = 0;
+        foreach (['twod', 'threed'] as $game) {
+            $this->DrawQuery($game)->whereNotNull('winning_number')->whereNotNull('result_revision')
+                ->whereNull('settled_at')->whereNull('cancelled_at')->where('calculation_status', 'pending')
+                ->where(function (Builder $query): void {
+                    $query->where('calculation_mode', 'immediate')->orWhere(function (Builder $query): void {
+                        $query->where('calculation_mode', 'scheduled')->where('calculation_scheduled_at', '<=', now('UTC'));
+                    });
+                })->chunkById(100, function (Collection $draws) use ($game, &$count): void {
+                    foreach ($draws as $draw) {
+                        $this->CalculateResults($game, $draw->draw_date->toDateString(), $game === 'twod' ? $draw->time_type : null, $draw->result_revision);
+                        $count++;
+                    }
+                });
+        }
+
+        return $count;
+    }
+
+    public function Schedule(string $game, DrawScheduleRequest $request, User $user): ResponseModel
+    {
+        return DB::transaction(function () use ($game, $request, $user): ResponseModel {
+            $data = $request->validated();
+            $date = CarbonImmutable::parse($data['drawDate'], config('betting.timezone'));
+            if ($game === 'threed') {
+                $this->LockSession($game, $date->startOfMonth()->toDateString(), null);
+            }
+            $this->LockSession($game, $data['drawDate'], $data['timeType'] ?? null);
+            if ($this->DrawQuery($game)->withTrashed()->whereDate('draw_date', $data['drawDate'])
+                ->when($game === 'twod', fn (Builder $query): Builder => $query->where('time_type', $data['timeType']))->exists()) {
+                return ResponseModel::conflict('A draw already exists for this date!', null);
+            }
+            if ($game === 'threed' && $this->DrawQuery($game)->withTrashed()
+                ->whereDate('draw_date', '>=', $date->startOfMonth()->toDateString())
+                ->whereDate('draw_date', '<=', $date->endOfMonth()->toDateString())
+                ->lockForUpdate()->get()->count() >= 2) {
+                return ResponseModel::conflict('Only two 3D draw dates can be scheduled per month!', null);
+            }
+            $draw = $this->DrawQuery($game)->getModel()->newInstance([
+                'draw_date' => $data['drawDate'], 'open_date' => $data['openDate'] ?? $data['drawDate'],
+                'open_time' => $data['openTime'], 'cutoff_time' => $data['cutoffTime'],
+                'name' => $data['name'] ?? null, 'winning_number' => null,
+                ...($game === 'twod' ? ['time_type' => $data['timeType']] : []),
+            ]);
+            if (! isset($data['calculationMode'])) {
+                $setting = DB::table('result_calculation_settings')->where('game', $game)->where('time_type', $data['timeType'] ?? 'draw')->first();
+                $data['calculationMode'] = $setting->calculation_mode;
+                $data['calculationTime'] = $setting->calculation_time;
+            }
+            $draw->fill($this->CalculationAttributes($data));
+            if ($this->OpensAt($draw)->greaterThanOrEqualTo($this->ClosesAt($draw))) {
+                return ResponseModel::conflict('The betting cutoff must be after the opening time!', null);
+            }
+            if ($this->ClosesAt($draw)->lessThanOrEqualTo(CarbonImmutable::now(config('betting.timezone')))) {
+                return ResponseModel::conflict('The betting cutoff must be in the future!', null);
+            }
+            $draw->save();
+            $this->activities->Record($user, 'draw.scheduled', $game.'_draws', $draw->id, $data);
+
+            return ResponseModel::ok('Draw scheduled successfully!', new DrawResource($draw->refresh()));
+        }, 3);
+    }
+
+    public function AvailableDraws(string $game, GameHistoryRequest $request): ResponseModel
+    {
+        $now = CarbonImmutable::now(config('betting.timezone'));
+        $query = $this->DrawQuery($game)->whereNull('winning_number')->whereNull('cancelled_at')->whereNull('settled_at')
+            ->whereNotNull('open_time')->whereNotNull('cutoff_time')
+            ->where('draw_date', '>=', $now->toDateString())
+            ->whereDate(DB::raw('COALESCE(open_date, draw_date)'), '<=', $now->toDateString());
+        $this->Filter($query, $request, 'time_type');
+        $draws = $query->orderBy('draw_date')->orderBy('open_time')->get()
+            ->filter(fn (Model $draw): bool => $this->IsOpen($draw))->values();
+
+        return ResponseModel::ok('Available draws fetched successfully!', ['items' => DrawResource::collection($draws)]);
+    }
+
     public function Index(string $game, GameHistoryRequest $request, User $user): ResponseModel
     {
         $query = $this->BetQuery($game);
@@ -63,6 +223,7 @@ class BetService implements IBetService
     {
         return DB::transaction(function () use ($game, $request, $user): ResponseModel {
             $data = $request->validated();
+            $data['timeType'] ??= null;
             $this->LockSession($game, $data['drawDate'], $data['timeType']);
             $user = User::query()->lockForUpdate()->findOrFail($user->id);
             $entries = array_map(fn (array $entry): array => ['number' => $entry['number'], 'stakeAmount' => bcadd((string) $entry['stakeAmount'], '0', 2)], $data['entries']);
@@ -70,7 +231,13 @@ class BetService implements IBetService
             $existing = $this->BetQuery($game)->where('user_id', $user->id)->where('client_reference', $data['clientReference'])->orderBy('entry_index')->get();
 
             if ($existing->isNotEmpty()) {
-                return $existing->first()->request_hash === $requestHash
+                $existingHash = $game === 'threed'
+                    ? hash('sha256', json_encode([$existing->first()->draw_date->toDateString(), null, $existing->map(fn (Model $bet): array => [
+                        'number' => $bet->draw_number, 'stakeAmount' => bcadd($bet->stake_amount, '0', 2),
+                    ])->all()], JSON_THROW_ON_ERROR))
+                    : $existing->first()->request_hash;
+
+                return $existingHash === $requestHash
                     ? ResponseModel::ok('Bet request already exists!', $this->BatchData($existing))
                     : ResponseModel::conflict('Client reference is already used for a different bet!', null);
             }
@@ -78,18 +245,8 @@ class BetService implements IBetService
                 return new ResponseModel(403, 'This account cannot place bets!', null);
             }
             $draw = $this->FindDraw($game, $data['drawDate'], $data['timeType']);
-            if ($draw !== null && ($draw->winning_number !== null || $draw->cancelled_at !== null || $draw->settled_at !== null)) {
-                return ResponseModel::conflict('A result or cancellation already exists for this date and session!', null);
-            }
-            if (config('betting.enforce_cutoffs')) {
-                $cutoff = config('betting.cutoffs.'.$game.'.'.$data['timeType']);
-                if ($cutoff === null) {
-                    return ResponseModel::conflict('Betting is not available for this game session!', null);
-                }
-                $closesAt = CarbonImmutable::createFromFormat('!Y-m-d H:i', $data['drawDate'].' '.$cutoff, config('betting.timezone'));
-                if (CarbonImmutable::now(config('betting.timezone'))->greaterThanOrEqualTo($closesAt)) {
-                    return ResponseModel::conflict('The betting cutoff has passed for this date and session!', null);
-                }
+            if ($draw === null || ! $this->IsOpen($draw)) {
+                return ResponseModel::conflict('Betting is only available for an existing open draw!', null);
             }
             $odd = $this->OddQuery($game)->latest('created_at')->latest('id')->lockForUpdate()->first();
             if ($odd === null || ! in_array($odd->payout_mode, ['total', 'profit'], true)) {
@@ -115,7 +272,8 @@ class BetService implements IBetService
             $bets = new Collection;
             foreach ($entries as $index => $entry) {
                 $bets->push($this->BetQuery($game)->create([
-                    'draw_date' => $data['drawDate'], 'time' => $data['timeType'],
+                    'draw_date' => $data['drawDate'],
+                    ...($game === 'twod' ? ['time' => $data['timeType']] : []),
                     'draw_number' => $entry['number'], 'user_id' => $user->id,
                     'stake_amount' => $entry['stakeAmount'], 'potential_payout' => $entry['potentialPayout'],
                     'settle_amount' => '0.00', 'status' => 'active', 'result_status' => 'pending',
@@ -190,34 +348,44 @@ class BetService implements IBetService
     {
         return DB::transaction(function () use ($game, $request, $user): ResponseModel {
             $data = $request->validated();
+            $data['timeType'] ??= null;
             $this->LockSession($game, $data['drawDate'], $data['timeType']);
             $draw = $this->FindDraw($game, $data['drawDate'], $data['timeType']);
             if ($draw !== null && ($draw->settled_at !== null || $draw->cancelled_at !== null || ($draw->winning_number !== null && $draw->winning_number !== $data['winningNumber']))) {
                 return ResponseModel::conflict('This result is already recorded or completed!', null);
             }
-            $draw ??= $this->DrawQuery($game)->getModel()->newInstance(['draw_date' => $data['drawDate'], 'time_type' => $data['timeType']]);
+            if ($draw === null) {
+                return ResponseModel::NotFound('Draw was not found! Schedule the draw first.', null);
+            }
+            if (isset($data['calculationMode'])) {
+                if ($draw->calculation_status === 'completed') {
+                    return ResponseModel::conflict('Calculation settings cannot change for a completed result!', null);
+                }
+                $draw->fill($this->CalculationAttributes($data));
+                $draw->calculation_status = 'pending';
+                $draw->result_revision = null;
+            }
             $draw->fill(['winning_number' => $data['winningNumber'], 'name' => $data['name'] ?? $draw->name]);
             if ($draw->result_revision === null) {
                 $draw->result_revision = (string) Str::uuid7();
                 $draw->recorded_by = $user->id;
             }
             $draw->save();
-            if ($draw->calculation_status !== 'completed') {
-                CalculateBetResults::dispatch($game, $data['drawDate'], $data['timeType'], $draw->result_revision)->afterCommit();
-            }
+            $this->QueueCalculation($game, $draw);
             $this->activities->Record($user, 'result.saved', $game.'_draws', $draw->id, $data);
 
-            return ResponseModel::ok('Result saved! Calculation has been queued.', new DrawResource($draw->refresh()));
+            return ResponseModel::ok('Result saved successfully!', new DrawResource($draw->refresh()));
         }, 3);
     }
 
-    public function CalculateResults(string $game, string $drawDate, string $timeType, string $revision): void
+    public function CalculateResults(string $game, string $drawDate, ?string $timeType, string $revision, bool $force = false): void
     {
-        DB::transaction(function () use ($game, $drawDate, $timeType, $revision): void {
+        DB::transaction(function () use ($game, $drawDate, $timeType, $revision, $force): void {
             $this->LockSession($game, $drawDate, $timeType);
             $draw = $this->FindDraw($game, $drawDate, $timeType);
             if ($draw === null || $draw->result_revision !== $revision || $draw->winning_number === null
-                || $draw->settled_at !== null || $draw->cancelled_at !== null || $draw->calculation_status === 'completed') {
+                || $draw->settled_at !== null || $draw->cancelled_at !== null || $draw->calculation_status === 'completed'
+                || (! $force && ! $this->CalculationIsDue($draw))) {
                 return;
             }
             $this->SessionBets($game, $drawDate, $timeType)->where('status', 'active')->chunkById(500, function (Collection $bets) use ($draw): void {
@@ -235,19 +403,20 @@ class BetService implements IBetService
         }, 3);
     }
 
-    public function CalculationFailed(string $game, string $drawDate, string $timeType, string $revision): void
+    public function CalculationFailed(string $game, string $drawDate, ?string $timeType, string $revision): void
     {
         DB::transaction(function () use ($game, $drawDate, $timeType, $revision): void {
             $this->LockSession($game, $drawDate, $timeType);
-            $this->DrawQuery($game)->whereDate('draw_date', $drawDate)->where('time_type', $timeType)
-                ->where('result_revision', $revision)->whereNull('settled_at')->where('calculation_status', 'pending')->update(['calculation_status' => 'failed']);
+            $this->DrawQuery($game)->whereDate('draw_date', $drawDate)->when($game === 'twod', fn (Builder $query): Builder => $query->where('time_type', $timeType))
+                ->where('result_revision', $revision)->whereNull('settled_at')->whereNull('cancelled_at')->where('calculation_status', 'pending')->update(['calculation_status' => 'failed']);
         });
     }
 
-    public function Recalculate(string $game, SettlementRequest $request): ResponseModel
+    public function Recalculate(string $game, SettlementRequest $request, User $user): ResponseModel
     {
-        return DB::transaction(function () use ($game, $request): ResponseModel {
+        return DB::transaction(function () use ($game, $request, $user): ResponseModel {
             $data = $request->validated();
+            $data['timeType'] ??= null;
             $this->LockSession($game, $data['drawDate'], $data['timeType']);
             $draw = $this->FindDraw($game, $data['drawDate'], $data['timeType']);
             if ($draw === null || $draw->winning_number === null) {
@@ -259,7 +428,8 @@ class BetService implements IBetService
             if ($draw->calculation_status !== 'completed') {
                 $draw->calculation_status = 'pending';
                 $draw->save();
-                CalculateBetResults::dispatch($game, $data['drawDate'], $data['timeType'], $draw->result_revision)->afterCommit();
+                CalculateBetResults::dispatch($game, $data['drawDate'], $data['timeType'], $draw->result_revision, true)->afterCommit();
+                $this->activities->Record($user, 'calculation.requested', $game.'_draws', $draw->id, $data);
             }
 
             return ResponseModel::ok('Result calculation requested!', new DrawResource($draw));
@@ -270,6 +440,7 @@ class BetService implements IBetService
     {
         return DB::transaction(function () use ($game, $request): ResponseModel {
             $data = $request->validated();
+            $data['timeType'] ??= null;
             $this->LockSession($game, $data['drawDate'], $data['timeType']);
             $draw = $this->FindDraw($game, $data['drawDate'], $data['timeType']);
             if ($draw === null) {
@@ -288,6 +459,7 @@ class BetService implements IBetService
     {
         return DB::transaction(function () use ($game, $request, $user): ResponseModel {
             $data = $request->validated();
+            $data['timeType'] ??= null;
             $this->LockSession($game, $data['drawDate'], $data['timeType']);
             $draw = $this->FindDraw($game, $data['drawDate'], $data['timeType']);
             if ($draw === null) {
@@ -332,6 +504,7 @@ class BetService implements IBetService
     {
         return DB::transaction(function () use ($game, $request, $user): ResponseModel {
             $data = $request->validated();
+            $data['timeType'] ??= null;
             $this->LockSession($game, $data['drawDate'], $data['timeType']);
             $draw = $this->FindDraw($game, $data['drawDate'], $data['timeType']);
             if ($draw?->settled_at !== null) {
@@ -340,7 +513,9 @@ class BetService implements IBetService
             if ($draw?->cancelled_at !== null) {
                 return ResponseModel::ok('This date and session are already cancelled!', new DrawResource($draw));
             }
-            $draw ??= $this->DrawQuery($game)->getModel()->newInstance(['draw_date' => $data['drawDate'], 'time_type' => $data['timeType']]);
+            if ($draw === null) {
+                return ResponseModel::NotFound('Draw was not found!', null);
+            }
             $bets = $this->SessionBets($game, $data['drawDate'], $data['timeType'])->where('status', 'active')->orderBy('user_id')->orderBy('id')->get();
             foreach ($bets->groupBy('user_id') as $userId => $customerBets) {
                 $customer = User::query()->lockForUpdate()->findOrFail($userId);
@@ -384,9 +559,10 @@ class BetService implements IBetService
         ];
     }
 
-    private function LockSession(string $game, string $drawDate, string $timeType): void
+    private function LockSession(string $game, string $drawDate, ?string $timeType): void
     {
         $this->BetQuery($game);
+        $timeType = $game === 'threed' ? 'draw' : $timeType;
         DB::table('betting_sessions')->insertOrIgnore([
             'id' => (string) Str::uuid7(), 'game' => $game, 'draw_date' => $drawDate,
             'time_type' => $timeType, 'created_at' => now('UTC'), 'updated_at' => now('UTC'),
@@ -394,14 +570,37 @@ class BetService implements IBetService
         DB::table('betting_sessions')->where('game', $game)->where('draw_date', $drawDate)->where('time_type', $timeType)->lockForUpdate()->first();
     }
 
-    private function FindDraw(string $game, string $drawDate, string $timeType): ?Model
+    private function FindDraw(string $game, string $drawDate, ?string $timeType): ?Model
     {
-        return $this->DrawQuery($game)->whereDate('draw_date', $drawDate)->where('time_type', $timeType)->first();
+        return $this->DrawQuery($game)->whereDate('draw_date', $drawDate)
+            ->when($game === 'twod', fn (Builder $query): Builder => $query->where('time_type', $timeType))->lockForUpdate()->first();
     }
 
-    private function SessionBets(string $game, string $drawDate, string $timeType): Builder
+    private function SessionBets(string $game, string $drawDate, ?string $timeType): Builder
     {
-        return $this->BetQuery($game)->whereDate('draw_date', $drawDate)->where('time', $timeType);
+        return $this->BetQuery($game)->whereDate('draw_date', $drawDate)
+            ->when($game === 'twod', fn (Builder $query): Builder => $query->where('time', $timeType));
+    }
+
+    private function OpensAt(Model $draw): CarbonImmutable
+    {
+        return CarbonImmutable::parse(($draw->open_date ?? $draw->draw_date)->toDateString().' '.$draw->open_time, config('betting.timezone'));
+    }
+
+    private function ClosesAt(Model $draw): CarbonImmutable
+    {
+        return CarbonImmutable::parse($draw->draw_date->toDateString().' '.$draw->cutoff_time, config('betting.timezone'));
+    }
+
+    private function IsOpen(Model $draw): bool
+    {
+        if ($draw->winning_number !== null || $draw->cancelled_at !== null || $draw->settled_at !== null
+            || $draw->open_time === null || $draw->cutoff_time === null) {
+            return false;
+        }
+        $now = CarbonImmutable::now(config('betting.timezone'));
+
+        return $now->greaterThanOrEqualTo($this->OpensAt($draw)) && $now->lessThan($this->ClosesAt($draw));
     }
 
     private function BetQuery(string $game): Builder

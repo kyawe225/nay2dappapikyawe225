@@ -16,9 +16,11 @@ class DrawRequest extends FormRequest
     {
         return [
             'drawDate' => 'required|date_format:Y-m-d',
-            'timeType' => 'required|in:am,pm',
+            'timeType' => $this->route('game') === 'threed' ? 'prohibited' : 'required|in:am,pm',
             'winningNumber' => ['required', 'string', $this->route('game') === 'twod' ? 'regex:/^\\d{2}$/' : 'regex:/^\\d{3}$/'],
             'name' => 'sometimes|nullable|string|max:255',
+            'calculationMode' => 'sometimes|required|in:immediate,scheduled,manual',
+            'calculationTime' => 'required_if:calculationMode,scheduled|prohibited_unless:calculationMode,scheduled|date_format:H:i',
             'odds' => 'prohibited',
             'oddNumber' => 'prohibited',
             'payoutMode' => 'prohibited',

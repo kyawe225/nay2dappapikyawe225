@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\TwodEntry;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -13,7 +14,8 @@ class BetResource extends JsonResource
         return [
             'id' => $this->id, 'batchId' => $this->batch_id,
             'clientReference' => $this->client_reference, 'entryIndex' => (int) $this->entry_index,
-            'drawDate' => $this->draw_date->toDateString(), 'timeType' => $this->time,
+            'drawDate' => $this->draw_date->toDateString(),
+            'timeType' => $this->when($this->resource instanceof TwodEntry, fn (): ?string => $this->time),
             'number' => $this->draw_number, 'userId' => $this->user_id,
             'stakeAmount' => $this->stake_amount, 'acceptedOdds' => $this->accepted_odds,
             'potentialPayout' => $this->potential_payout, 'settleAmount' => $this->settle_amount,

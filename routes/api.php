@@ -66,6 +66,7 @@ Route::middleware(['auth:sanctum', EnsureActiveAccount::class, 'abilities:access
     Route::group(['prefix' => '{game}', 'where' => ['game' => 'twod|threed']], function (): void {
         Route::get('odds', [BetController::class, 'Odds'])->name('web.betting.odds');
         Route::get('results', [BetController::class, 'Results'])->name('web.betting.results');
+        Route::get('draws', [BetController::class, 'AvailableDraws'])->name('web.betting.draws');
         Route::get('bets', [BetController::class, 'Index'])->name('web.betting.index');
         Route::get('bets/{bet}', [BetController::class, 'Show'])->whereUuid('bet')->name('web.betting.show');
         Route::post('bets', [BetController::class, 'Create'])->name('web.betting.create');
@@ -126,6 +127,11 @@ Route::middleware(['auth:sanctum', EnsureActiveAccount::class, 'abilities:access
             Route::patch('odds/{odd}', [AdminBetController::class, 'UpdateOdd'])->whereUuid('odd')->name('betting.odds.update');
             Route::get('bets', [AdminBetController::class, 'Index'])->name('betting.index');
             Route::get('results', [AdminBetController::class, 'Results'])->name('betting.results');
+            Route::post('draws', [AdminBetController::class, 'Schedule'])->name('betting.draws.create');
+            Route::get('calculation-settings', [AdminBetController::class, 'CalculationSettings'])->name('betting.calculation-settings');
+            Route::patch('calculation-settings', [AdminBetController::class, 'SaveCalculationSetting'])->name('betting.calculation-settings.update');
+            Route::patch('results/calculation', [AdminBetController::class, 'ScheduleCalculation'])->name('betting.calculation.update');
+            Route::post('results/calculate-now', [AdminBetController::class, 'Recalculate'])->name('betting.calculate-now');
             Route::post('results', [AdminBetController::class, 'SaveResult'])->name('betting.results.create');
             Route::post('results/preview', [AdminBetController::class, 'Preview'])->name('betting.preview');
             Route::post('results/settle', [AdminBetController::class, 'Settle'])->name('betting.settle');
@@ -145,4 +151,4 @@ Route::middleware(['auth:sanctum', EnsureActiveAccount::class, 'abilities:access
     });
 });
 
-Route::post("admin/auth/login",[AdminAuthController::class,"Login"]);
+Route::post('admin/auth/login', [AdminAuthController::class, 'Login']);

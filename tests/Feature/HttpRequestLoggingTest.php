@@ -39,18 +39,18 @@ test('validation and authentication logs exclude bodies query strings and author
     }))->once();
 });
 
-test('customer and anonymous requests do not enter the administrator audit database', function (): void {
+test('customer and anonymous requests do not enter the administrator audit tables', function (): void {
     $this->getJson('/api/admin/dashboard')->assertUnauthorized();
     $customer = User::factory()->create(['role_id' => Role::query()->where('name', 'Customer')->sole()->id]);
     Sanctum::actingAs($customer, ['access']);
     $this->getJson('/api/admin/dashboard')->assertForbidden();
     $this->getJson('/api/admin/audit-logs')->assertForbidden();
     $this->getJson('/api/profile')->assertOk();
-    $this->assertDatabaseCount('admin_api_audits', 0, 'audit');
-    $this->assertDatabaseCount('admin_activities', 0, 'audit');
+    $this->assertDatabaseCount('admin_api_audits', 0);
+    $this->assertDatabaseCount('admin_activities', 0);
 });
 
-test('administrator request audits use the separate database and can be filtered', function (): void {
+test('administrator request audits use the application database and can be filtered', function (): void {
     $administrator = User::factory()->create(['role_id' => Role::query()->where('name', 'Admin')->sole()->id]);
     Sanctum::actingAs($administrator, ['access']);
     $success = $this->getJson('/api/admin/dashboard')->assertOk();
@@ -59,8 +59,8 @@ test('administrator request audits use the separate database and can be filtered
         ->assertOk()->assertJsonPath('data.pagination.total', 1)
         ->assertJsonPath('data.items.0.request_id', $requestId)->assertJsonPath('data.items.0.user_id', $administrator->id);
     $this->getJson('/api/admin/audit-logs?perPage=101')->assertUnprocessable();
-    expect(DB::connection('audit')->table('admin_api_audits')->where('request_id', $requestId)->count())->toBe(1);
-    $this->assertDatabaseCount('admin_api_audits', 0);
+    expect(DB::connection()->table('admin_api_audits')->where('request_id', $requestId)->count())->toBe(1);
+    $this->assertDatabaseCount('admin_api_audits', 3);
 });
 
 test('administrator errors have a correlation id and a separate audit record', function (): void {
@@ -72,7 +72,7 @@ test('administrator errors have a correlation id and a separate audit record', f
     $response = $this->getJson('/api/admin/logging-failure')->assertInternalServerError();
     $requestId = $response->headers->get('X-Request-ID');
     expect(Str::isUuid($requestId))->toBeTrue();
-    $this->assertDatabaseHas('admin_api_audits', ['request_id' => $requestId, 'status_code' => 500, 'route' => 'logging.failure'], 'audit');
+    $this->assertDatabaseHas('admin_api_audits', ['request_id' => $requestId, 'status_code' => 500, 'route' => 'logging.failure']);
     Log::shouldHaveReceived('log')->with('error', 'HTTP request completed', Mockery::on(
         fn (array $context): bool => $context['request_id'] === $requestId && $context['status_code'] === 500
     ))->once();

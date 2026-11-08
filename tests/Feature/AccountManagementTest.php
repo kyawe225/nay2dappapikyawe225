@@ -107,7 +107,7 @@ test('Super Admin can create staff list accounts and change a role with an audit
     $this->getJson('/api/admin/roles')->assertOk()->assertJsonCount(5, 'data');
 
     $this->assertDatabaseHas('users', ['id' => $customer->id, 'role_id' => $staff->role_id]);
-    $this->assertDatabaseHas('admin_activities', ['action' => 'account.updated', 'user_id' => $administrator->id, 'target_id' => $customer->id], 'audit');
+    $this->assertDatabaseHas('admin_activities', ['action' => 'account.updated', 'user_id' => $administrator->id, 'target_id' => $customer->id]);
 });
 
 test('staff cannot grant roles or suspend accounts and a Super Admin cannot demote themselves', function (): void {

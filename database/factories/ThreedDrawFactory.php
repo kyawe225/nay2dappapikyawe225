@@ -14,8 +14,7 @@ class ThreedDrawFactory extends Factory
         return [
             'name' => null,
             'draw_date' => fake()->date(),
-            'time_type' => fake()->randomElement(['am', 'pm']),
-            'winning_number' => fake()->numerify('##'),
+            'winning_number' => fake()->numerify('###'),
             'open_time' => '09:00',
             'cutoff_time' => '15:00',
         ];

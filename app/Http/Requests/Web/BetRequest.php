@@ -16,7 +16,7 @@ class BetRequest extends FormRequest
     {
         return [
             'drawDate' => 'required|date_format:Y-m-d',
-            'timeType' => 'required|in:am,pm',
+            'timeType' => $this->route('game') === 'threed' ? 'prohibited' : 'required|in:am,pm',
             'clientReference' => 'required|uuid',
             'entries' => 'required|array|list|min:1|max:1000',
             'entries.*' => 'required|array:number,stakeAmount',

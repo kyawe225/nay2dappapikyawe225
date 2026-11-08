@@ -16,7 +16,7 @@ class GameHistoryRequest extends FormRequest
     {
         return [
             'drawDate' => 'sometimes|date_format:Y-m-d',
-            'timeType' => 'sometimes|in:am,pm',
+            'timeType' => $this->route('game') === 'threed' ? 'prohibited' : 'sometimes|in:am,pm',
             'status' => 'sometimes|in:active,settled,cancelled,lost',
             'resultStatus' => 'sometimes|in:pending,won,lost',
             'paymentUserId' => 'sometimes|uuid|exists:users,id',

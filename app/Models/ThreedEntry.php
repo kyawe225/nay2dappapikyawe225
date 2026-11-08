@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['name', 'draw_date', 'time', 'draw_number', 'status', 'user_id', 'stake_amount', 'potential_payout', 'settle_amount', 'odd_id', 'accepted_odds', 'batch_id', 'client_reference', 'request_hash', 'entry_index', 'result_status', 'calculated_at', 'settled_at'])]
+#[Fillable(['name', 'draw_date', 'draw_number', 'status', 'user_id', 'stake_amount', 'potential_payout', 'settle_amount', 'odd_id', 'accepted_odds', 'batch_id', 'client_reference', 'request_hash', 'entry_index', 'result_status', 'calculated_at', 'settled_at'])]
 #[UseFactory(ThreedEntriesFactory::class)]
 class ThreedEntry extends Model
 {

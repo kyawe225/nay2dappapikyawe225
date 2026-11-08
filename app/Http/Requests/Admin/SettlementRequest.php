@@ -16,7 +16,7 @@ class SettlementRequest extends FormRequest
     {
         return [
             'drawDate' => 'required|date_format:Y-m-d',
-            'timeType' => 'required|in:am,pm',
+            'timeType' => $this->route('game') === 'threed' ? 'prohibited' : 'required|in:am,pm',
             'previewToken' => $this->routeIs('admin.betting.settle') ? 'required|string|size:64' : 'sometimes|string|size:64',
         ];
     }

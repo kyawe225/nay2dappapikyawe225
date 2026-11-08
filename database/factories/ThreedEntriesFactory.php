@@ -18,8 +18,7 @@ class ThreedEntriesFactory extends Factory
         return [
             'name' => null,
             'draw_date' => fake()->date(),
-            'time' => fake()->randomElement(['am', 'pm']),
-            'draw_number' => fake()->numerify('##'),
+            'draw_number' => fake()->numerify('###'),
             'status' => 'active',
             'user_id' => User::factory(),
         ];

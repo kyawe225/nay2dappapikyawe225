@@ -7,7 +7,7 @@ Runs customer/bettor API regression cases using the real curl executable.
 Use a development/test database with the current migrations and roles seeded.
 Start the API and, for an asynchronous queue, its queue worker before running.
 This script does not migrate, seed, start Laravel, or edit .env.
-Initialize the separate admin audit database first with artisan audit:setup.
+Run application migrations before testing; audits use the application database.
 Audit records are only for authenticated admin actors; customer and anonymous
 requests are checked for exclusion. HTTP logging still covers all requests.
 
@@ -59,8 +59,8 @@ Password for the two new customers. Defaults to CUSTOMER_API_TEST_PASSWORD or
 a generated password. Generated passwords exist only in this process.
 .PARAMETER DrawDate
 Unused future date (yyyy-MM-dd). Default is randomly chosen 1-10 years ahead.
-2D uses AM for settlement and PM for cancellation; 3D uses PM on this date
-for settlement and PM on the following date for cancellation. Preflight
+2D uses AM for settlement and PM for cancellation; 3D uses this date
+for settlement and the following date for cancellation. Preflight
 refuses sessions containing existing bets/results, including other customers.
 .PARAMETER OutputDirectory
 Report parent directory; each run gets a unique subdirectory. Default is the
@@ -399,6 +399,11 @@ function Invoke-BettorCases {
     $state.Games[$Game] = $gameState
     $query = "drawDate=$DrawDate&timeType=$Session"
     $cancelQuery = "drawDate=$CancelDate&timeType=$CancelSession"
+    if ($Game -eq 'threed') {
+        $Session = ''; $CancelSession = ''
+        $query = "drawDate=$DrawDate"
+        $cancelQuery = "drawDate=$CancelDate"
+    }
 
     Invoke-Case "$Game preflight: refuse occupied result/bet sessions" {
         Require-Value $state.Admin.Access 'admin login'
@@ -409,6 +414,18 @@ function Invoke-BettorCases {
             Assert-Pagination $draws.Json.data 0
         }
         $gameState.ClearSessions = $true
+    }
+    Invoke-Case "$Game schedule existing open draws for betting" {
+        Require-Value $gameState['ClearSessions'] "$Game empty-session preflight"
+        foreach ($key in @(@{ drawDate = $DrawDate; timeType = $Session }, @{ drawDate = $CancelDate; timeType = $CancelSession })) {
+            $schedule = $key.Clone()
+            if ($Game -eq 'threed') { $schedule.Remove('timeType') }
+            $schedule.openDate = [DateTime]::UtcNow.AddDays(-1).ToString('yyyy-MM-dd')
+            $schedule.openTime = '00:00'; $schedule.cutoffTime = '23:59'
+            Invoke-Api POST "/admin/$Game/draws" $state.Admin.Access $schedule
+        }
+        $available = Invoke-Api GET "/$Game/draws?$query" $state.Customer.Access
+        Assert-True (@($available.Json.data.items).Count -gt 0) 'Scheduled draw was not available for betting.'
     }
     Invoke-Case "$Game configure odds and verify customer setting" {
         Require-Value $gameState['ClearSessions'] "$Game empty-session preflight"
@@ -433,7 +450,9 @@ function Invoke-BettorCases {
     Invoke-Case "$Game reject invalid entries atomically" {
         Require-Value $gameState['OddId'] "$Game odds"
         $base = @{ drawDate = $DrawDate; timeType = $Session; clientReference = [guid]::NewGuid().ToString() }
-        Assert-Validation POST "/$Game/bets" $state.Customer.Access @{} @('drawDate', 'timeType', 'clientReference', 'entries')
+        $required = @('drawDate', 'clientReference', 'entries')
+        if ($Game -eq 'twod') { $required += 'timeType' }
+        Assert-Validation POST "/$Game/bets" $state.Customer.Access @{} $required
         $variants = @(
             @{ Entries = @(); Field = 'entries' },
             @{ Entries = @(@{ number = '5'; stakeAmount = '10.00' }); Field = 'entries.0.number' },

@@ -78,9 +78,9 @@ test('manual credits and debits are traced and retry without another movement', 
     $this->patchJson($this->walletPath, $debit)->assertOk()->assertJsonPath('data.wallet.avaliableBalance', '70.00');
     $this->patchJson($this->walletPath, $debit)->assertOk()->assertJsonPath('data.wallet.avaliableBalance', '70.00');
     $this->assertDatabaseCount('wallet_transactions', 2);
-    expect(DB::connection('audit')->table('admin_activities')->where('action', 'wallet.adjusted')->count())->toBe(2);
+    expect(DB::connection()->table('admin_activities')->where('action', 'wallet.adjusted')->count())->toBe(2);
 
-    $activity = json_decode(DB::connection('audit')->table('admin_activities')->where('action', 'wallet.adjusted')->first()->details, true);
+    $activity = json_decode(DB::connection()->table('admin_activities')->where('action', 'wallet.adjusted')->first()->details, true);
     expect($activity)->toMatchArray(['transactionId' => $first, 'reason' => $credit['reason'], 'balanceBefore' => '0.00', 'balanceAfter' => '100.25']);
     Sanctum::actingAs($this->customer, ['access']);
     $this->getJson('/api/wallet/transactions')->assertOk()->assertJsonPath('data.pagination.total', 2);
@@ -140,5 +140,5 @@ test('manual adjustment rolls back if its business audit cannot be recorded', fu
     $this->patchJson($this->walletPath, ['direction' => 'in', 'amount' => '100', 'reason' => 'Must roll back', 'clientReference' => (string) Str::uuid7()])->assertInternalServerError();
     expect($this->customer->wallets()->sole()->avaliable_balance)->toBe('0.00');
     $this->assertDatabaseCount('wallet_transactions', 0);
-    $this->assertDatabaseHas('admin_api_audits', ['user_id' => $this->administrator->id, 'status_code' => 500], 'audit');
+    $this->assertDatabaseHas('admin_api_audits', ['user_id' => $this->administrator->id, 'status_code' => 500]);
 });

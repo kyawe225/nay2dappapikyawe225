@@ -24,10 +24,13 @@ class DrawScheduleRequest extends FormRequest
     {
         return [
             'drawDate' => 'required|date_format:Y-m-d',
-            'timeType' => 'required|in:am,pm',
+            'timeType' => $this->route('game') === 'threed' ? 'prohibited' : 'required|in:am,pm',
+            'openDate' => 'sometimes|date_format:Y-m-d|before_or_equal:drawDate',
             'openTime' => 'required|date_format:H:i',
-            'cutoffTime' => 'required|date_format:H:i|after:openTime',
+            'cutoffTime' => 'required|date_format:H:i',
             'name' => 'sometimes|nullable|string|max:255',
+            'calculationMode' => 'sometimes|required|in:immediate,scheduled,manual',
+            'calculationTime' => 'required_if:calculationMode,scheduled|prohibited_unless:calculationMode,scheduled|date_format:H:i',
             'odds' => 'prohibited',
             'oddNumber' => 'prohibited',
             'payoutMode' => 'prohibited',
