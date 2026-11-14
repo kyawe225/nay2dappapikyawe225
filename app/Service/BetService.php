@@ -2,9 +2,11 @@
 
 namespace App\Service;
 
+use App\Http\Requests\Admin\BettingCutoffSettingRequest;
 use App\Http\Requests\Admin\CalculationScheduleRequest;
 use App\Http\Requests\Admin\CalculationSettingRequest;
 use App\Http\Requests\Admin\CancelDrawRequest;
+use App\Http\Requests\Admin\DrawCutoffRequest;
 use App\Http\Requests\Admin\DrawRequest;
 use App\Http\Requests\Admin\DrawScheduleRequest;
 use App\Http\Requests\Admin\OddRequest;
@@ -32,10 +34,35 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class BetService implements IBetService
 {
     public function __construct(private IWalletService $walletService, private AdminActivityService $activities) {}
+
+    public function BettingCutoffSettings(string $game): ResponseModel
+    {
+        $items = DB::table('betting_cutoff_settings')->where('game', $game)->orderBy('time_type')->get()
+            ->map(fn (object $setting): array => [
+                'cutoffTime' => $setting->cutoff_time,
+                ...($game === 'twod' ? ['timeType' => $setting->time_type] : []),
+            ]);
+
+        return ResponseModel::ok('Betting cutoff settings fetched successfully!', ['items' => $items, 'timezone' => config('betting.timezone')]);
+    }
+
+    public function SaveBettingCutoffSetting(string $game, BettingCutoffSettingRequest $request, User $user): ResponseModel
+    {
+        return DB::transaction(function () use ($game, $request, $user): ResponseModel {
+            $data = $request->validated();
+            DB::table('betting_cutoff_settings')->where('game', $game)->where('time_type', $data['timeType'] ?? 'draw')->update([
+                'cutoff_time' => $data['cutoffTime'], 'updated_at' => now('UTC'),
+            ]);
+            $this->activities->Record($user, 'betting.cutoff.setting.updated', 'betting_cutoff_settings', null, ['game' => $game, ...$data]);
+
+            return $this->BettingCutoffSettings($game);
+        });
+    }
 
     public function CalculationSettings(string $game): ResponseModel
     {
@@ -155,6 +182,13 @@ class BetService implements IBetService
                 ->lockForUpdate()->get()->count() >= 2) {
                 return ResponseModel::conflict('Only two 3D draw dates can be scheduled per month!', null);
             }
+            if (! isset($data['cutoffTime'])) {
+                $data['cutoffTime'] = DB::table('betting_cutoff_settings')->where('game', $game)
+                    ->where('time_type', $data['timeType'] ?? 'draw')->value('cutoff_time');
+                if ($data['cutoffTime'] === null) {
+                    throw ValidationException::withMessages(['cutoffTime' => 'Set a master betting cutoff or provide a cutoff time for this draw.']);
+                }
+            }
             $draw = $this->DrawQuery($game)->getModel()->newInstance([
                 'draw_date' => $data['drawDate'], 'open_date' => $data['openDate'] ?? $data['drawDate'],
                 'open_time' => $data['openTime'], 'cutoff_time' => $data['cutoffTime'],
@@ -180,6 +214,32 @@ class BetService implements IBetService
         }, 3);
     }
 
+    public function UpdateDrawCutoff(string $game, DrawCutoffRequest $request, User $user): ResponseModel
+    {
+        return DB::transaction(function () use ($game, $request, $user): ResponseModel {
+            $data = $request->validated();
+            $this->LockSession($game, $data['drawDate'], $data['timeType'] ?? null);
+            $draw = $this->FindDraw($game, $data['drawDate'], $data['timeType'] ?? null);
+            if ($draw === null) {
+                return ResponseModel::NotFound('Draw was not found!', null);
+            }
+            if ($draw->winning_number !== null || $draw->settled_at !== null || $draw->cancelled_at !== null) {
+                return ResponseModel::conflict('The betting cutoff cannot change for a closed draw!', null);
+            }
+            $draw->cutoff_time = $data['cutoffTime'];
+            if ($this->OpensAt($draw)->greaterThanOrEqualTo($this->ClosesAt($draw))) {
+                return ResponseModel::conflict('The betting cutoff must be after the opening time!', null);
+            }
+            if ($this->ClosesAt($draw)->lessThanOrEqualTo(CarbonImmutable::now(config('betting.timezone')))) {
+                return ResponseModel::conflict('The betting cutoff must be in the future!', null);
+            }
+            $draw->save();
+            $this->activities->Record($user, 'draw.cutoff.updated', $game.'_draws', $draw->id, $data);
+
+            return ResponseModel::ok('Draw cutoff updated successfully!', new DrawResource($draw->refresh()));
+        }, 3);
+    }
+
     public function AvailableDraws(string $game, GameHistoryRequest $request): ResponseModel
     {
         $now = CarbonImmutable::now(config('betting.timezone'));
@@ -194,7 +254,7 @@ class BetService implements IBetService
         return ResponseModel::ok('Available draws fetched successfully!', ['items' => DrawResource::collection($draws)]);
     }
 
-    public function Index(string $game, GameHistoryRequest $request, User $user): ResponseModel
+    public function Index(string $game, GameHistoryRequest $request, User $user, bool $administrator = false): ResponseModel
     {
         $query = $this->BetQuery($game);
         if (! $user->isAdministrator()) {
@@ -209,12 +269,18 @@ class BetService implements IBetService
             }
         }
 
-        return ResponseModel::ok('Bets fetched successfully!', $this->Paginate($query, $request, BetResource::class));
+        if ($administrator) {
+            return ResponseModel::ok('Bets fetched successfully!', $this->Paginate($query->with(BetResource::RELATIONS), $request, BetResource::class));
+        }
+
+        return ResponseModel::ok('Bets fetched successfully!', [
+            'items' => BetResource::collection($query->with(BetResource::RELATIONS)->latest('created_at')->latest('id')->get()),
+        ]);
     }
 
     public function Show(string $game, string $betId, User $user): ResponseModel
     {
-        $bet = $this->BetQuery($game)->where('user_id', $user->id)->find($betId);
+        $bet = $this->BetQuery($game)->with(BetResource::RELATIONS)->where('user_id', $user->id)->find($betId);
 
         return $bet === null ? ResponseModel::NotFound('Bet was not found!', null) : ResponseModel::ok('Bet fetched successfully!', new BetResource($bet));
     }
@@ -291,6 +357,7 @@ class BetService implements IBetService
     /** @return array{batchId: string, clientReference: string, totalStake: string, entries: mixed} */
     private function BatchData(Collection $bets): array
     {
+        $bets->load(BetResource::RELATIONS);
         $totalStake = '0.00';
         foreach ($bets as $bet) {
             $totalStake = bcadd($totalStake, $bet->stake_amount, 2);
@@ -312,7 +379,13 @@ class BetService implements IBetService
         }
         $this->Filter($query, $request, 'time_type');
 
-        return ResponseModel::ok('Results fetched successfully!', $this->Paginate($query, $request, DrawResource::class));
+        if ($administrator) {
+            return ResponseModel::ok('Results fetched successfully!', $this->Paginate($query, $request, DrawResource::class));
+        }
+
+        return ResponseModel::ok('Results fetched successfully!', [
+            'items' => DrawResource::collection($query->latest('created_at')->latest('id')->get()),
+        ]);
     }
 
     public function Odds(string $game, GameHistoryRequest $request, bool $administrator = false): ResponseModel
@@ -541,6 +614,7 @@ class BetService implements IBetService
     /** @return array<string, mixed> */
     private function Snapshot(Model $draw, Collection $bets): array
     {
+        $bets->load(BetResource::RELATIONS);
         $stake = '0.00';
         $payout = '0.00';
         foreach ($bets as $bet) {

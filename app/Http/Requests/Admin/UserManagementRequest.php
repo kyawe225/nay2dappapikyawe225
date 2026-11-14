@@ -19,7 +19,7 @@ class UserManagementRequest extends FormRequest
             'name' => $this->isMethod('POST') ? 'required|string|max:255' : 'sometimes|required|string|max:255',
             'email' => [$this->isMethod('POST') ? 'required' : 'sometimes', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->route('account'))],
             'password' => $this->isMethod('POST') ? 'required|string|min:8|max:255' : 'prohibited',
-            'roleId' => ['sometimes', 'required', 'uuid', Rule::exists('roles', 'id')->where('status', 'active')->whereNull('deleted_at')],
+            'roleName' => ['sometimes', 'required', 'string', Rule::exists('roles', 'role_name')->where('status', 'active')->whereNull('deleted_at')],
             'status' => 'sometimes|required|in:active,suspended',
         ];
     }

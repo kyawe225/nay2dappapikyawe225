@@ -4,14 +4,9 @@ namespace App\Service;
 
 use App\Http\Requests\Admin\AdminListRequest;
 use App\Http\Requests\Admin\MasterDataRequest;
-use App\Http\Resources\PaymentAccountResource;
 use App\Http\Resources\PaymentMethodResource;
 use App\Http\Resources\SupportResource;
 use App\Http\Resources\SupportTypeResource;
-use App\Http\Resources\TransactionResource;
-use App\Http\Resources\UserResource;
-use App\Http\Resources\WalletTransactionResource;
-use App\Http\Resources\WithdrawResource;
 use App\Http\ServiceContractor\IAdminManagementService;
 use App\Http\ServiceContractor\IMasterService;
 use App\Models\PaymentMethod;
@@ -26,6 +21,7 @@ use App\Models\WalletTransaction;
 use App\Models\WithdrawRequest;
 use App\Response\ResponseModel;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -48,7 +44,7 @@ class AdminManagementService implements IAdminManagementService
             $query->with('supportType');
         }
         if ($resource === 'payment-methods') {
-            $query->with('paymentAccounts');
+            $query->with(['paymentAccounts' => fn (HasMany $query): HasMany => $query->with('paymentMethod')]);
         }
         $records = $query->latest()->latest('id')->paginate($request->integer('perPage', 20));
         $resourceClass = $this->Resource($resource);
@@ -99,6 +95,8 @@ class AdminManagementService implements IAdminManagementService
                 $this->activities->Record($user, 'master.saved', $record->getTable(), $record->id, $data);
                 if ($resource === 'supports') {
                     $record->load('supportType');
+                } elseif ($resource === 'payment-methods') {
+                    $record->load(['paymentAccounts' => fn (HasMany $query): HasMany => $query->with('paymentMethod')]);
                 }
                 $resourceClass = $this->Resource($resource);
 
@@ -135,7 +133,7 @@ class AdminManagementService implements IAdminManagementService
     public function Dashboard(): ResponseModel
     {
         return ResponseModel::ok('Dashboard fetched successfully!', [
-            'customerCount' => User::query()->whereHas('role', fn (Builder $query): Builder => $query->where('name', 'Customer'))->count(),
+            ...$this->CustomerSummary(),
             'pendingDeposits' => Transaction::query()->where('type', 'deposit')->whereIn('status', ['pending', 'pending_approval'])->count(),
             'pendingWithdrawals' => WithdrawRequest::query()->where('status', 'requested')->count(),
             'availableWalletBalance' => $this->Sum(Wallet::query(), 'avaliable_balance'),
@@ -147,29 +145,28 @@ class AdminManagementService implements IAdminManagementService
         ]);
     }
 
-    public function Activities(AdminListRequest $request): ResponseModel
+    public function DashboardCustomers(): ResponseModel
     {
-        return ResponseModel::ok('Admin activity fetched successfully!', app(AuditDatabase::class)->Connection()->table('admin_activities')->latest()->orderByDesc('id')->paginate($request->integer('perPage', 20)));
+        return ResponseModel::ok('Dashboard customers fetched successfully!', $this->CustomerSummary());
     }
 
-    public function CustomerHistory(string $userId, AdminListRequest $request): ResponseModel
+    /** @return array{customerCount: int, activeUserCount: int, totalMemberMoney: string} */
+    private function CustomerSummary(): array
     {
-        $user = User::query()->with('role')->find($userId);
-        if ($user === null) {
-            return ResponseModel::NotFound('Account was not found!', null);
-        }
-        $perPage = $request->integer('perPage', 20);
-        $transactions = $user->transactions()->with(['approver', 'user'])->latest()->latest('id')->paginate($perPage, ['*'], 'paymentsPage');
-        $withdrawals = $user->withdrawRequests()->with(['approver', 'user'])->latest()->latest('id')->paginate($perPage, ['*'], 'withdrawalsPage');
-        $movements = WalletTransaction::query()->whereHas('wallet', fn (Builder $query): Builder => $query->where('user_id', $user->id))->latest()->latest('id')->paginate($perPage, ['*'], 'movementsPage');
+        $customerWallets = Wallet::query()->whereHas('user.role', fn (Builder $query): Builder => $query->where('role_name', 'Customer'));
 
-        return ResponseModel::ok('Account history fetched successfully!', [
-            'user' => new UserResource($user), 'wallet' => $user->wallets()->first(),
-            'paymentAccounts' => PaymentAccountResource::collection($user->paymentAccounts()->get()),
-            'payments' => ['items' => TransactionResource::collection($transactions), 'total' => $transactions->total(), 'currentPage' => $transactions->currentPage()],
-            'withdrawals' => ['items' => WithdrawResource::collection($withdrawals), 'total' => $withdrawals->total(), 'currentPage' => $withdrawals->currentPage()],
-            'movements' => ['items' => WalletTransactionResource::collection($movements), 'total' => $movements->total(), 'currentPage' => $movements->currentPage()],
-        ]);
+        return [
+            'customerCount' => User::query()->whereHas('role', fn (Builder $query): Builder => $query->where('role_name', 'Customer'))->count(),
+            'activeUserCount' => User::query()->where('status', 'active')->whereHas('role', fn (Builder $query): Builder => $query->where('role_name', 'Customer')->where('status', 'active'))->count(),
+            'totalMemberMoney' => bcadd($this->Sum(clone $customerWallets, 'avaliable_balance'), $this->Sum(clone $customerWallets, 'locked_balance'), 2),
+        ];
+    }
+
+    public function Activities(AdminListRequest $request): ResponseModel
+    {
+        $records = app(AuditDatabase::class)->Connection()->table('admin_activities')->latest()->orderByDesc('id')->paginate($request->integer('perPage', 20));
+
+        return ResponseModel::ok('Admin activity fetched successfully!', $this->activities->WithActors($records));
     }
 
     private function Query(string $resource): Builder

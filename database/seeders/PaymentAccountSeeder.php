@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\PaymentAccount;
 use App\Models\PaymentMethod;
-use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +28,7 @@ class PaymentAccountSeeder extends Seeder
                     [
                         'name' => $sampleUser['name'],
                         'password' => Hash::make('password'),
-                        'role_id' => Role::query()->where('name', $sampleUser['role'])->firstOrFail()->id,
+                        'role_name' => $sampleUser['role'],
                     ],
                 );
 

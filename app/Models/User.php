@@ -9,11 +9,12 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password', 'role_id', 'status'])]
+#[Fillable(['name', 'email', 'password', 'role_name', 'status'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -24,7 +25,7 @@ class User extends Authenticatable
 
     public function role(): BelongsTo
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(Role::class, 'role_name', 'role_name');
     }
 
     public function payments(): HasMany
@@ -52,6 +53,11 @@ class User extends Authenticatable
         return $this->hasMany(Wallet::class);
     }
 
+    public function wallet(): HasOne
+    {
+        return $this->hasOne(Wallet::class);
+    }
+
     public function twodEntries(): HasMany
     {
         return $this->hasMany(TwodEntry::class);
@@ -64,13 +70,13 @@ class User extends Authenticatable
 
     public function isSuperAdministrator(): bool
     {
-        return $this->status === 'active' && $this->role()->where('status', 'active')->where('name', 'Super Admin')->exists();
+        return $this->status === 'active' && $this->role()->where('status', 'active')->where('role_name', 'Super Admin')->exists();
     }
 
     public function isAdministrator(): bool
     {
         return $this->status === 'active' && $this->role()->where('status', 'active')->whereNull('deleted_at')
-            ->whereIn('name', ['Super Admin', 'Admin', 'Staff'])->exists();
+            ->whereIn('role_name', ['Super Admin', 'Admin', 'Staff'])->exists();
     }
 
     /**

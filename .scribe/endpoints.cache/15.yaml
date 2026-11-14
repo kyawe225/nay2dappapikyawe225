@@ -7,7 +7,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: api/admin/paymentaccount/deposit
+    uri: api/admin/payment_account_deposit_list
     metadata:
       custom: []
       groupName: 'Admin Payment Accounts Handler'
@@ -16,9 +16,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -33,14 +34,13 @@ endpoints:
         custom: []
         status: 401
         content: '{"message":"Unauthenticated."}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0e2a-70b7-9330-f3f6eb70f0a2
-          access-control-allow-origin: '*'
-        description: null
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -48,7 +48,7 @@ endpoints:
     custom: []
     httpMethods:
       - POST
-    uri: api/admin/paymentaccount/deposit
+    uri: api/admin/payment_account_deposit_create
     metadata:
       custom: []
       groupName: 'Admin Payment Accounts Handler'
@@ -57,9 +57,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -129,9 +130,18 @@ endpoints:
       descriptions: z
       paymentMethodId: 977e5426-8d13-3824-86aa-b092f8ae52c5
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -139,7 +149,7 @@ endpoints:
     custom: []
     httpMethods:
       - PATCH
-    uri: 'api/admin/paymentaccount/deposit/{account}/status'
+    uri: 'api/admin/payment_account_deposit_status_update/{account}'
     metadata:
       custom: []
       groupName: 'Admin Payment Accounts Handler'
@@ -148,9 +158,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
@@ -175,7 +186,7 @@ endpoints:
         name: status
         description: ''
         required: true
-        example: inactive
+        example: active
         type: string
         enumValues:
           - active
@@ -184,11 +195,20 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      status: inactive
+      status: active
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null

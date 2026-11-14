@@ -4,9 +4,7 @@ namespace Database\Seeders;
 
 use Carbon\Carbon;
 use DB;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Str;
 
 class RoleSeeder extends Seeder
 {
@@ -15,58 +13,22 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        $now = Carbon::now(timezone: "UTC");
-        $roleDefinitions = [
-            [
-                "id" => Str::uuid7(),
-                "name" => "Super Admin",
-                "status" => "active",
-            ],
-            [
-                "id" => Str::uuid7(),
-                "name" => "Admin",
-                "status" => "active",
-            ],
-            [
-                "id" => Str::uuid7(),
-                "name" => "Branch Manager",
-                "status" => "active",
-            ],
-            [
-                "id" => Str::uuid7(),
-                "name" => "Staff",
-                "status" => "active",
-            ],
-            [
-                "id" => Str::uuid7(),
-                "name" => "Customer",
-                "status" => "active",
-            ],
-        ];
-
-        $roleIds = [];
-        foreach ($roleDefinitions as $role) {
-            $existing = DB::table("roles")
-                ->where("name", $role["name"])
-                ->first();
-
-            if ($existing) {
-                DB::table("roles")
-                    ->where("id", $existing->id)
-                    ->update([
-                        "status" => $role["status"],
-                        "deleted_at" => null,
-                        "updated_at" => $now,
-                    ]);
-                $roleIds[$role["name"]] = (string) $existing->id;
-            } else {
-                DB::table("roles")->insert([
-                    ...$role,
-                    "deleted_at" => null,
-                    "created_at" => $now,
-                    "updated_at" => $now,
+        $now = Carbon::now(timezone: 'UTC');
+        foreach (['Super Admin', 'Admin', 'Branch Manager', 'Staff', 'Customer'] as $roleName) {
+            if (DB::table('roles')->where('role_name', $roleName)->exists()) {
+                DB::table('roles')->where('role_name', $roleName)->update([
+                    'status' => 'active',
+                    'deleted_at' => null,
+                    'updated_at' => $now,
                 ]);
-                $roleIds[$role["name"]] = $role["id"];
+            } else {
+                DB::table('roles')->insert([
+                    'role_name' => $roleName,
+                    'status' => 'active',
+                    'deleted_at' => null,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
             }
         }
     }

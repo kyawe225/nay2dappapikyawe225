@@ -14,9 +14,7 @@ uses(RefreshDatabase::class);
 
 test('game factories persist against the migrated tables and preserve leading zeros', function (string $drawClass, string $entryClass): void {
     $draw = $drawClass::factory()->create(['winning_number' => '00']);
-    $user = User::factory()->afterMaking(function (User $user): void {
-        unset($user->role_id);
-    })->create();
+    $user = User::factory()->create();
     $entry = $entryClass::factory()->create(['draw_number' => '01', 'user_id' => $user->id]);
 
     expect(Str::isUuid($draw->id))->toBeTrue()
@@ -33,9 +31,7 @@ test('game factories persist against the migrated tables and preserve leading ze
 ]);
 
 test('transactions use current foreign keys and preserve decimal amounts', function (): void {
-    $payer = User::factory()->afterMaking(function (User $user): void {
-        unset($user->role_id);
-    })->create();
+    $payer = User::factory()->create();
     $transaction = Transaction::factory()->create(['amount' => '1000.25', 'payment_user_id' => $payer->id]);
     $user = $transaction->user;
     $paymentMethod = $transaction->paymentMethod;

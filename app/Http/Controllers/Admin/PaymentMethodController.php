@@ -7,9 +7,13 @@ use App\Http\Requests\Admin\AdminListRequest;
 use App\Http\Requests\Admin\PaymentMethodRequest;
 use App\Http\ServiceContractor\IPaymentMethodService;
 use Illuminate\Http\JsonResponse;
+use Knuckles\Scribe\Attributes\Authenticated;
 use Knuckles\Scribe\Attributes\Group;
+use Knuckles\Scribe\Attributes\Response;
 
-#[Group("Admin Payment Method Handler", "APIs for managing admin and users Payment Method")]
+#[Group('Admin Payment Method Handler', 'APIs for managing admin and users Payment Method')]
+#[Authenticated]
+#[Response(status: 401, content: ['message' => 'Unauthenticated.'], description: 'Missing or invalid bearer token.')]
 class PaymentMethodController extends Controller
 {
     public function __construct(private IPaymentMethodService $service) {}

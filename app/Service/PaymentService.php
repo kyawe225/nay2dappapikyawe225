@@ -28,21 +28,21 @@ class PaymentService implements IPaymentService
 
     public function DepositHistory(User $user): ResponseModel
     {
-        $transactions = $user->transactions()->with(['approver', 'user'])->where('type', 'deposit')->latest()->latest('id')->get();
+        $transactions = $user->transactions()->with(TransactionResource::RELATIONS)->where('type', 'deposit')->latest()->latest('id')->get();
 
         return ResponseModel::ok('Deposit transactions fetched successfully!', TransactionResource::collection($transactions));
     }
 
     public function WithdrawHistory(User $user): ResponseModel
     {
-        $transactions = $user->transactions()->with(['approver', 'user'])->where('type', 'withdraw')->latest()->latest('id')->get();
+        $transactions = $user->transactions()->with(TransactionResource::RELATIONS)->where('type', 'withdraw')->latest()->latest('id')->get();
 
         return ResponseModel::ok('Withdrawal transactions fetched successfully!', TransactionResource::collection($transactions));
     }
 
     public function WithdrawRequestHistory(User $user): ResponseModel
     {
-        $withdrawals = $user->withdrawRequests()->with(['approver', 'user'])->latest()->latest('id')->get();
+        $withdrawals = $user->withdrawRequests()->with(WithdrawResource::RELATIONS)->latest()->latest('id')->get();
 
         return ResponseModel::ok('Withdrawal requests fetched successfully!', WithdrawResource::collection($withdrawals));
     }
@@ -52,19 +52,7 @@ class PaymentService implements IPaymentService
         return DB::transaction(function () use ($request, $user): ResponseModel {
             User::query()->lockForUpdate()->findOrFail($user->id);
             $validatedArr = $request->validated();
-            $referenceId = $this->ReferenceId($validatedArr['clientReference'] ?? null, $user, 'deposit');
-            $existingTransaction = $user->transactions()->where('reference_id', $referenceId)->first();
-
-            if ($existingTransaction !== null) {
-                if (bccomp($existingTransaction->amount, (string) $validatedArr['amount'], 2) !== 0
-                    || $existingTransaction->payment_accounts_id !== $validatedArr['PaymentAccountId']
-                    || $existingTransaction->payment_method_id !== $validatedArr['PaymentMethodId']
-                    || $existingTransaction->last_six_tran_id !== $validatedArr['lastSixTranId']) {
-                    return ResponseModel::conflict('Client reference is already used for another deposit!', null);
-                }
-
-                return ResponseModel::ok('Deposit request already exists!', new TransactionResource($existingTransaction));
-            }
+            $referenceId = (string) Str::uuid7();
 
             $account = PaymentAccount::query()->lockForUpdate()->findOrFail($validatedArr['PaymentAccountId']);
 
@@ -86,7 +74,7 @@ class PaymentService implements IPaymentService
                 'status' => 'pending',
             ]);
 
-            return ResponseModel::ok('Deposit requested successfully! Please wait for admin approval!', new TransactionResource($transaction));
+            return ResponseModel::ok('Deposit requested successfully! Please wait for admin approval!', new TransactionResource($transaction->load(TransactionResource::RELATIONS)));
         }, 3);
     }
 
@@ -110,7 +98,7 @@ class PaymentService implements IPaymentService
                     return ResponseModel::conflict('Client reference is already used for another withdrawal!', null);
                 }
 
-                return ResponseModel::ok('Withdrawal request already exists!', new WithdrawResource($existingWithdrawal));
+                return ResponseModel::ok('Withdrawal request already exists!', new WithdrawResource($existingWithdrawal->load(WithdrawResource::RELATIONS)));
             }
 
             $account = $user->paymentAccounts()->lockForUpdate()->find($validatedArr['paymentAccountId']);
@@ -148,13 +136,13 @@ class PaymentService implements IPaymentService
             $wallet->save();
             $this->RecordMovement($wallet, 'withdraw_lock', 'out', $amount, $balanceBefore, 'withdraw_request', $withdrawal->id);
 
-            return ResponseModel::ok('Withdrawal requested successfully! Please wait for admin approval!', new WithdrawResource($withdrawal));
+            return ResponseModel::ok('Withdrawal requested successfully! Please wait for admin approval!', new WithdrawResource($withdrawal->load(WithdrawResource::RELATIONS)));
         }, 3);
     }
 
     public function DepositRequests(PaymentHistoryRequest $request): ResponseModel
     {
-        $query = Transaction::query()->with(['approver', 'user'])->where('type', 'deposit');
+        $query = Transaction::query()->with(TransactionResource::RELATIONS)->where('type', 'deposit');
         $this->FilterHistory($query, $request, 'payment_user_id');
         $transactions = $query->latest()->latest('id')->paginate($request->integer('perPage', 20));
 
@@ -166,7 +154,7 @@ class PaymentService implements IPaymentService
 
     public function WithdrawalRequests(PaymentHistoryRequest $request): ResponseModel
     {
-        $query = WithdrawRequest::query()->with(['approver', 'user']);
+        $query = WithdrawRequest::query()->with(WithdrawResource::RELATIONS);
         $this->FilterHistory($query, $request, 'requested_payment_user_id');
         $withdrawals = $query->latest()->latest('id')->paginate($request->integer('perPage', 20));
 
@@ -188,7 +176,7 @@ class PaymentService implements IPaymentService
             }
 
             if ($transaction->status === $status) {
-                return ResponseModel::ok('Deposit request is already reviewed!', new TransactionResource($transaction));
+                return ResponseModel::ok('Deposit request is already reviewed!', new TransactionResource($transaction->load(TransactionResource::RELATIONS)));
             }
 
             if (! in_array($transaction->status, ['pending', 'pending_approval'], true)) {
@@ -218,7 +206,7 @@ class PaymentService implements IPaymentService
             $transaction->status = $status;
             $transaction->save();
 
-            return ResponseModel::ok('Deposit request reviewed successfully!', new TransactionResource($transaction));
+            return ResponseModel::ok('Deposit request reviewed successfully!', new TransactionResource($transaction->load(TransactionResource::RELATIONS)));
         }, 3);
     }
 
@@ -230,7 +218,7 @@ class PaymentService implements IPaymentService
             $status = $request->validated('status');
 
             if ($withdrawal->status === $status) {
-                return ResponseModel::ok('Withdrawal request is already reviewed!', new WithdrawResource($withdrawal));
+                return ResponseModel::ok('Withdrawal request is already reviewed!', new WithdrawResource($withdrawal->load(WithdrawResource::RELATIONS)));
             }
 
             if ($withdrawal->status !== 'requested') {
@@ -277,7 +265,7 @@ class PaymentService implements IPaymentService
             $withdrawal->status = $status;
             $withdrawal->save();
 
-            return ResponseModel::ok('Withdrawal request reviewed successfully!', new WithdrawResource($withdrawal));
+            return ResponseModel::ok('Withdrawal request reviewed successfully!', new WithdrawResource($withdrawal->load(WithdrawResource::RELATIONS)));
         }, 3);
     }
 
@@ -294,7 +282,7 @@ class PaymentService implements IPaymentService
 
     public function WalletHistory(PaymentHistoryRequest $request, User $user): ResponseModel
     {
-        $query = WalletTransaction::query()->whereHas('wallet', fn (Builder $query): Builder => $query->where('user_id', $user->id));
+        $query = WalletTransaction::query()->with(WalletTransactionResource::RELATIONS)->whereHas('wallet', fn (Builder $query): Builder => $query->where('user_id', $user->id));
 
         foreach (['fromDate' => '>=', 'toDate' => '<='] as $field => $operator) {
             if ($request->filled($field)) {
@@ -302,11 +290,10 @@ class PaymentService implements IPaymentService
             }
         }
 
-        $transactions = $query->latest()->latest('id')->paginate($request->integer('perPage', 20));
+        $transactions = $query->latest()->latest('id')->get();
 
         return ResponseModel::ok('Wallet transactions fetched successfully!', [
             'items' => WalletTransactionResource::collection($transactions),
-            'pagination' => ['currentPage' => $transactions->currentPage(), 'lastPage' => $transactions->lastPage(), 'perPage' => $transactions->perPage(), 'total' => $transactions->total()],
         ]);
     }
 

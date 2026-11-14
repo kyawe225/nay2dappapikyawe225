@@ -44,17 +44,15 @@ test('support seeding preserves configured contacts and does not duplicate them'
 });
 
 test('support endpoint requires authentication', function (): void {
-    $this->getJson('/api/support')->assertUnauthorized();
+    $this->getJson('/api/support_list')->assertUnauthorized();
 });
 
 test('support endpoint returns active contacts with names and public type images', function (): void {
-    Sanctum::actingAs(User::factory()->afterMaking(function (User $user): void {
-        unset($user->role_id);
-    })->create(), ['access']);
+    Sanctum::actingAs(User::factory()->create(), ['access']);
     $support = Support::query()->firstOrFail();
     $support->update(['status' => 'active', 'link' => 'https://example.com/support']);
 
-    $this->getJson('/api/support')->assertOk()
+    $this->getJson('/api/support_list')->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $support->id)
         ->assertJsonPath('data.0.name', $support->name)

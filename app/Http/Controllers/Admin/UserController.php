@@ -7,9 +7,13 @@ use App\Http\Requests\Admin\AdminListRequest;
 use App\Http\Requests\Admin\UserManagementRequest;
 use App\Http\ServiceContractor\IUserService;
 use Illuminate\Http\JsonResponse;
+use Knuckles\Scribe\Attributes\Authenticated;
 use Knuckles\Scribe\Attributes\Group;
+use Knuckles\Scribe\Attributes\Response;
 
-#[Group("Admin User Handler", "APIs for managing admin and users accounts")]
+#[Group('Admin User Handler', 'APIs for managing admin and users accounts')]
+#[Authenticated]
+#[Response(status: 401, content: ['message' => 'Unauthenticated.'], description: 'Missing or invalid bearer token.')]
 class UserController extends Controller
 {
     public function __construct(private IUserService $service) {}

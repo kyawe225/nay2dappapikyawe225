@@ -7,7 +7,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: 'api/admin/{game}/odds'
+    uri: 'api/admin/betting_odds_list/{game}'
     metadata:
       custom: []
       groupName: 'Admin Bet Handler'
@@ -16,9 +16,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
@@ -43,354 +44,7 @@ endpoints:
         name: drawDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-11-01'
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      timeType:
-        custom: []
-        name: timeType
-        description: ''
-        required: false
-        example: pm
-        type: string
-        enumValues:
-          - am
-          - pm
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      status:
-        custom: []
-        name: status
-        description: ''
-        required: false
-        example: settled
-        type: string
-        enumValues:
-          - active
-          - settled
-          - cancelled
-          - lost
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      resultStatus:
-        custom: []
-        name: resultStatus
-        description: ''
-        required: false
-        example: lost
-        type: string
-        enumValues:
-          - pending
-          - won
-          - lost
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      paymentUserId:
-        custom: []
-        name: paymentUserId
-        description: 'Must be a valid UUID. Must match an existing stored value.'
-        required: false
-        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      page:
-        custom: []
-        name: page
-        description: 'Must be at least 1.'
-        required: false
-        example: 67
-        type: integer
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      perPage:
-        custom: []
-        name: perPage
-        description: 'Must be at least 1. Must not be greater than 100.'
-        required: false
-        example: 16
-        type: integer
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-    cleanBodyParameters:
-      drawDate: '2026-11-01'
-      timeType: pm
-      status: settled
-      resultStatus: lost
-      paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
-      page: 67
-      perPage: 16
-    fileParameters: []
-    responses:
-      -
-        custom: []
-        status: 404
-        content: |-
-          {
-              "message": "The route api/admin/twod|threed/odds could not be found."
-          }
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0dd7-72fb-ac65-9d80cb75a94d
-          access-control-allow-origin: '*'
-        description: null
-    responseFields: []
-    auth: []
-    controller: null
-    method: null
-    route: null
-  -
-    custom: []
-    httpMethods:
-      - POST
-    uri: 'api/admin/{game}/odds'
-    metadata:
-      custom: []
-      groupName: 'Admin Bet Handler'
-      groupDescription: 'APIs for managing admin and users bets'
-      subgroup: ''
-      subgroupDescription: ''
-      title: ''
-      description: ''
-      authenticated: false
-      deprecated: false
-    headers:
-      Content-Type: application/json
-      Accept: application/json
-    urlParameters:
-      game:
-        custom: []
-        name: game
-        description: ''
-        required: true
-        example: twod|threed
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-    cleanUrlParameters:
-      game: twod|threed
-    queryParameters: []
-    cleanQueryParameters: []
-    bodyParameters:
-      name:
-        custom: []
-        name: name
-        description: 'Must not be greater than 255 characters.'
-        required: true
-        example: b
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      oddNumber:
-        custom: []
-        name: oddNumber
-        description: 'Must match the regex /^\d{1,16}(\.\d{1,4})?$/.'
-        required: true
-        example: '642559'
-        type: number
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      startDate:
-        custom: []
-        name: startDate
-        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
-        required: false
-        example: '2026-11-01'
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      payoutMode:
-        custom: []
-        name: payoutMode
-        description: ''
-        required: true
-        example: total
-        type: string
-        enumValues:
-          - total
-          - profit
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-    cleanBodyParameters:
-      name: b
-      oddNumber: '642559'
-      startDate: '2026-11-01'
-      payoutMode: total
-    fileParameters: []
-    responses: []
-    responseFields: []
-    auth: []
-    controller: null
-    method: null
-    route: null
-  -
-    custom: []
-    httpMethods:
-      - PATCH
-    uri: 'api/admin/{game}/odds/{id}'
-    metadata:
-      custom: []
-      groupName: 'Admin Bet Handler'
-      groupDescription: 'APIs for managing admin and users bets'
-      subgroup: ''
-      subgroupDescription: ''
-      title: ''
-      description: ''
-      authenticated: false
-      deprecated: false
-    headers:
-      Content-Type: application/json
-      Accept: application/json
-    urlParameters:
-      game:
-        custom: []
-        name: game
-        description: ''
-        required: true
-        example: twod|threed
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      id:
-        custom: []
-        name: id
-        description: 'The ID of the odd.'
-        required: true
-        example: architecto
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-    cleanUrlParameters:
-      game: twod|threed
-      id: architecto
-    queryParameters: []
-    cleanQueryParameters: []
-    bodyParameters:
-      name:
-        custom: []
-        name: name
-        description: 'Must not be greater than 255 characters.'
-        required: true
-        example: b
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      oddNumber:
-        custom: []
-        name: oddNumber
-        description: 'Must match the regex /^\d{1,16}(\.\d{1,4})?$/.'
-        required: true
-        example: '642559'
-        type: number
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      startDate:
-        custom: []
-        name: startDate
-        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
-        required: false
-        example: '2026-11-01'
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      payoutMode:
-        custom: []
-        name: payoutMode
-        description: ''
-        required: true
-        example: total
-        type: string
-        enumValues:
-          - total
-          - profit
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-    cleanBodyParameters:
-      name: b
-      oddNumber: '642559'
-      startDate: '2026-11-01'
-      payoutMode: total
-    fileParameters: []
-    responses: []
-    responseFields: []
-    auth: []
-    controller: null
-    method: null
-    route: null
-  -
-    custom: []
-    httpMethods:
-      - GET
-    uri: 'api/admin/{game}/bets'
-    metadata:
-      custom: []
-      groupName: 'Admin Bet Handler'
-      groupDescription: 'APIs for managing admin and users bets'
-      subgroup: ''
-      subgroupDescription: ''
-      title: ''
-      description: ''
-      authenticated: false
-      deprecated: false
-    headers:
-      Content-Type: application/json
-      Accept: application/json
-    urlParameters:
-      game:
-        custom: []
-        name: game
-        description: ''
-        required: true
-        example: twod|threed
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-    cleanUrlParameters:
-      game: twod|threed
-    queryParameters: []
-    cleanQueryParameters: []
-    bodyParameters:
-      drawDate:
-        custom: []
-        name: drawDate
-        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
-        required: false
-        example: '2026-11-01'
+        example: '2026-11-14'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -414,7 +68,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: lost
+        example: cancelled
         type: string
         enumValues:
           - active
@@ -429,7 +83,7 @@ endpoints:
         name: resultStatus
         description: ''
         required: false
-        example: won
+        example: lost
         type: string
         enumValues:
           - pending
@@ -472,10 +126,10 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      drawDate: '2026-11-01'
+      drawDate: '2026-11-14'
       timeType: am
-      status: lost
-      resultStatus: won
+      status: cancelled
+      resultStatus: lost
       paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
       page: 67
       perPage: 16
@@ -483,27 +137,23 @@ endpoints:
     responses:
       -
         custom: []
-        status: 404
-        content: |-
-          {
-              "message": "The route api/admin/twod|threed/bets could not be found."
-          }
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0dee-7016-a15b-e805d0369c7c
-          access-control-allow-origin: '*'
-        description: null
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
   -
     custom: []
     httpMethods:
-      - GET
-    uri: 'api/admin/{game}/results'
+      - POST
+    uri: 'api/admin/betting_odds_create/{game}'
     metadata:
       custom: []
       groupName: 'Admin Bet Handler'
@@ -512,9 +162,228 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      name:
+        custom: []
+        name: name
+        description: 'Must not be greater than 255 characters.'
+        required: true
+        example: b
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      oddNumber:
+        custom: []
+        name: oddNumber
+        description: 'Must match the regex /^\d{1,16}(\.\d{1,4})?$/.'
+        required: true
+        example: '642559'
+        type: number
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      startDate:
+        custom: []
+        name: startDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: false
+        example: '2026-11-14'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      payoutMode:
+        custom: []
+        name: payoutMode
+        description: ''
+        required: true
+        example: total
+        type: string
+        enumValues:
+          - total
+          - profit
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      name: b
+      oddNumber: '642559'
+      startDate: '2026-11-14'
+      payoutMode: total
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - PATCH
+    uri: 'api/admin/betting_odds_update/{game}/{odd}'
+    metadata:
+      custom: []
+      groupName: 'Admin Bet Handler'
+      groupDescription: 'APIs for managing admin and users bets'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      odd:
+        custom: []
+        name: odd
+        description: ''
+        required: true
+        example: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+      odd: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      name:
+        custom: []
+        name: name
+        description: 'Must not be greater than 255 characters.'
+        required: true
+        example: b
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      oddNumber:
+        custom: []
+        name: oddNumber
+        description: 'Must match the regex /^\d{1,16}(\.\d{1,4})?$/.'
+        required: true
+        example: '642559'
+        type: number
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      startDate:
+        custom: []
+        name: startDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: false
+        example: '2026-11-14'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      payoutMode:
+        custom: []
+        name: payoutMode
+        description: ''
+        required: true
+        example: profit
+        type: string
+        enumValues:
+          - total
+          - profit
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      name: b
+      oddNumber: '642559'
+      startDate: '2026-11-14'
+      payoutMode: profit
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: 'api/admin/betting_bets_list/{game}'
+    metadata:
+      custom: []
+      groupName: 'Admin Bet Handler'
+      groupDescription: 'APIs for managing admin and users bets'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
@@ -539,7 +408,7 @@ endpoints:
         name: drawDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-11-01'
+        example: '2026-11-14'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -550,7 +419,7 @@ endpoints:
         name: timeType
         description: ''
         required: false
-        example: pm
+        example: am
         type: string
         enumValues:
           - am
@@ -563,7 +432,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: settled
+        example: active
         type: string
         enumValues:
           - active
@@ -578,7 +447,7 @@ endpoints:
         name: resultStatus
         description: ''
         required: false
-        example: won
+        example: lost
         type: string
         enumValues:
           - pending
@@ -621,10 +490,10 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      drawDate: '2026-11-01'
-      timeType: pm
-      status: settled
-      resultStatus: won
+      drawDate: '2026-11-14'
+      timeType: am
+      status: active
+      resultStatus: lost
       paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
       page: 67
       perPage: 16
@@ -632,27 +501,23 @@ endpoints:
     responses:
       -
         custom: []
-        status: 404
-        content: |-
-          {
-              "message": "The route api/admin/twod|threed/results could not be found."
-          }
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0df7-7108-8428-f70cef254dbd
-          access-control-allow-origin: '*'
-        description: null
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
   -
     custom: []
     httpMethods:
-      - POST
-    uri: 'api/admin/{game}/results'
+      - GET
+    uri: 'api/admin/betting_results_list/{game}'
     metadata:
       custom: []
       groupName: 'Admin Bet Handler'
@@ -661,9 +526,156 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      drawDate:
+        custom: []
+        name: drawDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: false
+        example: '2026-11-14'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      timeType:
+        custom: []
+        name: timeType
+        description: ''
+        required: false
+        example: am
+        type: string
+        enumValues:
+          - am
+          - pm
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      status:
+        custom: []
+        name: status
+        description: ''
+        required: false
+        example: active
+        type: string
+        enumValues:
+          - active
+          - settled
+          - cancelled
+          - lost
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      resultStatus:
+        custom: []
+        name: resultStatus
+        description: ''
+        required: false
+        example: lost
+        type: string
+        enumValues:
+          - pending
+          - won
+          - lost
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      paymentUserId:
+        custom: []
+        name: paymentUserId
+        description: 'Must be a valid UUID. Must match an existing stored value.'
+        required: false
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      page:
+        custom: []
+        name: page
+        description: 'Must be at least 1.'
+        required: false
+        example: 67
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      perPage:
+        custom: []
+        name: perPage
+        description: 'Must be at least 1. Must not be greater than 100.'
+        required: false
+        example: 16
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      drawDate: '2026-11-14'
+      timeType: am
+      status: active
+      resultStatus: lost
+      paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+      page: 67
+      perPage: 16
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: 'api/admin/betting_draws_create/{game}'
+    metadata:
+      custom: []
+      groupName: 'Admin Bet Handler'
+      groupDescription: 'APIs for managing admin and users bets'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
@@ -688,7 +700,7 @@ endpoints:
         name: drawDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: true
-        example: '2026-11-01'
+        example: '2026-11-14'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -700,6 +712,768 @@ endpoints:
         description: ''
         required: true
         example: pm
+        type: string
+        enumValues:
+          - am
+          - pm
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      openDate:
+        custom: []
+        name: openDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>. Must be a date before or equal to <code>drawDate</code>.'
+        required: false
+        example: '2022-12-08'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      openTime:
+        custom: []
+        name: openTime
+        description: 'Must be a valid date in the format <code>H:i</code>.'
+        required: true
+        example: '04:33'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      cutoffTime:
+        custom: []
+        name: cutoffTime
+        description: 'Must be a valid date in the format <code>H:i</code>.'
+        required: false
+        example: '04:33'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      name:
+        custom: []
+        name: name
+        description: 'Must not be greater than 255 characters.'
+        required: false
+        example: 'n'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      calculationMode:
+        custom: []
+        name: calculationMode
+        description: ''
+        required: false
+        example: scheduled
+        type: string
+        enumValues:
+          - immediate
+          - scheduled
+          - manual
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      calculationTime:
+        custom: []
+        name: calculationTime
+        description: 'This field is required when <code>calculationMode</code> is <code>scheduled</code>. Must be a valid date in the format <code>H:i</code>.'
+        required: false
+        example: '04:33'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      odds:
+        custom: []
+        name: odds
+        description: ''
+        required: false
+        example: null
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      oddNumber:
+        custom: []
+        name: oddNumber
+        description: ''
+        required: false
+        example: null
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      payoutMode:
+        custom: []
+        name: payoutMode
+        description: ''
+        required: false
+        example: null
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      winningNumber:
+        custom: []
+        name: winningNumber
+        description: ''
+        required: false
+        example: null
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      drawDate: '2026-11-14'
+      timeType: pm
+      openDate: '2022-12-08'
+      openTime: '04:33'
+      cutoffTime: '04:33'
+      name: 'n'
+      calculationMode: scheduled
+      calculationTime: '04:33'
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - PATCH
+    uri: 'api/admin/betting_draws_cutoff_update/{game}'
+    metadata:
+      custom: []
+      groupName: 'Admin Bet Handler'
+      groupDescription: 'APIs for managing admin and users bets'
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Change the cutoff for a selected open draw without changing the master setting.'
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      drawDate:
+        custom: []
+        name: drawDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: true
+        example: '2026-11-14'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      timeType:
+        custom: []
+        name: timeType
+        description: ''
+        required: true
+        example: am
+        type: string
+        enumValues:
+          - am
+          - pm
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      cutoffTime:
+        custom: []
+        name: cutoffTime
+        description: 'Must be a valid date in the format <code>H:i</code>.'
+        required: true
+        example: '04:33'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      drawDate: '2026-11-14'
+      timeType: am
+      cutoffTime: '04:33'
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: 'api/admin/betting_cutoff_settings_list/{game}'
+    metadata:
+      custom: []
+      groupName: 'Admin Bet Handler'
+      groupDescription: 'APIs for managing admin and users bets'
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Read the saved betting cutoff for each session. Existing draws retain their cutoff.'
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - PATCH
+    uri: 'api/admin/betting_cutoff_settings_update/{game}'
+    metadata:
+      custom: []
+      groupName: 'Admin Bet Handler'
+      groupDescription: 'APIs for managing admin and users bets'
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Update the cutoff used by newly scheduled draws.'
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      timeType:
+        custom: []
+        name: timeType
+        description: ''
+        required: true
+        example: pm
+        type: string
+        enumValues:
+          - am
+          - pm
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      cutoffTime:
+        custom: []
+        name: cutoffTime
+        description: 'Must be a valid date in the format <code>H:i</code>.'
+        required: true
+        example: '04:33'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      timeType: pm
+      cutoffTime: '04:33'
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: 'api/admin/betting_calculation_settings_list/{game}'
+    metadata:
+      custom: []
+      groupName: 'Admin Bet Handler'
+      groupDescription: 'APIs for managing admin and users bets'
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Read the defaults used when scheduling new draws. Times use the betting timezone.'
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - PATCH
+    uri: 'api/admin/betting_calculation_settings_update/{game}'
+    metadata:
+      custom: []
+      groupName: 'Admin Bet Handler'
+      groupDescription: 'APIs for managing admin and users bets'
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Update the default for new draws. Existing draws retain their own schedule.'
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      timeType:
+        custom: []
+        name: timeType
+        description: ''
+        required: true
+        example: pm
+        type: string
+        enumValues:
+          - am
+          - pm
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      calculationMode:
+        custom: []
+        name: calculationMode
+        description: 'One of immediate, scheduled, manual.'
+        required: true
+        example: scheduled
+        type: string
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+      calculationTime:
+        custom: []
+        name: calculationTime
+        description: 'Required for scheduled mode; HH:mm on the draw date in the betting timezone.'
+        required: false
+        example: '12:01'
+        type: string
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      timeType: pm
+      calculationMode: scheduled
+      calculationTime: '12:01'
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - PATCH
+    uri: 'api/admin/betting_results_calculation_update/{game}'
+    metadata:
+      custom: []
+      groupName: 'Admin Bet Handler'
+      groupDescription: 'APIs for managing admin and users bets'
+      subgroup: ''
+      subgroupDescription: ''
+      title: "Override a draw's calculation mode and time before calculation completes."
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      timeType:
+        custom: []
+        name: timeType
+        description: ''
+        required: true
+        example: am
+        type: string
+        enumValues:
+          - am
+          - pm
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      calculationMode:
+        custom: []
+        name: calculationMode
+        description: ''
+        required: true
+        example: manual
+        type: string
+        enumValues:
+          - immediate
+          - scheduled
+          - manual
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      calculationTime:
+        custom: []
+        name: calculationTime
+        description: 'This field is required when <code>calculationMode</code> is <code>scheduled</code>. Must be a valid date in the format <code>H:i</code>.'
+        required: false
+        example: '04:33'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      drawDate:
+        custom: []
+        name: drawDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: true
+        example: '2026-11-14'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      timeType: am
+      calculationMode: manual
+      calculationTime: '04:33'
+      drawDate: '2026-11-14'
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: 'api/admin/betting_results_calculate_now/{game}'
+    metadata:
+      custom: []
+      groupName: 'Admin Bet Handler'
+      groupDescription: 'APIs for managing admin and users bets'
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Queue calculation now, overriding the schedule or manual mode. Wallet payment requires separate settlement.'
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      drawDate:
+        custom: []
+        name: drawDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: true
+        example: '2026-11-14'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      timeType:
+        custom: []
+        name: timeType
+        description: ''
+        required: true
+        example: pm
+        type: string
+        enumValues:
+          - am
+          - pm
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      previewToken:
+        custom: []
+        name: previewToken
+        description: 'Must be 64 characters.'
+        required: false
+        example: bngzmiyvdljnikhwaykcmyuwpwlvqwrsitcpscqldzsnrwtujwvlxjklqppwqbew
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      drawDate: '2026-11-14'
+      timeType: pm
+      previewToken: bngzmiyvdljnikhwaykcmyuwpwlvqwrsitcpscqldzsnrwtujwvlxjklqppwqbew
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: 'api/admin/betting_results_create/{game}'
+    metadata:
+      custom: []
+      groupName: 'Admin Bet Handler'
+      groupDescription: 'APIs for managing admin and users bets'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      game:
+        custom: []
+        name: game
+        description: ''
+        required: true
+        example: twod|threed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      game: twod|threed
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      drawDate:
+        custom: []
+        name: drawDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: true
+        example: '2026-11-14'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      timeType:
+        custom: []
+        name: timeType
+        description: ''
+        required: true
+        example: am
         type: string
         enumValues:
           - am
@@ -728,6 +1502,31 @@ endpoints:
         enumValues: []
         exampleWasSpecified: false
         nullable: true
+        deprecated: false
+      calculationMode:
+        custom: []
+        name: calculationMode
+        description: ''
+        required: false
+        example: immediate
+        type: string
+        enumValues:
+          - immediate
+          - scheduled
+          - manual
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      calculationTime:
+        custom: []
+        name: calculationTime
+        description: 'This field is required when <code>calculationMode</code> is <code>scheduled</code>. Must be a valid date in the format <code>H:i</code>.'
+        required: false
+        example: '04:33'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
         deprecated: false
       odds:
         custom: []
@@ -785,14 +1584,25 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      drawDate: '2026-11-01'
-      timeType: pm
+      drawDate: '2026-11-14'
+      timeType: am
       winningNumber: '564'
       name: 'y'
+      calculationMode: immediate
+      calculationTime: '04:33'
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -800,7 +1610,7 @@ endpoints:
     custom: []
     httpMethods:
       - POST
-    uri: 'api/admin/{game}/results/preview'
+    uri: 'api/admin/betting_results_preview/{game}'
     metadata:
       custom: []
       groupName: 'Admin Bet Handler'
@@ -809,9 +1619,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
@@ -836,7 +1647,7 @@ endpoints:
         name: drawDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: true
-        example: '2026-11-01'
+        example: '2026-11-14'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -867,13 +1678,22 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      drawDate: '2026-11-01'
+      drawDate: '2026-11-14'
       timeType: pm
       previewToken: bngzmiyvdljnikhwaykcmyuwpwlvqwrsitcpscqldzsnrwtujwvlxjklqppwqbew
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -881,7 +1701,7 @@ endpoints:
     custom: []
     httpMethods:
       - POST
-    uri: 'api/admin/{game}/results/settle'
+    uri: 'api/admin/betting_results_settle/{game}'
     metadata:
       custom: []
       groupName: 'Admin Bet Handler'
@@ -890,9 +1710,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
@@ -917,7 +1738,7 @@ endpoints:
         name: drawDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: true
-        example: '2026-11-01'
+        example: '2026-11-14'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -948,13 +1769,22 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      drawDate: '2026-11-01'
+      drawDate: '2026-11-14'
       timeType: am
       previewToken: bngzmiyvdljnikhwaykcmyuwpwlvqwrsitcpscqldzsnrwtujwvlxjklqppwqbew
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -962,18 +1792,19 @@ endpoints:
     custom: []
     httpMethods:
       - POST
-    uri: 'api/admin/{game}/results/recalculate'
+    uri: 'api/admin/betting_results_recalculate/{game}'
     metadata:
       custom: []
       groupName: 'Admin Bet Handler'
       groupDescription: 'APIs for managing admin and users bets'
       subgroup: ''
       subgroupDescription: ''
-      title: ''
+      title: 'Queue calculation now, overriding the schedule or manual mode. Wallet payment requires separate settlement.'
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
@@ -998,7 +1829,7 @@ endpoints:
         name: drawDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: true
-        example: '2026-11-01'
+        example: '2026-11-14'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -1029,13 +1860,22 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      drawDate: '2026-11-01'
+      drawDate: '2026-11-14'
       timeType: pm
       previewToken: bngzmiyvdljnikhwaykcmyuwpwlvqwrsitcpscqldzsnrwtujwvlxjklqppwqbew
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -1043,7 +1883,7 @@ endpoints:
     custom: []
     httpMethods:
       - POST
-    uri: 'api/admin/{game}/results/cancel'
+    uri: 'api/admin/betting_results_cancel/{game}'
     metadata:
       custom: []
       groupName: 'Admin Bet Handler'
@@ -1052,9 +1892,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
@@ -1079,7 +1920,7 @@ endpoints:
         name: drawDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: true
-        example: '2026-11-01'
+        example: '2026-11-14'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -1110,13 +1951,22 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      drawDate: '2026-11-01'
+      drawDate: '2026-11-14'
       timeType: pm
       reason: b
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null

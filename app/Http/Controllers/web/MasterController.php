@@ -6,7 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\ServiceContractor\IMasterService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Knuckles\Scribe\Attributes\Authenticated;
+use Knuckles\Scribe\Attributes\Response;
 
+#[Authenticated]
+#[Response(status: 401, content: ['message' => 'Unauthenticated.'], description: 'Missing or invalid bearer token.')]
 class MasterController extends Controller
 {
     public function __construct(private IMasterService $service) {}

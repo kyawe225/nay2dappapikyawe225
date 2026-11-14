@@ -7,7 +7,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: api/admin/accounts
+    uri: api/admin/accounts_list
     metadata:
       custom: []
       groupName: 'Admin User Handler'
@@ -16,9 +16,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -42,7 +43,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: suspended
+        example: inactive
         type: string
         enumValues:
           - active
@@ -51,12 +52,12 @@ endpoints:
         exampleWasSpecified: false
         nullable: false
         deprecated: false
-      roleId:
+      roleName:
         custom: []
-        name: roleId
-        description: 'Must be a valid UUID. Must match an existing stored value.'
+        name: roleName
+        description: 'Must match an existing stored value.'
         required: false
-        example: a4855dc5-0acb-33c3-b921-f4291f719ca0
+        example: architecto
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -67,7 +68,7 @@ endpoints:
         name: page
         description: 'Must be at least 1.'
         required: false
-        example: 66
+        example: 22
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -78,7 +79,7 @@ endpoints:
         name: paymentsPage
         description: 'Must be at least 1.'
         required: false
-        example: 27
+        example: 67
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -89,7 +90,7 @@ endpoints:
         name: withdrawalsPage
         description: 'Must be at least 1.'
         required: false
-        example: 35
+        example: 66
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -100,7 +101,7 @@ endpoints:
         name: movementsPage
         description: 'Must be at least 1.'
         required: false
-        example: 43
+        example: 27
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -111,7 +112,7 @@ endpoints:
         name: perPage
         description: 'Must be at least 1. Must not be greater than 100.'
         required: false
-        example: 1
+        example: 15
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -119,27 +120,26 @@ endpoints:
         deprecated: false
     cleanBodyParameters:
       search: b
-      status: suspended
-      roleId: a4855dc5-0acb-33c3-b921-f4291f719ca0
-      page: 66
-      paymentsPage: 27
-      withdrawalsPage: 35
-      movementsPage: 43
-      perPage: 1
+      status: inactive
+      roleName: architecto
+      page: 22
+      paymentsPage: 67
+      withdrawalsPage: 66
+      movementsPage: 27
+      perPage: 15
     fileParameters: []
     responses:
       -
         custom: []
         status: 401
         content: '{"message":"Unauthenticated."}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0d14-7151-aa65-778ed087c556
-          access-control-allow-origin: '*'
-        description: null
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -147,7 +147,7 @@ endpoints:
     custom: []
     httpMethods:
       - POST
-    uri: api/admin/accounts
+    uri: api/admin/accounts_create
     metadata:
       custom: []
       groupName: 'Admin User Handler'
@@ -156,9 +156,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -199,12 +200,12 @@ endpoints:
         exampleWasSpecified: false
         nullable: false
         deprecated: false
-      roleId:
+      roleName:
         custom: []
-        name: roleId
-        description: 'Must be a valid UUID. Must match an existing stored value.'
+        name: roleName
+        description: 'Must match an existing stored value.'
         required: false
-        example: 3c85cf54-98c1-36ed-b65a-abaafdecdfa9
+        example: architecto
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -215,7 +216,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: suspended
+        example: active
         type: string
         enumValues:
           - active
@@ -227,12 +228,21 @@ endpoints:
       name: b
       email: zbailey@example.net
       password: '-0pBNvYgxw'
-      roleId: 3c85cf54-98c1-36ed-b65a-abaafdecdfa9
-      status: suspended
+      roleName: architecto
+      status: active
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -240,7 +250,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: 'api/admin/accounts/{id}'
+    uri: 'api/admin/accounts_show/{account}'
     metadata:
       custom: []
       groupName: 'Admin User Handler'
@@ -249,25 +259,26 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
-      id:
+      account:
         custom: []
-        name: id
-        description: 'The ID of the account.'
+        name: account
+        description: ''
         required: true
-        example: architecto
+        example: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
         type: string
         enumValues: []
         exampleWasSpecified: false
         nullable: false
         deprecated: false
     cleanUrlParameters:
-      id: architecto
+      account: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
     queryParameters: []
     cleanQueryParameters: []
     bodyParameters: []
@@ -276,19 +287,15 @@ endpoints:
     responses:
       -
         custom: []
-        status: 404
-        content: |-
-          {
-              "message": "The route api/admin/accounts/architecto could not be found."
-          }
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0d23-73d2-9dd9-f470b4e3e60e
-          access-control-allow-origin: '*'
-        description: null
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -296,7 +303,7 @@ endpoints:
     custom: []
     httpMethods:
       - PATCH
-    uri: 'api/admin/accounts/{id}'
+    uri: 'api/admin/accounts_update/{account}'
     metadata:
       custom: []
       groupName: 'Admin User Handler'
@@ -305,25 +312,26 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
-      id:
+      account:
         custom: []
-        name: id
-        description: 'The ID of the account.'
+        name: account
+        description: ''
         required: true
-        example: architecto
+        example: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
         type: string
         enumValues: []
         exampleWasSpecified: false
         nullable: false
         deprecated: false
     cleanUrlParameters:
-      id: architecto
+      account: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
     queryParameters: []
     cleanQueryParameters: []
     bodyParameters:
@@ -360,12 +368,12 @@ endpoints:
         exampleWasSpecified: false
         nullable: false
         deprecated: false
-      roleId:
+      roleName:
         custom: []
-        name: roleId
-        description: 'Must be a valid UUID. Must match an existing stored value.'
+        name: roleName
+        description: 'Must match an existing stored value.'
         required: false
-        example: a1a0a47d-e8c3-3cf0-8e6e-c1ff9dca5d1f
+        example: architecto
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -387,12 +395,21 @@ endpoints:
     cleanBodyParameters:
       name: b
       email: zbailey@example.net
-      roleId: a1a0a47d-e8c3-3cf0-8e6e-c1ff9dca5d1f
+      roleName: architecto
       status: active
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -400,7 +417,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: api/admin/roles
+    uri: api/admin/roles_list
     metadata:
       custom: []
       groupName: 'Admin User Handler'
@@ -409,9 +426,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -426,14 +444,13 @@ endpoints:
         custom: []
         status: 401
         content: '{"message":"Unauthenticated."}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0d2e-715d-8ba4-04effa4a1e9c
-          access-control-allow-origin: '*'
-        description: null
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null

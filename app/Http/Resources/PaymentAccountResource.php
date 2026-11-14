@@ -7,6 +7,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class PaymentAccountResource extends JsonResource
 {
+    public const RELATIONS = ['paymentMethod', 'user.role'];
+
     /**
      * Transform the resource into an array.
      *
@@ -19,8 +21,8 @@ class PaymentAccountResource extends JsonResource
             'userName' => $this->user_name,
             'phoneNumber' => $this->phone_number,
             'bankAccountNumber' => $this->bank_account_number,
-            'paymentMethodId' => $this->payment_method_id,
-            'paymentMethod' => new PaymentMethodResource($this->payment_method),
+            'paymentMethod' => new PaymentMethodResource($this->whenLoaded('paymentMethod')),
+            'user' => new UserResource($this->whenLoaded('user')),
             'type' => $this->type,
             'status' => $this->status,
             'description' => $this->descriptions,

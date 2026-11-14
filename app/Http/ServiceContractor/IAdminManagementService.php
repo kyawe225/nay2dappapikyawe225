@@ -17,7 +17,7 @@ interface IAdminManagementService
 
     public function Dashboard(): ResponseModel;
 
-    public function Activities(AdminListRequest $request): ResponseModel;
+    public function DashboardCustomers(): ResponseModel;
 
-    public function CustomerHistory(string $userId, AdminListRequest $request): ResponseModel;
+    public function Activities(AdminListRequest $request): ResponseModel;
 }

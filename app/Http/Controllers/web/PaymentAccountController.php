@@ -6,9 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\WithdrawalAccountRequest;
 use App\Http\ServiceContractor\IPaymentAccountService;
 use Illuminate\Http\JsonResponse;
+use Knuckles\Scribe\Attributes\Authenticated;
 use Knuckles\Scribe\Attributes\Group;
+use Knuckles\Scribe\Attributes\Response;
 
-#[Group("Customer Payment Account Handler", "APIs for managing users Payment Accounts")]
+#[Group('Customer Payment Account Handler', 'APIs for managing users Payment Accounts')]
+#[Authenticated]
+#[Response(status: 401, content: ['message' => 'Unauthenticated.'], description: 'Missing or invalid bearer token.')]
 class PaymentAccountController extends Controller
 {
     public function __construct(private IPaymentAccountService $service) {}

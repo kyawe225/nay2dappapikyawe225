@@ -44,36 +44,30 @@ test('master version changes when seeded master content changes', function (): v
 });
 
 test('master seeding leaves existing users and roles unchanged', function (): void {
-    Role::factory()->create(['name' => 'Existing Role', 'status' => 'inactive']);
-    $user = User::factory()->afterMaking(function (User $user): void {
-        unset($user->role_id);
-    })->create();
+    Role::factory()->create(['role_name' => 'Existing Role', 'status' => 'inactive']);
+    $user = User::factory()->create();
     $originalUser = $user->fresh()->getAttributes();
-    $originalRoles = Role::query()->orderBy('id')->get()->toArray();
+    $originalRoles = Role::query()->orderBy('role_name')->get()->toArray();
 
     $this->seed(MasterDataSeeder::class);
     $this->seed(MasterDataSeeder::class);
 
     expect($user->fresh()->getAttributes())->toBe($originalUser)
-        ->and(Role::query()->orderBy('id')->get()->toArray())->toBe($originalRoles);
+        ->and(Role::query()->orderBy('role_name')->get()->toArray())->toBe($originalRoles);
 });
 test('master endpoint returns seeded data and skips unchanged versions', function (): void {
-    Sanctum::actingAs(User::factory()->afterMaking(function (User $user): void {
-        unset($user->role_id);
-    })->create(), ['access']);
+    Sanctum::actingAs(User::factory()->create(), ['access']);
     $version = MasterDataVersion::query()->sole()->version;
-    $this->getJson('/api/master')->assertOk()
+    $this->getJson('/api/master_list')->assertOk()
         ->assertJsonCount(2, 'data.deposit_payment_methods')
         ->assertJsonCount(2, 'data.withdrawal_payment_methods')
         ->assertJsonCount(3, 'data.support_types')
         ->assertJsonPath('data.master_version', $version);
-    $this->getJson('/api/master?version='.$version)->assertOk()->assertJsonPath('data', null);
+    $this->getJson('/api/master_list?version='.$version)->assertOk()->assertJsonPath('data', null);
 });
 
 test('master endpoint requires authentication and validates the version', function (): void {
-    $this->getJson('/api/master')->assertUnauthorized();
-    Sanctum::actingAs(User::factory()->afterMaking(function (User $user): void {
-        unset($user->role_id);
-    })->create(), ['access']);
-    $this->getJson('/api/master?version[]=invalid')->assertUnprocessable()->assertJsonValidationErrors('version');
+    $this->getJson('/api/master_list')->assertUnauthorized();
+    Sanctum::actingAs(User::factory()->create(), ['access']);
+    $this->getJson('/api/master_list?version[]=invalid')->assertUnprocessable()->assertJsonValidationErrors('version');
 });

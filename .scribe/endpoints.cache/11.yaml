@@ -7,7 +7,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: api/admin/supports
+    uri: api/admin/supports_list
     metadata:
       custom: []
       groupName: 'Admin Support Handler'
@@ -16,9 +16,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -42,7 +43,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: inactive
+        example: suspended
         type: string
         enumValues:
           - active
@@ -51,12 +52,12 @@ endpoints:
         exampleWasSpecified: false
         nullable: false
         deprecated: false
-      roleId:
+      roleName:
         custom: []
-        name: roleId
-        description: 'Must be a valid UUID. Must match an existing stored value.'
+        name: roleName
+        description: 'Must match an existing stored value.'
         required: false
-        example: a4855dc5-0acb-33c3-b921-f4291f719ca0
+        example: architecto
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -67,7 +68,7 @@ endpoints:
         name: page
         description: 'Must be at least 1.'
         required: false
-        example: 66
+        example: 22
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -78,7 +79,7 @@ endpoints:
         name: paymentsPage
         description: 'Must be at least 1.'
         required: false
-        example: 27
+        example: 67
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -89,7 +90,7 @@ endpoints:
         name: withdrawalsPage
         description: 'Must be at least 1.'
         required: false
-        example: 35
+        example: 66
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -100,7 +101,7 @@ endpoints:
         name: movementsPage
         description: 'Must be at least 1.'
         required: false
-        example: 43
+        example: 27
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -111,7 +112,7 @@ endpoints:
         name: perPage
         description: 'Must be at least 1. Must not be greater than 100.'
         required: false
-        example: 1
+        example: 15
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -119,27 +120,26 @@ endpoints:
         deprecated: false
     cleanBodyParameters:
       search: b
-      status: inactive
-      roleId: a4855dc5-0acb-33c3-b921-f4291f719ca0
-      page: 66
-      paymentsPage: 27
-      withdrawalsPage: 35
-      movementsPage: 43
-      perPage: 1
+      status: suspended
+      roleName: architecto
+      page: 22
+      paymentsPage: 67
+      withdrawalsPage: 66
+      movementsPage: 27
+      perPage: 15
     fileParameters: []
     responses:
       -
         custom: []
         status: 401
         content: '{"message":"Unauthenticated."}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0d3f-70bb-91ea-3264bb07dda2
-          access-control-allow-origin: '*'
-        description: null
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -147,7 +147,7 @@ endpoints:
     custom: []
     httpMethods:
       - POST
-    uri: api/admin/supports
+    uri: api/admin/supports_create
     metadata:
       custom: []
       groupName: 'Admin Support Handler'
@@ -156,9 +156,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -193,7 +194,7 @@ endpoints:
         name: type
         description: ''
         required: true
-        example: other
+        example: phone
         type: string
         enumValues:
           - link
@@ -218,7 +219,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: active
+        example: inactive
         type: string
         enumValues:
           - active
@@ -229,13 +230,22 @@ endpoints:
     cleanBodyParameters:
       name: b
       supportTypeId: a4855dc5-0acb-33c3-b921-f4291f719ca0
-      type: other
+      type: phone
       value: z
-      status: active
+      status: inactive
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -243,7 +253,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: 'api/admin/supports/{record}'
+    uri: 'api/admin/supports_show/{record}'
     metadata:
       custom: []
       groupName: 'Admin Support Handler'
@@ -252,9 +262,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
@@ -281,14 +292,13 @@ endpoints:
         custom: []
         status: 401
         content: '{"message":"Unauthenticated."}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0d4e-7334-9e1a-d46d013fb021
-          access-control-allow-origin: '*'
-        description: null
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -296,7 +306,7 @@ endpoints:
     custom: []
     httpMethods:
       - PATCH
-    uri: 'api/admin/supports/{record}'
+    uri: 'api/admin/supports_update/{record}'
     metadata:
       custom: []
       groupName: 'Admin Support Handler'
@@ -305,9 +315,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
@@ -394,9 +405,18 @@ endpoints:
       value: z
       status: inactive
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -404,7 +424,7 @@ endpoints:
     custom: []
     httpMethods:
       - DELETE
-    uri: 'api/admin/supports/{record}'
+    uri: 'api/admin/supports_delete/{record}'
     metadata:
       custom: []
       groupName: 'Admin Support Handler'
@@ -413,9 +433,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
@@ -437,9 +458,18 @@ endpoints:
     bodyParameters: []
     cleanBodyParameters: []
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null

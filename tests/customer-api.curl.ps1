@@ -114,9 +114,9 @@ $script:StartedAt = [DateTime]::UtcNow
 $runId = '{0}-{1}' -f $script:StartedAt.ToString('yyyyMMdd-HHmmss'), [guid]::NewGuid().ToString('N').Substring(0, 12)
 $state = @{
     Target = '(invalid or unconfigured target)'
-    Customer = @{ Email = "curl.$runId@example.test"; Access = ''; Refresh = ''; Id = ''; RoleId = '' }
-    Other = @{ Email = "curl.other.$runId@example.test"; Access = ''; Refresh = ''; Id = ''; RoleId = '' }
-    Admin = @{ Email = $AdminEmail; Access = ''; Refresh = ''; Id = ''; RoleId = '' }
+    Customer = @{ Email = "curl.$runId@example.test"; Access = ''; Id = ''; RoleName = '' }
+    Other = @{ Email = "curl.other.$runId@example.test"; Access = ''; Id = ''; RoleName = '' }
+    Admin = @{ Email = $AdminEmail; Access = ''; Id = ''; RoleName = '' }
     ExpectedAvailable = [decimal] 0; ExpectedLocked = [decimal] 0
     Movements = [Collections.Generic.List[object]]::new()
     OriginalOdds = @{}; LastOdds = @{}; Created = @{}; Games = @{}
@@ -190,8 +190,8 @@ function Invoke-Case {
 function Wait-AuthBudget {
     param([string] $Method, [string] $Path, [string] $Token)
     $route = "$Method $($Path.Split('?')[0])"
-    $limits = @{ 'POST /auth/login' = 9; 'POST /auth/register' = 9; 'POST /auth/forgot-password' = 4
-        'POST /auth/reset-password' = 9; 'POST /profile/password' = 9; 'POST /auth/refresh' = 29 }
+    $limits = @{ 'POST /auth_login' = 9; 'POST /auth_register' = 9; 'POST /auth_forgot_password' = 4
+        'POST /auth_reset_password' = 9; 'POST /profile_password_update' = 9 }
     if (-not $limits.ContainsKey($route)) { return }
     # Unnamed Laravel throttles share domain/IP (guest) or user ID, not route.
     $key = if ($Token -and $script:TokenOwners.ContainsKey($Token)) { 'user:' + $script:TokenOwners[$Token] } else { 'guest' }
@@ -303,21 +303,20 @@ function Assert-Validation {
 
 function Set-Login {
     param([hashtable] $User, [string] $Password)
-    $response = Invoke-Api POST '/auth/login' -Body @{ email = $User.Email; password = $Password }
+    $response = Invoke-Api POST '/auth_login' -Body @{ email = $User.Email; password = $Password }
     $data = $response.Json.data
     Require-Value $data.access_token 'access token'
-    Require-Value $data.refresh_token 'refresh token'
-    $script:Secrets.Add($data.access_token); $script:Secrets.Add($data.refresh_token)
+    $script:Secrets.Add($data.access_token)
     Assert-Equal $data.token_type 'Bearer' 'Login token type'
-    $User.Access = $data.access_token; $User.Refresh = $data.refresh_token
-    $User.Id = $data.user.id; $User.RoleId = $data.user.role.id
-    $User.RoleName = $data.user.role.name
-    $script:TokenOwners[$User.Access] = $User.Id; $script:TokenOwners[$User.Refresh] = $User.Id
+    $User.Access = $data.access_token
+    $User.Id = $data.user.id
+    $User.RoleName = $data.user.role_name
+    $script:TokenOwners[$User.Access] = $User.Id
 }
 
 function Assert-Wallet {
     Require-Value $state.Customer.Access 'customer login'
-    $response = Invoke-Api GET '/wallet' $state.Customer.Access
+    $response = Invoke-Api GET '/wallet_show' $state.Customer.Access
     Assert-Money $response.Json.data.avaliableBalance $state.ExpectedAvailable 'Available wallet balance'
     Assert-Money $response.Json.data.lockedBalance $state.ExpectedLocked 'Locked wallet balance'
 }
@@ -354,7 +353,7 @@ function Get-AdminAudit {
     param([string] $Query)
     $deadline = [DateTime]::UtcNow.AddSeconds(5)
     do {
-        $response = Invoke-Api GET "/admin/audit-logs?$Query" $state.Admin.Access
+        $response = Invoke-Api GET "/admin/audit_logs_list?$Query" $state.Admin.Access
         if ($response.Json.data.pagination.total -gt 0) { return $response }
         if ([DateTime]::UtcNow -ge $deadline) { throw 'Admin request audit was not persisted within five seconds.' }
         Start-Sleep -Milliseconds 200
@@ -408,9 +407,9 @@ function Invoke-BettorCases {
     Invoke-Case "$Game preflight: refuse occupied result/bet sessions" {
         Require-Value $state.Admin.Access 'admin login'
         foreach ($sessionQuery in @($query, $cancelQuery)) {
-            $bets = Invoke-Api GET "/admin/$Game/bets?$sessionQuery" $state.Admin.Access
+            $bets = Invoke-Api GET "/admin/betting_bets_list/$Game?$sessionQuery" $state.Admin.Access
             Assert-Pagination $bets.Json.data 0
-            $draws = Invoke-Api GET "/admin/$Game/results?$sessionQuery" $state.Admin.Access
+            $draws = Invoke-Api GET "/admin/betting_results_list/$Game?$sessionQuery" $state.Admin.Access
             Assert-Pagination $draws.Json.data 0
         }
         $gameState.ClearSessions = $true
@@ -422,28 +421,28 @@ function Invoke-BettorCases {
             if ($Game -eq 'threed') { $schedule.Remove('timeType') }
             $schedule.openDate = [DateTime]::UtcNow.AddDays(-1).ToString('yyyy-MM-dd')
             $schedule.openTime = '00:00'; $schedule.cutoffTime = '23:59'
-            Invoke-Api POST "/admin/$Game/draws" $state.Admin.Access $schedule
+            Invoke-Api POST "/admin/betting_draws_create/$Game" $state.Admin.Access $schedule
         }
-        $available = Invoke-Api GET "/$Game/draws?$query" $state.Customer.Access
+        $available = Invoke-Api GET "/betting_draws_list/$Game?$query" $state.Customer.Access
         Assert-True (@($available.Json.data.items).Count -gt 0) 'Scheduled draw was not available for betting.'
     }
     Invoke-Case "$Game configure odds and verify customer setting" {
         Require-Value $gameState['ClearSessions'] "$Game empty-session preflight"
-        $old = Invoke-Api GET "/$Game/odds" $state.Customer.Access -ExpectedStatus @(200, 404)
+        $old = Invoke-Api GET "/betting_odds_list/$Game" $state.Customer.Access -ExpectedStatus @(200, 404)
         if ($old.Status -eq 200) { $state.OriginalOdds[$Game] = $old.Json.data }
-        $odd = Invoke-Api POST "/admin/$Game/odds" $state.Admin.Access -Body @{
+        $odd = Invoke-Api POST "/admin/betting_odds_create/$Game" $state.Admin.Access -Body @{
             name = "curl $runId $Game"; oddNumber = [string] $Rate; payoutMode = 'total'
         }
         $state.LastOdds[$Game] = $odd.Json.data.id
         $gameState.OddId = $odd.Json.data.id
-        $customerOdd = Invoke-Api GET "/$Game/odds?$query" $state.Customer.Access
+        $customerOdd = Invoke-Api GET "/betting_odds_list/$Game?$query" $state.Customer.Access
         Assert-Equal $customerOdd.Json.data.id $gameState.OddId 'Current odds ID'
         Assert-Money $customerOdd.Json.data.oddNumber $Rate 'Current odds rate'
         Assert-Equal $customerOdd.Json.data.payoutMode 'total' 'Payout mode'
-        $all = Invoke-Api GET "/admin/$Game/odds?perPage=1" $state.Admin.Access
+        $all = Invoke-Api GET "/admin/betting_odds_list/$Game?perPage=1" $state.Admin.Access
         Assert-Pagination $all.Json.data
         Assert-Equal $all.Json.data.items[0].id $gameState.OddId 'Newest odds row'
-        Invoke-Api PATCH "/admin/$Game/odds/$($gameState.OddId)" $state.Admin.Access -Body @{
+        Invoke-Api PATCH "/admin/betting_odds_update/$Game/$($gameState.OddId)" $state.Admin.Access -Body @{
             name = 'Cannot edit'; oddNumber = '1'; payoutMode = 'total'
         } -ExpectedStatus 409
     }
@@ -452,7 +451,7 @@ function Invoke-BettorCases {
         $base = @{ drawDate = $DrawDate; timeType = $Session; clientReference = [guid]::NewGuid().ToString() }
         $required = @('drawDate', 'clientReference', 'entries')
         if ($Game -eq 'twod') { $required += 'timeType' }
-        Assert-Validation POST "/$Game/bets" $state.Customer.Access @{} $required
+        Assert-Validation POST "/betting_bets_create/$Game" $state.Customer.Access @{} $required
         $variants = @(
             @{ Entries = @(); Field = 'entries' },
             @{ Entries = @(@{ number = '5'; stakeAmount = '10.00' }); Field = 'entries.0.number' },
@@ -466,15 +465,15 @@ function Invoke-BettorCases {
         )
         foreach ($variant in $variants) {
             $payload = $base.Clone(); $payload.entries = $variant.Entries
-            Assert-Validation POST "/$Game/bets" $state.Customer.Access $payload @($variant.Field)
+            Assert-Validation POST "/betting_bets_create/$Game" $state.Customer.Access $payload @($variant.Field)
         }
         $payload = $base.Clone(); $payload.entries = @(@{ number = $WinningNumber; stakeAmount = '10' }); $payload.clientReference = 'invalid'
-        Assert-Validation POST "/$Game/bets" $state.Customer.Access $payload @('clientReference')
+        Assert-Validation POST "/betting_bets_create/$Game" $state.Customer.Access $payload @('clientReference')
         $payload.clientReference = [guid]::NewGuid().ToString(); $payload.timeType = 'night'
-        Assert-Validation POST "/$Game/bets" $state.Customer.Access $payload @('timeType')
+        Assert-Validation POST "/betting_bets_create/$Game" $state.Customer.Access $payload @('timeType')
         $payload.timeType = $Session; $payload.drawDate = 'not-a-date'
-        Assert-Validation POST "/$Game/bets" $state.Customer.Access $payload @('drawDate')
-        $bets = Invoke-Api GET "/$Game/bets?$query" $state.Customer.Access
+        Assert-Validation POST "/betting_bets_create/$Game" $state.Customer.Access $payload @('drawDate')
+        $bets = Invoke-Api GET "/betting_bets_list/$Game?$query" $state.Customer.Access
         Assert-Pagination $bets.Json.data 0
         Assert-Wallet
     }
@@ -482,9 +481,9 @@ function Invoke-BettorCases {
         Require-Value $gameState['OddId'] "$Game odds"
         $payload = @{ drawDate = $DrawDate; timeType = $Session; clientReference = [guid]::NewGuid().ToString()
             entries = @(@{ number = $WinningNumber; stakeAmount = '999999999.00' }) }
-        Invoke-Api POST "/$Game/bets" $state.Customer.Access $payload -ExpectedStatus 400
+        Invoke-Api POST "/betting_bets_create/$Game" $state.Customer.Access $payload -ExpectedStatus 400
         $payload.entries[0].stakeAmount = '10.00'
-        Invoke-Api POST "/$Game/bets" $state.Admin.Access $payload -ExpectedStatus 403
+        Invoke-Api POST "/betting_bets_create/$Game" $state.Admin.Access $payload -ExpectedStatus 403
         Assert-Wallet
     }
     Invoke-Case "$Game place ordered winning/losing entries with separate stakes" {
@@ -492,7 +491,7 @@ function Invoke-BettorCases {
         Require-State @('DepositApproved')
         $payload = @{ drawDate = $DrawDate; timeType = $Session; clientReference = [guid]::NewGuid().ToString()
             entries = @(@{ number = $WinningNumber; stakeAmount = '100.25' }, @{ number = $LosingNumber; stakeAmount = '50.50' }) }
-        $response = Invoke-Api POST "/$Game/bets" $state.Customer.Access $payload
+        $response = Invoke-Api POST "/betting_bets_create/$Game" $state.Customer.Access $payload
         $gameState.Body = $payload; $gameState.Batch = $response.Json.data
         $state.ExpectedAvailable -= [decimal] 150.75
         Add-Movement 'bet_placed' 'out' 150.75 "${Game}_bet_batch" $gameState.Batch.batchId
@@ -516,46 +515,46 @@ function Invoke-BettorCases {
     }
     Invoke-Case "$Game idempotent batch retry and changed-payload conflict" {
         Require-Value $gameState['Batch'] "$Game batch"
-        $retry = Invoke-Api POST "/$Game/bets" $state.Customer.Access $gameState.Body
+        $retry = Invoke-Api POST "/betting_bets_create/$Game" $state.Customer.Access $gameState.Body
         Assert-Equal $retry.Json.data.batchId $gameState.Batch.batchId 'Retry batch ID'
         for ($index = 0; $index -lt 2; $index++) {
             Assert-Equal $retry.Json.data.entries[$index].id $gameState.Batch.entries[$index].id 'Retry entry ID'
         }
         $changed = $gameState.Body.Clone(); $changed.entries = @(@{ number = $WinningNumber; stakeAmount = '101.25' })
-        Invoke-Api POST "/$Game/bets" $state.Customer.Access $changed -ExpectedStatus 409
+        Invoke-Api POST "/betting_bets_create/$Game" $state.Customer.Access $changed -ExpectedStatus 409
         Assert-Wallet
     }
     Invoke-Case "$Game customer history, detail, filters, and ownership" {
         Require-Value $gameState['Batch'] "$Game batch"
         $id = $gameState.Batch.entries[0].id
-        $detail = Invoke-Api GET "/$Game/bets/$id" $state.Customer.Access
+        $detail = Invoke-Api GET "/betting_bets_show/$Game/$id" $state.Customer.Access
         Assert-Equal $detail.Json.data.number $WinningNumber 'Bet detail number'
-        Invoke-Api GET "/$Game/bets/$id" $state.Other.Access -ExpectedStatus 404
-        Invoke-Api GET "/$Game/bets/not-a-uuid" $state.Customer.Access -ExpectedStatus 404
-        Invoke-Api GET "/$Game/bets/$([guid]::NewGuid())" $state.Customer.Access -ExpectedStatus 404
-        $own = Invoke-Api GET "/$Game/bets?$query&status=active&resultStatus=pending&perPage=1" $state.Customer.Access
+        Invoke-Api GET "/betting_bets_show/$Game/$id" $state.Other.Access -ExpectedStatus 404
+        Invoke-Api GET "/betting_bets_show/$Game/not-a-uuid" $state.Customer.Access -ExpectedStatus 404
+        Invoke-Api GET "/betting_bets_show/$Game/$([guid]::NewGuid())" $state.Customer.Access -ExpectedStatus 404
+        $own = Invoke-Api GET "/betting_bets_list/$Game?$query&status=active&resultStatus=pending&perPage=1" $state.Customer.Access
         Assert-Pagination $own.Json.data 2
         Assert-Equal @($own.Json.data.items).Count 1 'Page size'
-        $secondPage = Invoke-Api GET "/$Game/bets?$query&perPage=1&page=2" $state.Customer.Access
+        $secondPage = Invoke-Api GET "/betting_bets_list/$Game?$query&perPage=1&page=2" $state.Customer.Access
         Assert-Pagination $secondPage.Json.data 2
         Assert-True ($own.Json.data.items[0].id -ne $secondPage.Json.data.items[0].id) 'Pagination repeated an entry.'
-        $other = Invoke-Api GET "/$Game/bets?paymentUserId=$($state.Customer.Id)&$query" $state.Other.Access
+        $other = Invoke-Api GET "/betting_bets_list/$Game?paymentUserId=$($state.Customer.Id)&$query" $state.Other.Access
         Assert-Pagination $other.Json.data 0
-        Assert-Validation GET "/$Game/bets?perPage=101" $state.Customer.Access $null @('perPage')
-        Assert-Validation GET "/$Game/results?timeType=night" $state.Customer.Access $null @('timeType')
+        Assert-Validation GET "/betting_bets_list/$Game?perPage=101" $state.Customer.Access $null @('perPage')
+        Assert-Validation GET "/betting_results_list/$Game?timeType=night" $state.Customer.Access $null @('timeType')
     }
     Invoke-Case "$Game new odds apply only to new bets; repeated numbers keep separate stakes" {
         Require-Value $gameState['Batch'] "$Game batch"
-        $odd = Invoke-Api POST "/admin/$Game/odds" $state.Admin.Access -Body @{
+        $odd = Invoke-Api POST "/admin/betting_odds_create/$Game" $state.Admin.Access -Body @{
             name = "curl $runId changed $Game"; oddNumber = [string] $NextRate; payoutMode = 'total'
         }
         $state.LastOdds[$Game] = $odd.Json.data.id
-        $current = Invoke-Api GET "/$Game/odds" $state.Customer.Access
+        $current = Invoke-Api GET "/betting_odds_list/$Game" $state.Customer.Access
         Assert-Equal $current.Json.data.id $odd.Json.data.id 'Newest settings apply'
-        $old = Invoke-Api GET "/$Game/bets/$($gameState.Batch.entries[0].id)" $state.Customer.Access
+        $old = Invoke-Api GET "/betting_bets_show/$Game/$($gameState.Batch.entries[0].id)" $state.Customer.Access
         Assert-Money $old.Json.data.acceptedOdds $Rate 'Existing bet odds remain fixed'
         Assert-Money $old.Json.data.potentialPayout ([decimal] 100.25 * $Rate) 'Existing payout remains fixed'
-        $response = Invoke-Api POST "/$Game/bets" $state.Customer.Access -Body @{
+        $response = Invoke-Api POST "/betting_bets_create/$Game" $state.Customer.Access -Body @{
             drawDate = $DrawDate; timeType = $Session; clientReference = [guid]::NewGuid().ToString()
             entries = @(@{ number = $LosingNumber; stakeAmount = '10.00' }, @{ number = $LosingNumber; stakeAmount = '15.00' })
         }
@@ -576,11 +575,11 @@ function Invoke-BettorCases {
     Invoke-Case "$Game record result and wait for queued calculation" {
         Require-Value $gameState['NewBatch'] "$Game second batch"
         $payload = @{ drawDate = $DrawDate; timeType = $Session; winningNumber = $WinningNumber; name = "curl $runId" }
-        $saved = Invoke-Api POST "/admin/$Game/results" $state.Admin.Access $payload
+        $saved = Invoke-Api POST "/admin/betting_results_create/$Game" $state.Admin.Access $payload
         $gameState.DrawId = $saved.Json.data.id
         $deadline = [DateTime]::UtcNow.AddSeconds($CalculationTimeoutSeconds)
         do {
-            $results = Invoke-Api GET "/admin/$Game/results?$query" $state.Admin.Access
+            $results = Invoke-Api GET "/admin/betting_results_list/$Game?$query" $state.Admin.Access
             $draw = @($results.Json.data.items | Where-Object { $_.id -eq $gameState.DrawId })
             Assert-Equal $draw.Count 1 'Recorded result exists'
             if ($draw[0].calculationStatus -eq 'completed') { break }
@@ -589,15 +588,15 @@ function Invoke-BettorCases {
             Start-Sleep -Seconds 1
         } while ($true)
         $gameState.Calculated = $true
-        $retry = Invoke-Api POST "/admin/$Game/results" $state.Admin.Access $payload
+        $retry = Invoke-Api POST "/admin/betting_results_create/$Game" $state.Admin.Access $payload
         Assert-Equal $retry.Json.data.id $gameState.DrawId 'Identical result retry'
         $payload.winningNumber = $LosingNumber
-        Invoke-Api POST "/admin/$Game/results" $state.Admin.Access $payload -ExpectedStatus 409
-        Invoke-Api POST "/admin/$Game/results/recalculate" $state.Admin.Access -Body @{ drawDate = $DrawDate; timeType = $Session }
-        $public = Invoke-Api GET "/$Game/results?$query" $state.Customer.Access
+        Invoke-Api POST "/admin/betting_results_create/$Game" $state.Admin.Access $payload -ExpectedStatus 409
+        Invoke-Api POST "/admin/betting_results_recalculate/$Game" $state.Admin.Access -Body @{ drawDate = $DrawDate; timeType = $Session }
+        $public = Invoke-Api GET "/betting_results_list/$Game?$query" $state.Customer.Access
         Assert-Pagination $public.Json.data 1
         Assert-Equal $public.Json.data.items[0].winningNumber $WinningNumber 'Customer result number'
-        $won = Invoke-Api GET "/$Game/bets/$($gameState.Batch.entries[0].id)" $state.Customer.Access
+        $won = Invoke-Api GET "/betting_bets_show/$Game/$($gameState.Batch.entries[0].id)" $state.Customer.Access
         Assert-Equal $won.Json.data.resultStatus 'won' 'Winning bet result'
         Assert-Equal $won.Json.data.status 'active' 'Calculation alone must not pay'
         Assert-Wallet
@@ -605,8 +604,8 @@ function Invoke-BettorCases {
     Invoke-Case "$Game preview payouts and reject missing/invalid confirmation" {
         Require-Value $gameState['Calculated'] "$Game calculation"
         $payload = @{ drawDate = $DrawDate; timeType = $Session }
-        Assert-Validation POST "/admin/$Game/results/settle" $state.Admin.Access $payload @('previewToken')
-        $preview = Invoke-Api POST "/admin/$Game/results/preview" $state.Admin.Access $payload
+        Assert-Validation POST "/admin/betting_results_settle/$Game" $state.Admin.Access $payload @('previewToken')
+        $preview = Invoke-Api POST "/admin/betting_results_preview/$Game" $state.Admin.Access $payload
         $gameState.Preview = $preview.Json.data
         Assert-Equal $gameState.Preview.betCount 4 'Preview bet count'
         Assert-Equal $gameState.Preview.winnerCount 1 'Preview winners'
@@ -615,43 +614,43 @@ function Invoke-BettorCases {
         Assert-Money $gameState.Preview.totalPayout ([decimal] 100.25 * $Rate) 'Preview total payout'
         Assert-Equal $gameState.Preview.previewToken.Length 64 'Preview token length'
         $payload.previewToken = ('0' * 64)
-        Invoke-Api POST "/admin/$Game/results/settle" $state.Admin.Access $payload -ExpectedStatus 409
+        Invoke-Api POST "/admin/betting_results_settle/$Game" $state.Admin.Access $payload -ExpectedStatus 409
         Assert-Wallet
     }
     Invoke-Case "$Game settle winners exactly once and finalize losers" {
         Require-Value $gameState['Preview'] "$Game preview"
         $payload = @{ drawDate = $DrawDate; timeType = $Session; previewToken = $gameState.Preview.previewToken }
-        $settled = Invoke-Api POST "/admin/$Game/results/settle" $state.Admin.Access $payload
+        $settled = Invoke-Api POST "/admin/betting_results_settle/$Game" $state.Admin.Access $payload
         $state.ExpectedAvailable += [decimal] 100.25 * $Rate
         Add-Movement 'bet_won' 'in' ([decimal] 100.25 * $Rate) "${Game}_bet" $gameState.Batch.entries[0].id
         Assert-True ($null -ne $settled.Json.data.settled_at) 'Result was not marked settled.'
-        Invoke-Api POST "/admin/$Game/results/settle" $state.Admin.Access $payload
+        Invoke-Api POST "/admin/betting_results_settle/$Game" $state.Admin.Access $payload
         Assert-Wallet
-        $won = Invoke-Api GET "/$Game/bets/$($gameState.Batch.entries[0].id)" $state.Customer.Access
+        $won = Invoke-Api GET "/betting_bets_show/$Game/$($gameState.Batch.entries[0].id)" $state.Customer.Access
         Assert-Equal $won.Json.data.status 'settled' 'Winner status'
         Assert-Money $won.Json.data.settleAmount ([decimal] 100.25 * $Rate) 'Winner paid amount'
         foreach ($id in @($gameState.Batch.entries[1].id, $gameState.NewBatch.entries[0].id, $gameState.NewBatch.entries[1].id)) {
-            $lost = Invoke-Api GET "/$Game/bets/$id" $state.Customer.Access
+            $lost = Invoke-Api GET "/betting_bets_show/$Game/$id" $state.Customer.Access
             Assert-Equal $lost.Json.data.status 'lost' 'Loser status'
             Assert-Equal $lost.Json.data.resultStatus 'lost' 'Loser result'
             Assert-Money $lost.Json.data.settleAmount 0 'Loser payout'
         }
-        Invoke-Api POST "/$Game/bets" $state.Customer.Access -Body @{
+        Invoke-Api POST "/betting_bets_create/$Game" $state.Customer.Access -Body @{
             drawDate = $DrawDate; timeType = $Session; clientReference = [guid]::NewGuid().ToString()
             entries = @(@{ number = $WinningNumber; stakeAmount = '1.00' })
         } -ExpectedStatus 409
-        Invoke-Api POST "/admin/$Game/results/cancel" $state.Admin.Access -Body @{
+        Invoke-Api POST "/admin/betting_results_cancel/$Game" $state.Admin.Access -Body @{
             drawDate = $DrawDate; timeType = $Session; reason = 'Paid results cannot be cancelled'
         } -ExpectedStatus 409
     }
     Invoke-Case "$Game profit-mode odds and cancellation return each stake once" {
         Require-Value $gameState['ClearSessions'] "$Game empty-session preflight"
         Require-State @('DepositApproved')
-        $odd = Invoke-Api POST "/admin/$Game/odds" $state.Admin.Access -Body @{
+        $odd = Invoke-Api POST "/admin/betting_odds_create/$Game" $state.Admin.Access -Body @{
             name = "curl $runId profit $Game"; oddNumber = '10'; payoutMode = 'profit'
         }
         $state.LastOdds[$Game] = $odd.Json.data.id
-        $response = Invoke-Api POST "/$Game/bets" $state.Customer.Access -Body @{
+        $response = Invoke-Api POST "/betting_bets_create/$Game" $state.Customer.Access -Body @{
             drawDate = $CancelDate; timeType = $CancelSession; clientReference = [guid]::NewGuid().ToString()
             entries = @(@{ number = $WinningNumber; stakeAmount = '40.00' }, @{ number = $LosingNumber; stakeAmount = '60.00' })
         }
@@ -662,27 +661,27 @@ function Invoke-BettorCases {
         Assert-Money $gameState.CancelBatch.entries[1].potentialPayout 660 'Profit mode second stake'
         Assert-Wallet
         $payload = @{ drawDate = $CancelDate; timeType = $CancelSession; reason = "curl $runId refund test" }
-        $cancelled = Invoke-Api POST "/admin/$Game/results/cancel" $state.Admin.Access $payload
+        $cancelled = Invoke-Api POST "/admin/betting_results_cancel/$Game" $state.Admin.Access $payload
         $state.ExpectedAvailable += [decimal] 100
         foreach ($entry in $gameState.CancelBatch.entries) {
             Add-Movement 'bet_refunded' 'in' ([decimal] $entry.stakeAmount) "${Game}_bet" $entry.id
         }
         Assert-True ($null -ne $cancelled.Json.data.cancelled_at) 'Draw cancellation timestamp'
-        Invoke-Api POST "/admin/$Game/results/cancel" $state.Admin.Access $payload
+        Invoke-Api POST "/admin/betting_results_cancel/$Game" $state.Admin.Access $payload
         Assert-Wallet
         foreach ($entry in $gameState.CancelBatch.entries) {
-            $detail = Invoke-Api GET "/$Game/bets/$($entry.id)" $state.Customer.Access
+            $detail = Invoke-Api GET "/betting_bets_show/$Game/$($entry.id)" $state.Customer.Access
             Assert-Equal $detail.Json.data.status 'cancelled' 'Cancelled bet status'
             Assert-Money $detail.Json.data.settleAmount 0 'Cancelled bet payout'
         }
-        $results = Invoke-Api GET "/$Game/results?$cancelQuery" $state.Customer.Access
+        $results = Invoke-Api GET "/betting_results_list/$Game?$cancelQuery" $state.Customer.Access
         Assert-Pagination $results.Json.data 1
         Assert-True ($null -ne $results.Json.data.items[0].cancelled_at) 'Customer can see cancellation'
-        Invoke-Api POST "/$Game/bets" $state.Customer.Access -Body @{
+        Invoke-Api POST "/betting_bets_create/$Game" $state.Customer.Access -Body @{
             drawDate = $CancelDate; timeType = $CancelSession; clientReference = [guid]::NewGuid().ToString()
             entries = @(@{ number = $WinningNumber; stakeAmount = '1.00' })
         } -ExpectedStatus 409
-        Invoke-Api POST "/admin/$Game/results/settle" $state.Admin.Access -Body @{
+        Invoke-Api POST "/admin/betting_results_settle/$Game" $state.Admin.Access -Body @{
             drawDate = $CancelDate; timeType = $CancelSession; previewToken = ('0' * 64)
         } -ExpectedStatus 409
     }
@@ -720,37 +719,37 @@ try {
     Invoke-Case 'Admin login and role required for fixture setup and approvals' {
         Set-Login $state.Admin $AdminPassword
         Assert-Equal $state.Admin.RoleName 'Super Admin' 'Fixture setup requires Super Admin'
-        $roles = Invoke-Api GET '/admin/roles' $state.Admin.Access
-        $customerRole = @($roles.Json.data | Where-Object { $_.name -eq 'Customer' })
+        $roles = Invoke-Api GET '/admin/roles_list' $state.Admin.Access
+        $customerRole = @($roles.Json.data | Where-Object { $_.role_name -eq 'Customer' })
         Assert-Equal $customerRole.Count 1 'Active Customer role exists'
-        $state.CustomerRoleId = $customerRole[0].id
+        $state.CustomerRoleName = $customerRole[0].role_name
     }
     Invoke-Case 'Unauthenticated customer routes reject access' {
-        foreach ($path in @('/user', '/profile', '/master', '/support', '/paymentmethod/deposit', '/paymentmethod/withdrawal',
-            '/paymentaccount/withdrawal', '/payment/deposit/history', '/payment/withdrawal/history', '/payment/withdrawal/request/history',
-            '/wallet', '/wallet/transactions', '/twod/odds', '/threed/odds', '/twod/bets', '/threed/bets', '/twod/results', '/threed/results')) {
+        foreach ($path in @('/user_current', '/profile_show', '/master_list', '/support_list', '/payment_method_deposit_list', '/payment_method_withdrawal_list',
+            '/payment_account_withdrawal_list', '/payment_deposit_history', '/payment_withdrawal_history', '/payment_withdrawal_request_history',
+            '/wallet_show', '/wallet_history', '/betting_odds_list/twod', '/betting_odds_list/threed', '/betting_bets_list/twod', '/betting_bets_list/threed', '/betting_results_list/twod', '/betting_results_list/threed')) {
             Invoke-Api GET $path -ExpectedStatus 401
         }
-        foreach ($path in @('/auth/refresh', '/auth/logout', '/paymentaccount/withdrawal', '/payment/deposit', '/payment/withdrawal', '/twod/bets', '/threed/bets', '/profile/password')) {
+        foreach ($path in @('/auth_logout', '/payment_account_withdrawal_create', '/payment_deposit_create', '/payment_withdrawal_create', '/betting_bets_create/twod', '/betting_bets_create/threed', '/profile_password_update')) {
             Invoke-Api POST $path -Body @{} -ExpectedStatus 401
         }
-        Invoke-Api PATCH '/profile' -Body @{} -ExpectedStatus 401
+        Invoke-Api PATCH '/profile_update' -Body @{} -ExpectedStatus 401
     }
     Invoke-Case 'Registration rejects missing/invalid fields' {
-        Assert-Validation POST '/auth/register' '' @{ name = ''; email = 'invalid'; password = 'short' } @('name', 'email', 'password')
+        Assert-Validation POST '/auth_register' '' @{ name = ''; email = 'invalid'; password = 'short' } @('name', 'email', 'password')
     }
     Invoke-Case 'Register two fresh customers; ignore role and approval injection' {
-        Require-Value $state.Admin.RoleId 'admin login'
+        Require-Value $state.Admin.RoleName 'admin login'
         foreach ($user in @($state.Customer, $state.Other)) {
-            Invoke-Api POST '/auth/register' -Body @{ name = "Curl Customer $runId"; email = $user.Email; password = $CustomerPassword
-                roleId = $state.Admin.RoleId; role_id = $state.Admin.RoleId; status = 'suspended'; avaliable_balance = '999999' }
+            Invoke-Api POST '/auth_register' -Body @{ name = "Curl Customer $runId"; email = $user.Email; password = $CustomerPassword
+                roleName = $state.Admin.RoleName; role_name = $state.Admin.RoleName; status = 'suspended'; avaliable_balance = '999999' }
             Set-Login $user $CustomerPassword
             Assert-Equal $user.RoleName 'Customer' 'Registered role cannot be elevated'
-            Assert-Equal $user.RoleId $state.CustomerRoleId 'Registered Customer role ID'
-            $profile = Invoke-Api GET '/profile' $user.Access
+            Assert-Equal $user.RoleName $state.CustomerRoleName 'Registered Customer role name'
+            $profile = Invoke-Api GET '/profile_show' $user.Access
             Assert-Equal $profile.Json.data.status 'active' 'Registration ignores privileged status'
             Assert-True (-not ($profile.Json.data.PSObject.Properties.Name -contains 'password')) 'Profile exposed a password.'
-            $wallet = Invoke-Api GET '/wallet' $user.Access
+            $wallet = Invoke-Api GET '/wallet_show' $user.Access
             Assert-Money $wallet.Json.data.avaliableBalance 0 'Registered customer available balance'
             Assert-Money $wallet.Json.data.lockedBalance 0 'Registered customer locked balance'
             $walletVersion = [guid]::Empty
@@ -761,74 +760,69 @@ try {
     }
     Invoke-Case 'Duplicate registration and invalid login are rejected' {
         Require-Value $state.Customer.Id 'customer registration'
-        Assert-Validation POST '/auth/register' '' @{ name = 'Duplicate'; email = $state.Customer.Email; password = $CustomerPassword } @('email')
-        Assert-Validation POST '/auth/login' '' @{} @('email', 'password')
-        Invoke-Api POST '/auth/login' -Body @{ email = $state.Customer.Email; password = 'incorrect-password' } -ExpectedStatus 401
-        Invoke-Api POST '/wallet' $state.Customer.Access -Body @{} -ExpectedStatus 405
-        $wallet = Invoke-Api GET '/wallet' $state.Customer.Access
+        Assert-Validation POST '/auth_register' '' @{ name = 'Duplicate'; email = $state.Customer.Email; password = $CustomerPassword } @('email')
+        Assert-Validation POST '/auth_login' '' @{} @('email', 'password')
+        Invoke-Api POST '/auth_login' -Body @{ email = $state.Customer.Email; password = 'incorrect-password' } -ExpectedStatus 401
+        Invoke-Api POST '/wallet_show' $state.Customer.Access -Body @{} -ExpectedStatus 405
+        $wallet = Invoke-Api GET '/wallet_show' $state.Customer.Access
         Assert-Equal $wallet.Json.data.version $state.Customer.InitialWalletVersion 'Rejected registration/open attempts must not replace the wallet'
     }
     Invoke-Case 'Customer identity and profile update ignore privileged fields' {
         Require-Value $state.Customer.Access 'customer login'
-        $user = Invoke-Api GET '/user' $state.Customer.Access -RawUser
+        $user = Invoke-Api GET '/user_current' $state.Customer.Access -RawUser
         Assert-Equal $user.Json.id $state.Customer.Id 'Authenticated user ID'
         Assert-True (-not ($user.Json.PSObject.Properties.Name -contains 'password')) 'User endpoint exposed a password.'
-        $profile = Invoke-Api PATCH '/profile' $state.Customer.Access -Body @{
-            name = "Updated Curl $runId"; roleId = $state.Admin.RoleId; role_id = $state.Admin.RoleId; status = 'suspended'
+        $profile = Invoke-Api PATCH '/profile_update' $state.Customer.Access -Body @{
+            name = "Updated Curl $runId"; roleName = $state.Admin.RoleName; role_name = $state.Admin.RoleName; status = 'suspended'
         }
         Assert-Equal $profile.Json.data.name "Updated Curl $runId" 'Updated name'
-        Assert-Equal $profile.Json.data.role.name 'Customer' 'Customer cannot elevate own role'
+        Assert-Equal $profile.Json.data.role.roleName 'Customer' 'Customer cannot elevate own role'
         Assert-Equal $profile.Json.data.status 'active' 'Customer cannot change own status'
-        Assert-Validation PATCH '/profile' $state.Customer.Access @{ name = '' } @('name')
+        Assert-Validation PATCH '/profile_update' $state.Customer.Access @{ name = '' } @('name')
     }
-    Invoke-Case 'Refresh token abilities, rotation, and old-pair revocation' {
+    Invoke-Case 'Access token login and removed refresh route' {
         Require-Value $state.Customer.Access 'customer login'
-        Invoke-Api GET '/wallet' $state.Customer.Refresh -ExpectedStatus 403
-        Invoke-Api POST '/auth/refresh' $state.Customer.Access -ExpectedStatus 403
-        $oldAccess = $state.Customer.Access; $oldRefresh = $state.Customer.Refresh
-        $response = Invoke-Api POST '/auth/refresh' $oldRefresh
-        $state.Customer.Access = $response.Json.data.access_token; $state.Customer.Refresh = $response.Json.data.refresh_token
-        $script:Secrets.Add($state.Customer.Access); $script:Secrets.Add($state.Customer.Refresh)
-        $script:TokenOwners[$state.Customer.Access] = $state.Customer.Id; $script:TokenOwners[$state.Customer.Refresh] = $state.Customer.Id
-        Assert-True ($state.Customer.Access -ne $oldAccess -and $state.Customer.Refresh -ne $oldRefresh) 'Refresh did not rotate both tokens.'
-        Invoke-Api GET '/wallet' $oldAccess -ExpectedStatus 401
-        Invoke-Api POST '/auth/refresh' $oldRefresh -ExpectedStatus 401
+        Invoke-Api POST '/auth/refresh' $state.Customer.Access -ExpectedStatus 404
+        $oldAccess = $state.Customer.Access
+        Set-Login $state.Customer $CustomerPassword
+        Assert-True ($state.Customer.Access -ne $oldAccess) 'A new login should issue a distinct access token.'
+        Invoke-Api GET '/wallet_show' $oldAccess
         Assert-Wallet
     }
     Invoke-Case 'Admin wallet CRUD is limited to one wallet per customer; admin accounts have none' {
         Require-Value $state.Customer.Id 'customer registration'
-        $path = "/admin/accounts/$($state.Customer.Id)/wallet"
+        $path = "/admin/accounts_wallet_show/$($state.Customer.Id)"
         $wallet = Invoke-Api GET $path $state.Admin.Access
         $state.Customer.WalletId = $wallet.Json.data.id
         Assert-Equal $wallet.Json.data.userId $state.Customer.Id 'Customer wallet owner'
-        Invoke-Api POST $path $state.Admin.Access -Body @{ reason = 'Duplicate wallet must be refused' } -ExpectedStatus 409
+        Invoke-Api POST ($path.Replace('wallet_show', 'wallet_create')) $state.Admin.Access -Body @{ reason = 'Duplicate wallet must be refused' } -ExpectedStatus 409
         foreach ($method in @('GET', 'POST', 'PATCH', 'DELETE')) {
-            Invoke-Api $method $path $state.Customer.Access -Body $(if ($method -eq 'GET') { $null } else { @{ reason = 'Customer cannot manage wallets' } }) -ExpectedStatus 403
+            Invoke-Api $method ($path.Replace('wallet_show', 'wallet_' + @{ GET = 'show'; POST = 'create'; PATCH = 'adjust'; DELETE = 'delete' }[$method])) $state.Customer.Access -Body $(if ($method -eq 'GET') { $null } else { @{ reason = 'Customer cannot manage wallets' } }) -ExpectedStatus 403
         }
-        $adminPath = "/admin/accounts/$($state.Admin.Id)/wallet"
+        $adminPath = "/admin/accounts_wallet_show/$($state.Admin.Id)"
         Invoke-Api GET $adminPath $state.Admin.Access -ExpectedStatus 404
-        Invoke-Api POST $adminPath $state.Admin.Access -Body @{ reason = 'Administrator accounts must not have wallets' } -ExpectedStatus 404
-        $adminWallet = Invoke-Api GET '/wallet' $state.Admin.Access
+        Invoke-Api POST ($adminPath.Replace('wallet_show', 'wallet_create')) $state.Admin.Access -Body @{ reason = 'Administrator accounts must not have wallets' } -ExpectedStatus 404
+        $adminWallet = Invoke-Api GET '/wallet_show' $state.Admin.Access
         Assert-True ($null -eq $adminWallet.Json.data.version) 'Admin account must not own a wallet.'
 
-        $otherPath = "/admin/accounts/$($state.Other.Id)/wallet"
+        $otherPath = "/admin/accounts_wallet_show/$($state.Other.Id)"
         $old = Invoke-Api GET $otherPath $state.Admin.Access
-        Invoke-Api DELETE $otherPath $state.Admin.Access -Body @{ reason = "curl $runId delete empty wallet" }
+        Invoke-Api DELETE ($otherPath.Replace('wallet_show', 'wallet_delete')) $state.Admin.Access -Body @{ reason = "curl $runId delete empty wallet" }
         Invoke-Api GET $otherPath $state.Admin.Access -ExpectedStatus 404
-        $missing = Invoke-Api GET '/wallet' $state.Other.Access
+        $missing = Invoke-Api GET '/wallet_show' $state.Other.Access
         Assert-True ($null -eq $missing.Json.data.version) 'Reading a deleted wallet must not reopen it.'
-        Invoke-Api POST '/wallet' $state.Other.Access -Body @{} -ExpectedStatus 405
-        $created = Invoke-Api POST $otherPath $state.Admin.Access -Body @{ reason = "curl $runId recreate empty wallet" }
+        Invoke-Api POST '/wallet_show' $state.Other.Access -Body @{} -ExpectedStatus 405
+        $created = Invoke-Api POST ($otherPath.Replace('wallet_show', 'wallet_create')) $state.Admin.Access -Body @{ reason = "curl $runId recreate empty wallet" }
         Assert-True ($created.Json.data.id -ne $old.Json.data.id) 'Admin recreation must create a new wallet ID.'
         Assert-Money $created.Json.data.avaliableBalance 0 'Recreated wallet starts empty'
         Assert-Money $created.Json.data.lockedBalance 0 'Recreated wallet has no locked money'
-        Invoke-Api POST $otherPath $state.Admin.Access -Body @{ reason = 'Second wallet' } -ExpectedStatus 409
+        Invoke-Api POST ($otherPath.Replace('wallet_show', 'wallet_create')) $state.Admin.Access -Body @{ reason = 'Second wallet' } -ExpectedStatus 409
     }
     Invoke-Case 'Manual wallet credits/debits are traced, validated, and applied once' {
         Require-Value $state.Customer.Id 'customer registration'
-        $path = "/admin/accounts/$($state.Customer.Id)/wallet"
+        $path = "/admin/accounts_wallet_show/$($state.Customer.Id)"
         $credit = @{ direction = 'in'; amount = '250.75'; reason = "curl $runId manual credit"; clientReference = [guid]::NewGuid().ToString() }
-        $response = Invoke-Api PATCH $path $state.Admin.Access $credit
+        $response = Invoke-Api PATCH ($path.Replace('wallet_show', 'wallet_adjust')) $state.Admin.Access $credit
         $state.ExpectedAvailable += [decimal] 250.75
         $movement = $response.Json.data.transaction
         Add-Movement 'manual_adjustment' 'in' 250.75 'admin_adjustment' $movement.referenceId
@@ -840,35 +834,35 @@ try {
         Assert-Equal $movement.clientReference $credit.clientReference 'Manual adjustment client reference'
         Assert-Money $movement.balanceBefore 0 'Manual credit balance before'
         Assert-Money $movement.balanceAfter 250.75 'Manual credit balance after'
-        $retry = Invoke-Api PATCH $path $state.Admin.Access $credit
+        $retry = Invoke-Api PATCH ($path.Replace('wallet_show', 'wallet_adjust')) $state.Admin.Access $credit
         Assert-Equal $retry.Json.data.transaction.id $movement.id 'Manual adjustment retry movement'
         $changed = $credit.Clone(); $changed.amount = '251.75'
-        Invoke-Api PATCH $path $state.Admin.Access $changed -ExpectedStatus 409
+        Invoke-Api PATCH ($path.Replace('wallet_show', 'wallet_adjust')) $state.Admin.Access $changed -ExpectedStatus 409
         $invalid = $credit.Clone(); $invalid.clientReference = [guid]::NewGuid().ToString(); $invalid.reason = ''
-        Assert-Validation PATCH $path $state.Admin.Access $invalid @('reason')
+        Assert-Validation PATCH ($path.Replace('wallet_show', 'wallet_adjust')) $state.Admin.Access $invalid @('reason')
         $invalid.reason = 'Invalid amount'; $invalid.amount = '1.001'
-        Assert-Validation PATCH $path $state.Admin.Access $invalid @('amount')
+        Assert-Validation PATCH ($path.Replace('wallet_show', 'wallet_adjust')) $state.Admin.Access $invalid @('amount')
         $invalid.amount = '1.00'; $invalid.lockedBalance = '0'
-        Assert-Validation PATCH $path $state.Admin.Access $invalid @('lockedBalance')
+        Assert-Validation PATCH ($path.Replace('wallet_show', 'wallet_adjust')) $state.Admin.Access $invalid @('lockedBalance')
         $debit = @{ direction = 'out'; amount = '999.00'; reason = "curl $runId manual debit"; clientReference = [guid]::NewGuid().ToString() }
-        Assert-Validation PATCH $path $state.Admin.Access $debit @('amount')
-        Invoke-Api DELETE $path $state.Admin.Access -Body @{ reason = 'A funded wallet must be retained' } -ExpectedStatus 409
+        Assert-Validation PATCH ($path.Replace('wallet_show', 'wallet_adjust')) $state.Admin.Access $debit @('amount')
+        Invoke-Api DELETE ($path.Replace('wallet_show', 'wallet_delete')) $state.Admin.Access -Body @{ reason = 'A funded wallet must be retained' } -ExpectedStatus 409
         Assert-Wallet
         $debit.amount = '250.75'
-        $paid = Invoke-Api PATCH $path $state.Admin.Access $debit
+        $paid = Invoke-Api PATCH ($path.Replace('wallet_show', 'wallet_adjust')) $state.Admin.Access $debit
         $state.ExpectedAvailable -= [decimal] 250.75
         Add-Movement 'manual_adjustment' 'out' 250.75 'admin_adjustment' $paid.Json.data.transaction.referenceId
-        $retry = Invoke-Api PATCH $path $state.Admin.Access $debit
+        $retry = Invoke-Api PATCH ($path.Replace('wallet_show', 'wallet_adjust')) $state.Admin.Access $debit
         Assert-Equal $retry.Json.data.transaction.id $paid.Json.data.transaction.id 'Manual debit retry movement'
-        Invoke-Api DELETE $path $state.Admin.Access -Body @{ reason = 'Zero balance with history must be retained' } -ExpectedStatus 409
+        Invoke-Api DELETE ($path.Replace('wallet_show', 'wallet_delete')) $state.Admin.Access -Body @{ reason = 'Zero balance with history must be retained' } -ExpectedStatus 409
         Assert-Wallet
-        $history = Invoke-Api GET '/wallet/transactions' $state.Customer.Access
+        $history = Invoke-Api GET '/wallet_history' $state.Customer.Access
         Assert-Pagination $history.Json.data 2
         $creditEntry = @($history.Json.data.items | Where-Object { $_.id -eq $state.ManualCreditId })
         Assert-Equal $creditEntry.Count 1 'Customer sees manual credit in transaction tracing'
         Assert-Equal $creditEntry[0].actorUserId $state.Admin.Id 'Transaction tracing contains admin ID'
         Assert-Equal $creditEntry[0].reason $credit.reason 'Transaction tracing contains correction reason'
-        $adminHistory = Invoke-Api GET "/admin/accounts/$($state.Customer.Id)/history" $state.Admin.Access
+        $adminHistory = Invoke-Api GET "/admin/accounts_wallet_history/$($state.Customer.Id)" $state.Admin.Access
         Assert-Equal $adminHistory.Json.data.movements.total 2 'Admin customer history includes manual adjustments'
     }
     Invoke-Case 'Admin API audits contain only administrator requests' {
@@ -876,57 +870,57 @@ try {
         $audit = Get-AdminAudit "requestId=$($state.ManualAdjustmentRequestId)&method=PATCH&statusCode=200&actorUserId=$($state.Admin.Id)"
         Assert-Pagination $audit.Json.data 1
         Assert-Equal $audit.Json.data.items[0].request_id $state.ManualAdjustmentRequestId 'Adjustment request correlation'
-        Assert-Equal $audit.Json.data.items[0].path "/api/admin/accounts/$($state.Customer.Id)/wallet" 'Audited adjustment endpoint'
-        $denied = Invoke-Api GET '/admin/audit-logs' $state.Customer.Access -ExpectedStatus 403
-        $anonymous = Invoke-Api GET '/admin/dashboard' -ExpectedStatus 401
+        Assert-Equal $audit.Json.data.items[0].path "/api/admin/accounts_wallet_adjust/$($state.Customer.Id)" 'Audited adjustment endpoint'
+        $denied = Invoke-Api GET '/admin/audit_logs_list' $state.Customer.Access -ExpectedStatus 403
+        $anonymous = Invoke-Api GET '/admin/dashboard_show' -ExpectedStatus 401
         foreach ($request in @(@{ Response = $denied; Actor = $state.Customer.Id; Status = 403 }, @{ Response = $anonymous; Actor = $null; Status = 401 })) {
-            $entry = Invoke-Api GET "/admin/audit-logs?requestId=$($request.Response.RequestId)" $state.Admin.Access
+            $entry = Invoke-Api GET "/admin/audit_logs_list?requestId=$($request.Response.RequestId)" $state.Admin.Access
             Assert-Pagination $entry.Json.data 0
         }
-        Assert-Validation GET '/admin/audit-logs?perPage=101' $state.Admin.Access $null @('perPage')
+        Assert-Validation GET '/admin/audit_logs_list?perPage=101' $state.Admin.Access $null @('perPage')
     }
     Invoke-Case 'Dedicated support type controller CRUD and customer permissions' {
         Require-Value $state.Admin.Access 'admin login'
-        $created = Invoke-Api POST '/admin/support-types' $state.Admin.Access -Body @{ name = "curl $runId support" } -ImagePath (Join-Path $PSScriptRoot '../public_html/images/support/1.jpg')
+        $created = Invoke-Api POST '/admin/support_types_create' $state.Admin.Access -Body @{ name = "curl $runId support" } -ImagePath (Join-Path $PSScriptRoot '../public_html/images/support/1.jpg')
         $id = $created.Json.data.id
         try {
-            $shown = Invoke-Api GET "/admin/support-types/$id" $state.Admin.Access
+            $shown = Invoke-Api GET "/admin/support_types_show/$id" $state.Admin.Access
             Assert-Equal $shown.Json.data.id $id 'Support type detail'
-            $list = Invoke-Api GET "/admin/support-types?search=$runId" $state.Admin.Access
+            $list = Invoke-Api GET "/admin/support_types_list?search=$runId" $state.Admin.Access
             Assert-Pagination $list.Json.data 1
-            $updated = Invoke-Api PATCH "/admin/support-types/$id" $state.Admin.Access -Body @{ name = "curl $runId updated" }
+            $updated = Invoke-Api PATCH "/admin/support_types_update/$id" $state.Admin.Access -Body @{ name = "curl $runId updated" }
             Assert-Equal $updated.Json.data.name "curl $runId updated" 'Support type update'
-            Assert-Validation POST '/admin/support-types' $state.Admin.Access @{} @('name', 'imageLocation')
-            Invoke-Api GET '/admin/support-types' $state.Customer.Access -ExpectedStatus 403
+            Assert-Validation POST '/admin/support_types_create' $state.Admin.Access @{} @('name', 'imageLocation')
+            Invoke-Api GET '/admin/support_types_list' $state.Customer.Access -ExpectedStatus 403
         } finally {
-            Invoke-Api DELETE "/admin/support-types/$id" $state.Admin.Access
+            Invoke-Api DELETE "/admin/support_types_delete/$id" $state.Admin.Access
         }
-        Invoke-Api GET "/admin/support-types/$id" $state.Admin.Access -ExpectedStatus 404
+        Invoke-Api GET "/admin/support_types_show/$id" $state.Admin.Access -ExpectedStatus 404
     }
     Invoke-Case 'Dedicated payment method controller CRUD preserves payment types' {
         Require-Value $state.Admin.Access 'admin login'
-        $created = Invoke-Api POST '/admin/payment-methods' $state.Admin.Access -Body @{
+        $created = Invoke-Api POST '/admin/payment_methods_create' $state.Admin.Access -Body @{
             name = "curl $runId unused provider"; type = 'deposit'; description = 'Temporary CRUD test'; status = 'active'
         }
         $id = $created.Json.data.id
         try {
-            $shown = Invoke-Api GET "/admin/payment-methods/$id" $state.Admin.Access
+            $shown = Invoke-Api GET "/admin/payment_methods_show/$id" $state.Admin.Access
             Assert-Equal $shown.Json.data.type 'deposit' 'Payment method type'
-            $list = Invoke-Api GET "/admin/payment-methods?search=$runId" $state.Admin.Access
+            $list = Invoke-Api GET "/admin/payment_methods_list?search=$runId" $state.Admin.Access
             Assert-Pagination $list.Json.data 1
-            $updated = Invoke-Api PATCH "/admin/payment-methods/$id" $state.Admin.Access -Body @{ type = 'withdraw'; name = "curl $runId updated provider" }
+            $updated = Invoke-Api PATCH "/admin/payment_methods_update/$id" $state.Admin.Access -Body @{ type = 'withdraw'; name = "curl $runId updated provider" }
             Assert-Equal $updated.Json.data.type 'withdraw' 'Unused payment method can change type'
-            Assert-Validation POST '/admin/payment-methods' $state.Admin.Access @{} @('name', 'type', 'description')
-            Invoke-Api GET '/admin/payment-methods' $state.Customer.Access -ExpectedStatus 403
+            Assert-Validation POST '/admin/payment_methods_create' $state.Admin.Access @{} @('name', 'type', 'description')
+            Invoke-Api GET '/admin/payment_methods_list' $state.Customer.Access -ExpectedStatus 403
         } finally {
-            Invoke-Api DELETE "/admin/payment-methods/$id" $state.Admin.Access
+            Invoke-Api DELETE "/admin/payment_methods_delete/$id" $state.Admin.Access
         }
-        Invoke-Api GET "/admin/payment-methods/$id" $state.Admin.Access -ExpectedStatus 404
+        Invoke-Api GET "/admin/payment_methods_show/$id" $state.Admin.Access -ExpectedStatus 404
     }
     Invoke-Case 'Create isolated active deposit and withdrawal methods' {
         Require-Value $state.Admin.Access 'admin login'
         foreach ($type in @('deposit', 'withdraw')) {
-            $response = Invoke-Api POST '/admin/payment-methods' $state.Admin.Access -Body @{
+            $response = Invoke-Api POST '/admin/payment_methods_create' $state.Admin.Access -Body @{
                 name = "curl $runId $type"; type = $type; description = "Automated customer API test $runId"; status = 'active'
             }
             $key = if ($type -eq 'deposit') { 'DepositMethodId' } else { 'WithdrawalMethodId' }
@@ -937,29 +931,29 @@ try {
     }
     Invoke-Case 'Customer master version cache and support contacts' {
         Require-State @('DepositMethodId', 'WithdrawalMethodId')
-        $master = Invoke-Api GET '/master' $state.Customer.Access
+        $master = Invoke-Api GET '/master_list' $state.Customer.Access
         Assert-True (@($master.Json.data.deposit_payment_methods.id) -contains $state.DepositMethodId) 'Deposit method missing from master.'
         Assert-True (@($master.Json.data.withdrawal_payment_methods.id) -contains $state.WithdrawalMethodId) 'Withdrawal method missing from master.'
         $version = $master.Json.data.master_version
         Assert-Equal $version.Length 64 'Master version hash'
-        $cached = Invoke-Api GET "/master?version=$version" $state.Customer.Access
+        $cached = Invoke-Api GET "/master_list?version=$version" $state.Customer.Access
         Assert-True ($null -eq $cached.Json.data) 'Unchanged master must return null data.'
-        Assert-Validation GET ('/master?version=' + ('x' * 65)) $state.Customer.Access $null @('version')
-        $supports = Invoke-Api GET '/support' $state.Customer.Access
+        Assert-Validation GET ('/master_list?version=' + ('x' * 65)) $state.Customer.Access $null @('version')
+        $supports = Invoke-Api GET '/support_list' $state.Customer.Access
         Assert-True ($supports.Json.data -is [array]) 'Support endpoint must return an array.'
     }
     Invoke-Case 'Admin receiving account and customer withdrawal account setup' {
         Require-State @('DepositMethodId', 'WithdrawalMethodId')
-        $deposit = Invoke-Api POST '/admin/paymentaccount/deposit' $state.Admin.Access -Body @{
+        $deposit = Invoke-Api POST '/admin/payment_account_deposit_create' $state.Admin.Access -Body @{
             userName = "Curl Admin $runId"; phoneNumber = '09900112233'; paymentMethodId = $state.DepositMethodId; descriptions = $runId
         }
         $state.DepositAccountId = $deposit.Json.data.id; $state.Created.DepositAccountId = $state.DepositAccountId
         Assert-Equal $deposit.Json.data.type 'deposit' 'Admin account type'
         $state.AccountBody = @{ userName = "Curl Customer $runId"; phoneNumber = '09900445566'; paymentMethodId = $state.WithdrawalMethodId; descriptions = $runId }
-        $withdraw = Invoke-Api POST '/paymentaccount/withdrawal' $state.Customer.Access $state.AccountBody
+        $withdraw = Invoke-Api POST '/payment_account_withdrawal_create' $state.Customer.Access $state.AccountBody
         $state.WithdrawalAccountId = $withdraw.Json.data.id; $state.Created.WithdrawalAccountId = $state.WithdrawalAccountId
         Assert-Equal $withdraw.Json.data.type 'withdraw' 'Customer account type'
-        $other = Invoke-Api POST '/paymentaccount/withdrawal' $state.Other.Access -Body @{
+        $other = Invoke-Api POST '/payment_account_withdrawal_create' $state.Other.Access -Body @{
             userName = 'Other test customer'; bankAccountNumber = "0000$runId"; paymentMethodId = $state.WithdrawalMethodId
         }
         $state.OtherAccountId = $other.Json.data.id; $state.Created.OtherAccountId = $state.OtherAccountId
@@ -967,73 +961,73 @@ try {
     }
     Invoke-Case 'Payment account validation, duplicates, and customer isolation' {
         Require-State @('WithdrawalAccountId', 'OtherAccountId', 'DepositMethodId')
-        Invoke-Api POST '/paymentaccount/withdrawal' $state.Customer.Access $state.AccountBody -ExpectedStatus 409
-        Assert-Validation POST '/paymentaccount/withdrawal' $state.Customer.Access @{
+        Invoke-Api POST '/payment_account_withdrawal_create' $state.Customer.Access $state.AccountBody -ExpectedStatus 409
+        Assert-Validation POST '/payment_account_withdrawal_create' $state.Customer.Access @{
             userName = 'Missing contact'; paymentMethodId = $state.WithdrawalMethodId
         } @('phoneNumber', 'bankAccountNumber')
-        Assert-Validation POST '/paymentaccount/withdrawal' $state.Customer.Access @{
+        Assert-Validation POST '/payment_account_withdrawal_create' $state.Customer.Access @{
             userName = 'Wrong type'; phoneNumber = '09900000000'; paymentMethodId = $state.DepositMethodId
         } @('paymentMethodId')
-        foreach ($path in @('/paymentaccount/withdrawal', '/paymentmethod/withdrawal')) {
+        foreach ($path in @('/payment_account_withdrawal_list', '/payment_method_withdrawal_list')) {
             $response = Invoke-Api GET $path $state.Customer.Access
             Assert-Equal @($response.Json.data).Count 1 'Only own withdrawal account is visible'
             Assert-Equal $response.Json.data[0].id $state.WithdrawalAccountId 'Own account ID'
         }
-        Invoke-Api DELETE "/paymentaccount/withdrawal/$($state.OtherAccountId)" $state.Customer.Access -ExpectedStatus 404
+        Invoke-Api DELETE "/payment_account_withdrawal_delete/$($state.OtherAccountId)" $state.Customer.Access -ExpectedStatus 404
         $body = New-WithdrawalBody '1.00'; $body.paymentAccountId = $state.OtherAccountId
-        Invoke-Api POST '/payment/withdrawal' $state.Customer.Access $body -ExpectedStatus 404
+        Invoke-Api POST '/payment_withdrawal_create' $state.Customer.Access $body -ExpectedStatus 404
     }
     Invoke-Case 'Deposit account discovery, inactive account, and mismatched method' {
         Require-State @('DepositAccountId', 'WithdrawalMethodId')
-        $methods = Invoke-Api GET '/paymentmethod/deposit' $state.Customer.Access
+        $methods = Invoke-Api GET '/payment_method_deposit_list' $state.Customer.Access
         $method = @($methods.Json.data | Where-Object { $_.id -eq $state.DepositMethodId })
         Assert-Equal $method.Count 1 'Active deposit method visible'
         Assert-True (@($method[0].paymentAccounts.id) -contains $state.DepositAccountId) 'Receiving account missing.'
-        Invoke-Api GET '/admin/paymentaccount/deposit' $state.Admin.Access
-        Invoke-Api PATCH "/admin/paymentaccount/deposit/$($state.DepositAccountId)/status" $state.Admin.Access -Body @{ status = 'inactive' }
+        Invoke-Api GET '/admin/payment_account_deposit_list' $state.Admin.Access
+        Invoke-Api PATCH "/admin/payment_account_deposit_status_update/$($state.DepositAccountId)" $state.Admin.Access -Body @{ status = 'inactive' }
         try {
-            Invoke-Api POST '/payment/deposit' $state.Customer.Access (New-DepositBody '10.00') -ExpectedStatus 400
-            $hidden = Invoke-Api GET '/paymentmethod/deposit' $state.Customer.Access
+            Invoke-Api POST '/payment_deposit_create' $state.Customer.Access (New-DepositBody '10.00') -ExpectedStatus 400
+            $hidden = Invoke-Api GET '/payment_method_deposit_list' $state.Customer.Access
             $ownMethod = @($hidden.Json.data | Where-Object { $_.id -eq $state.DepositMethodId })
             Assert-Equal @($ownMethod[0].paymentAccounts).Count 0 'Inactive receiving account must be hidden'
         } finally {
-            Invoke-Api PATCH "/admin/paymentaccount/deposit/$($state.DepositAccountId)/status" $state.Admin.Access -Body @{ status = 'active' }
+            Invoke-Api PATCH "/admin/payment_account_deposit_status_update/$($state.DepositAccountId)" $state.Admin.Access -Body @{ status = 'active' }
         }
         $mismatch = New-DepositBody '10.00'; $mismatch.PaymentMethodId = $state.WithdrawalMethodId
-        Invoke-Api POST '/payment/deposit' $state.Customer.Access $mismatch -ExpectedStatus 400
+        Invoke-Api POST '/payment_deposit_create' $state.Customer.Access $mismatch -ExpectedStatus 400
         Assert-Wallet
     }
     Invoke-Case 'Deposit amount/reference validation makes no wallet changes' {
         Require-State @('DepositAccountId')
         foreach ($amount in @('0', '-1', '1.001')) {
-            Assert-Validation POST '/payment/deposit' $state.Customer.Access (New-DepositBody $amount) @('amount')
+            Assert-Validation POST '/payment_deposit_create' $state.Customer.Access (New-DepositBody $amount) @('amount')
         }
         $body = New-DepositBody '10'; $body.lastSixTranId = '123'
-        Assert-Validation POST '/payment/deposit' $state.Customer.Access $body @('lastSixTranId')
+        Assert-Validation POST '/payment_deposit_create' $state.Customer.Access $body @('lastSixTranId')
         $body.lastSixTranId = '012345'; $body.clientReference = 'bad'
-        Assert-Validation POST '/payment/deposit' $state.Customer.Access $body @('clientReference')
+        Assert-Validation POST '/payment_deposit_create' $state.Customer.Access $body @('clientReference')
         Assert-Wallet
     }
     Invoke-Case 'Inactive payment methods disappear from master and reject new payments/accounts' {
         Require-State @('DepositAccountId', 'WithdrawalAccountId')
-        $before = Invoke-Api GET '/master' $state.Customer.Access
+        $before = Invoke-Api GET '/master_list' $state.Customer.Access
         foreach ($methodId in @($state.DepositMethodId, $state.WithdrawalMethodId)) {
-            Invoke-Api PATCH "/admin/master/payment-methods/$methodId" $state.Admin.Access -Body @{ status = 'inactive' }
+            Invoke-Api PATCH "/admin/master_update/payment-methods/$methodId" $state.Admin.Access -Body @{ status = 'inactive' }
         }
         try {
-            $changed = Invoke-Api GET "/master?version=$($before.Json.data.master_version)" $state.Customer.Access
+            $changed = Invoke-Api GET "/master_list?version=$($before.Json.data.master_version)" $state.Customer.Access
             Assert-True ($null -ne $changed.Json.data) 'Changing method status must invalidate the master version.'
             Assert-True ($changed.Json.data.master_version -ne $before.Json.data.master_version) 'Master version did not change.'
             Assert-True (-not (@($changed.Json.data.deposit_payment_methods | ForEach-Object { $_.id }) -contains $state.DepositMethodId)) 'Inactive deposit method is visible.'
             Assert-True (-not (@($changed.Json.data.withdrawal_payment_methods | ForEach-Object { $_.id }) -contains $state.WithdrawalMethodId)) 'Inactive withdrawal method is visible.'
-            Invoke-Api POST '/payment/deposit' $state.Customer.Access (New-DepositBody '1.00') -ExpectedStatus 400
-            Invoke-Api POST '/payment/withdrawal' $state.Customer.Access (New-WithdrawalBody '1.00') -ExpectedStatus 400
-            Assert-Validation POST '/paymentaccount/withdrawal' $state.Customer.Access @{
+            Invoke-Api POST '/payment_deposit_create' $state.Customer.Access (New-DepositBody '1.00') -ExpectedStatus 400
+            Invoke-Api POST '/payment_withdrawal_create' $state.Customer.Access (New-WithdrawalBody '1.00') -ExpectedStatus 400
+            Assert-Validation POST '/payment_account_withdrawal_create' $state.Customer.Access @{
                 userName = 'Inactive method'; phoneNumber = '09900001111'; paymentMethodId = $state.WithdrawalMethodId
             } @('paymentMethodId')
         } finally {
             foreach ($methodId in @($state.DepositMethodId, $state.WithdrawalMethodId)) {
-                Invoke-Api PATCH "/admin/master/payment-methods/$methodId" $state.Admin.Access -Body @{ status = 'active' }
+                Invoke-Api PATCH "/admin/master_update/payment-methods/$methodId" $state.Admin.Access -Body @{ status = 'active' }
             }
         }
         Assert-Wallet
@@ -1043,31 +1037,32 @@ try {
         $state.DepositBody = New-DepositBody
         $state.DepositBody.status = 'approved'; $state.DepositBody.approver_user_id = $state.Admin.Id
         $state.DepositBody.payment_user_id = $state.Other.Id
-        $response = Invoke-Api POST '/payment/deposit' $state.Customer.Access $state.DepositBody
+        $response = Invoke-Api POST '/payment_deposit_create' $state.Customer.Access $state.DepositBody
         $state.DepositId = $response.Json.data.id; $state.Created.DepositId = $state.DepositId
         Assert-Equal $response.Json.data.status 'pending' 'Deposit remains pending'
         Assert-Equal $response.Json.data.paymentUserId $state.Customer.Id 'Deposit belongs to authenticated customer'
         Assert-True ($null -eq $response.Json.data.approverUserId) 'Customer supplied an approver.'
         Assert-Equal $response.Json.data.lastSixTranId '012345' 'Transaction suffix keeps leading zero'
-        $retry = Invoke-Api POST '/payment/deposit' $state.Customer.Access $state.DepositBody
+        $retry = Invoke-Api POST '/payment_deposit_create' $state.Customer.Access $state.DepositBody
         Assert-Equal $retry.Json.data.id $state.DepositId 'Deposit retry ID'
         $changed = $state.DepositBody.Clone(); $changed.amount = '10001.50'
-        Invoke-Api POST '/payment/deposit' $state.Customer.Access $changed -ExpectedStatus 409
+        Invoke-Api POST '/payment_deposit_create' $state.Customer.Access $changed -ExpectedStatus 409
         Assert-Wallet
     }
     Invoke-Case 'Customer cannot perform admin payment/result/account actions' {
         Require-State @('DepositId', 'DepositAccountId')
         $routes = @(
-            @{ Method = 'GET'; Path = '/admin/dashboard' }, @{ Method = 'GET'; Path = '/admin/payment/deposit' },
-            @{ Method = 'GET'; Path = '/admin/payment/withdrawal' }, @{ Method = 'GET'; Path = '/admin/accounts' },
-            @{ Method = 'POST'; Path = '/admin/paymentaccount/deposit' },
-            @{ Method = 'PATCH'; Path = "/admin/payment/deposit/$($state.DepositId)/status" },
-            @{ Method = 'PATCH'; Path = "/admin/paymentaccount/deposit/$($state.DepositAccountId)/status" },
-            @{ Method = 'POST'; Path = '/admin/master/payment-methods' }
+            @{ Method = 'GET'; Path = '/admin/dashboard_show' }, @{ Method = 'GET'; Path = '/admin/payment_deposit_list' },
+            @{ Method = 'GET'; Path = '/admin/payment_withdrawal_list' }, @{ Method = 'GET'; Path = '/admin/accounts_list' },
+            @{ Method = 'POST'; Path = '/admin/payment_account_deposit_create' },
+            @{ Method = 'PATCH'; Path = "/admin/payment_deposit_status_update/$($state.DepositId)" },
+            @{ Method = 'PATCH'; Path = "/admin/payment_account_deposit_status_update/$($state.DepositAccountId)" },
+            @{ Method = 'POST'; Path = '/admin/master_create/payment-methods' }
         )
         foreach ($game in @('twod', 'threed')) {
             foreach ($suffix in @('odds', 'results', 'results/preview', 'results/settle', 'results/recalculate', 'results/cancel')) {
-                $routes += @{ Method = 'POST'; Path = "/admin/$game/$suffix" }
+                $action = if ($suffix -in @('odds', 'results')) { $suffix + '_create' } else { $suffix.Replace('/', '_') }
+                $routes += @{ Method = 'POST'; Path = "/admin/betting_$action/$game" }
             }
         }
         foreach ($route in $routes) {
@@ -1077,26 +1072,26 @@ try {
     }
     Invoke-Case 'Admin deposit approval credits exactly once' {
         Require-State @('DepositId')
-        $queue = Invoke-Api GET "/admin/payment/deposit?paymentUserId=$($state.Customer.Id)&status=pending&perPage=100" $state.Admin.Access
+        $queue = Invoke-Api GET "/admin/payment_deposit_list?paymentUserId=$($state.Customer.Id)&status=pending&perPage=100" $state.Admin.Access
         Assert-Pagination $queue.Json.data 1
         Assert-Equal $queue.Json.data.items[0].id $state.DepositId 'Pending deposit queue'
-        $approved = Invoke-Api PATCH "/admin/payment/deposit/$($state.DepositId)/status" $state.Admin.Access -Body @{ status = 'approved' }
+        $approved = Invoke-Api PATCH "/admin/payment_deposit_status_update/$($state.DepositId)" $state.Admin.Access -Body @{ status = 'approved' }
         $state.ExpectedAvailable += [decimal] 10000.50
         Add-Movement 'deposit' 'in' 10000.50 'transaction' $state.DepositId
         $state.DepositApproved = $true
         Assert-Equal $approved.Json.data.status 'approved' 'Approved deposit status'
         Assert-Equal $approved.Json.data.approverUserId $state.Admin.Id 'Deposit approver'
-        Invoke-Api PATCH "/admin/payment/deposit/$($state.DepositId)/status" $state.Admin.Access -Body @{ status = 'approved' }
-        $retry = Invoke-Api POST '/payment/deposit' $state.Customer.Access $state.DepositBody
+        Invoke-Api PATCH "/admin/payment_deposit_status_update/$($state.DepositId)" $state.Admin.Access -Body @{ status = 'approved' }
+        $retry = Invoke-Api POST '/payment_deposit_create' $state.Customer.Access $state.DepositBody
         Assert-Equal $retry.Json.data.id $state.DepositId 'Reviewed deposit retry ID'
-        Invoke-Api PATCH "/admin/payment/deposit/$($state.DepositId)/status" $state.Admin.Access -Body @{ status = 'rejected' } -ExpectedStatus 409
+        Invoke-Api PATCH "/admin/payment_deposit_status_update/$($state.DepositId)" $state.Admin.Access -Body @{ status = 'rejected' } -ExpectedStatus 409
         Assert-Wallet
     }
     Invoke-Case 'Admin deposit rejection gives no credit and cannot later approve' {
         Require-State @('DepositApproved')
-        $response = Invoke-Api POST '/payment/deposit' $state.Customer.Access (New-DepositBody '500.25')
+        $response = Invoke-Api POST '/payment_deposit_create' $state.Customer.Access (New-DepositBody '500.25')
         $state.RejectedDepositId = $response.Json.data.id; $state.Created.RejectedDepositId = $state.RejectedDepositId
-        $path = "/admin/payment/deposit/$($state.RejectedDepositId)/status"
+        $path = "/admin/payment_deposit_status_update/$($state.RejectedDepositId)"
         $rejected = Invoke-Api PATCH $path $state.Admin.Access -Body @{ status = 'rejected' }
         Assert-Equal $rejected.Json.data.status 'rejected' 'Rejected deposit'
         Assert-Equal $rejected.Json.data.declinedUserId $state.Admin.Id 'Deposit rejecting admin'
@@ -1107,11 +1102,11 @@ try {
     Invoke-Case 'Withdrawal validation and insufficient funds reserve nothing' {
         Require-State @('WithdrawalAccountId', 'DepositApproved')
         foreach ($amount in @('0', '-1', '1.001')) {
-            Assert-Validation POST '/payment/withdrawal' $state.Customer.Access (New-WithdrawalBody $amount) @('amount')
+            Assert-Validation POST '/payment_withdrawal_create' $state.Customer.Access (New-WithdrawalBody $amount) @('amount')
         }
-        Invoke-Api POST '/payment/withdrawal' $state.Customer.Access (New-WithdrawalBody '999999999.00') -ExpectedStatus 400
+        Invoke-Api POST '/payment_withdrawal_create' $state.Customer.Access (New-WithdrawalBody '999999999.00') -ExpectedStatus 400
         $mismatch = New-WithdrawalBody '1.00'; $mismatch.paymentMethodId = $state.DepositMethodId
-        Invoke-Api POST '/payment/withdrawal' $state.Customer.Access $mismatch -ExpectedStatus 400
+        Invoke-Api POST '/payment_withdrawal_create' $state.Customer.Access $mismatch -ExpectedStatus 400
         Assert-Wallet
     }
     Invoke-Case 'Withdrawal reserves once, retries, and rejects changed reference payload' {
@@ -1119,26 +1114,26 @@ try {
         $state.WithdrawalBody = New-WithdrawalBody
         $state.WithdrawalBody.status = 'approved'; $state.WithdrawalBody.requested_payment_user_id = $state.Other.Id
         $state.WithdrawalBody.approve_user_id = $state.Admin.Id
-        $response = Invoke-Api POST '/payment/withdrawal' $state.Customer.Access $state.WithdrawalBody
+        $response = Invoke-Api POST '/payment_withdrawal_create' $state.Customer.Access $state.WithdrawalBody
         $state.WithdrawalId = $response.Json.data.id; $state.Created.WithdrawalId = $state.WithdrawalId
         $state.ExpectedAvailable -= [decimal] 1000.25; $state.ExpectedLocked += [decimal] 1000.25
         Add-Movement 'withdraw_lock' 'out' 1000.25 'withdraw_request' $state.WithdrawalId
         Assert-Equal $response.Json.data.status 'requested' 'Requested withdrawal status'
         Assert-Equal $response.Json.data.requestedPaymentUserId $state.Customer.Id 'Withdrawal owner'
         Assert-True ($null -eq $response.Json.data.approverUserId -and $null -eq $response.Json.data.transaction_id) 'Customer must not approve a withdrawal or attach a payment.'
-        $retry = Invoke-Api POST '/payment/withdrawal' $state.Customer.Access $state.WithdrawalBody
+        $retry = Invoke-Api POST '/payment_withdrawal_create' $state.Customer.Access $state.WithdrawalBody
         Assert-Equal $retry.Json.data.id $state.WithdrawalId 'Withdrawal retry ID'
         $changed = $state.WithdrawalBody.Clone(); $changed.amount = '1001.25'
-        Invoke-Api POST '/payment/withdrawal' $state.Customer.Access $changed -ExpectedStatus 409
-        Invoke-Api PATCH "/admin/payment/withdrawal/$($state.WithdrawalId)/status" $state.Customer.Access -Body @{ status = 'approved'; lastSixTranId = '123456' } -ExpectedStatus 403
+        Invoke-Api POST '/payment_withdrawal_create' $state.Customer.Access $changed -ExpectedStatus 409
+        Invoke-Api PATCH "/admin/payment_withdrawal_status_update/$($state.WithdrawalId)" $state.Customer.Access -Body @{ status = 'approved'; lastSixTranId = '123456' } -ExpectedStatus 403
         Assert-Wallet
     }
     Invoke-Case 'Admin withdrawal approval requires confirmation and does not debit twice' {
         Require-State @('WithdrawalId')
-        $path = "/admin/payment/withdrawal/$($state.WithdrawalId)/status"
+        $path = "/admin/payment_withdrawal_status_update/$($state.WithdrawalId)"
         Assert-Validation PATCH $path $state.Admin.Access @{ status = 'approved' } @('lastSixTranId')
         Assert-Wallet
-        $queue = Invoke-Api GET "/admin/payment/withdrawal?paymentUserId=$($state.Customer.Id)&status=requested" $state.Admin.Access
+        $queue = Invoke-Api GET "/admin/payment_withdrawal_list?paymentUserId=$($state.Customer.Id)&status=requested" $state.Admin.Access
         Assert-Pagination $queue.Json.data 1
         Assert-Equal $queue.Json.data.items[0].id $state.WithdrawalId 'Pending withdrawal queue'
         $approved = Invoke-Api PATCH $path $state.Admin.Access -Body @{ status = 'approved'; lastSixTranId = '098765' }
@@ -1148,19 +1143,19 @@ try {
         Assert-Equal $approved.Json.data.approverUserId $state.Admin.Id 'Withdrawal approver'
         Require-Value $state.WithdrawalTransactionId 'withdrawal payment transaction'
         Invoke-Api PATCH $path $state.Admin.Access -Body @{ status = 'approved'; lastSixTranId = '098765' }
-        $retry = Invoke-Api POST '/payment/withdrawal' $state.Customer.Access $state.WithdrawalBody
+        $retry = Invoke-Api POST '/payment_withdrawal_create' $state.Customer.Access $state.WithdrawalBody
         Assert-Equal $retry.Json.data.id $state.WithdrawalId 'Completed withdrawal retry'
         Invoke-Api PATCH $path $state.Admin.Access -Body @{ status = 'declined' } -ExpectedStatus 409
         Assert-Wallet
     }
     Invoke-Case 'Declined withdrawal unlocks and refunds exactly once' {
         Require-State @('WithdrawalTransactionId')
-        $response = Invoke-Api POST '/payment/withdrawal' $state.Customer.Access (New-WithdrawalBody '500.25')
+        $response = Invoke-Api POST '/payment_withdrawal_create' $state.Customer.Access (New-WithdrawalBody '500.25')
         $state.DeclinedWithdrawalId = $response.Json.data.id; $state.Created.DeclinedWithdrawalId = $state.DeclinedWithdrawalId
         $state.ExpectedAvailable -= [decimal] 500.25; $state.ExpectedLocked += [decimal] 500.25
         Add-Movement 'withdraw_lock' 'out' 500.25 'withdraw_request' $state.DeclinedWithdrawalId
         Assert-Wallet
-        $path = "/admin/payment/withdrawal/$($state.DeclinedWithdrawalId)/status"
+        $path = "/admin/payment_withdrawal_status_update/$($state.DeclinedWithdrawalId)"
         $declined = Invoke-Api PATCH $path $state.Admin.Access -Body @{ status = 'declined' }
         $state.ExpectedAvailable += [decimal] 500.25; $state.ExpectedLocked -= [decimal] 500.25
         Add-Movement 'withdraw_rejected' 'in' 500.25 'withdraw_request' $state.DeclinedWithdrawalId
@@ -1172,19 +1167,19 @@ try {
     }
     Invoke-Case 'Customer deposit/withdrawal histories and other-customer isolation' {
         Require-State @('RejectedDepositId', 'WithdrawalTransactionId', 'DeclinedWithdrawalId')
-        $deposits = Invoke-Api GET '/payment/deposit/history' $state.Customer.Access
+        $deposits = Invoke-Api GET '/payment_deposit_history' $state.Customer.Access
         Assert-Equal @($deposits.Json.data).Count 2 'Deposit history has both reviews'
         $approved = @($deposits.Json.data | Where-Object { $_.id -eq $state.DepositId })
         Assert-Equal $approved[0].status 'approved' 'Deposit history approval'
-        $withdrawals = Invoke-Api GET '/payment/withdrawal/history' $state.Customer.Access
+        $withdrawals = Invoke-Api GET '/payment_withdrawal_history' $state.Customer.Access
         Assert-Equal @($withdrawals.Json.data).Count 1 'Only approved withdrawal creates a payment'
         Assert-Equal $withdrawals.Json.data[0].id $state.WithdrawalTransactionId 'Approved payment transaction ID'
         Assert-Equal $withdrawals.Json.data[0].lastSixTranId '098765' 'Withdrawal confirmation suffix'
-        $requests = Invoke-Api GET '/payment/withdrawal/request/history' $state.Customer.Access
+        $requests = Invoke-Api GET '/payment_withdrawal_request_history' $state.Customer.Access
         Assert-Equal @($requests.Json.data).Count 2 'Withdrawal request history'
         Assert-True (@($requests.Json.data.status) -contains 'approved') 'Missing approved request.'
         Assert-True (@($requests.Json.data.status) -contains 'declined') 'Missing declined request.'
-        foreach ($path in @('/payment/deposit/history', '/payment/withdrawal/history', '/payment/withdrawal/request/history')) {
+        foreach ($path in @('/payment_deposit_history', '/payment_withdrawal_history', '/payment_withdrawal_request_history')) {
             $other = Invoke-Api GET "$($path)?paymentUserId=$($state.Customer.Id)" $state.Other.Access
             Assert-Equal @($other.Json.data).Count 0 'Other customer cannot read payment history'
         }
@@ -1198,7 +1193,7 @@ try {
         $all = [Collections.Generic.List[object]]::new()
         $page = 1
         do {
-            $response = Invoke-Api GET "/wallet/transactions?perPage=100&page=$page" $state.Customer.Access
+            $response = Invoke-Api GET "/wallet_history?perPage=100&page=$page" $state.Customer.Access
             Assert-Pagination $response.Json.data $state.Movements.Count
             foreach ($movement in $response.Json.data.items) { $all.Add($movement) }
             $page++
@@ -1219,15 +1214,15 @@ try {
         }
         Assert-Money $net $state.ExpectedAvailable 'Ledger net matches independent expected balance'
         Assert-Wallet
-        $other = Invoke-Api GET "/wallet/transactions?paymentUserId=$($state.Customer.Id)" $state.Other.Access
+        $other = Invoke-Api GET "/wallet_history?paymentUserId=$($state.Customer.Id)" $state.Other.Access
         Assert-Pagination $other.Json.data 0
-        Assert-Validation GET '/wallet/transactions?perPage=101' $state.Customer.Access $null @('perPage')
-        Assert-Validation GET '/wallet/transactions?fromDate=2026-10-22&toDate=2026-10-21' $state.Customer.Access $null @('toDate')
+        Assert-Validation GET '/wallet_history?perPage=101' $state.Customer.Access $null @('perPage')
+        Assert-Validation GET '/wallet_history?fromDate=2026-10-22&toDate=2026-10-21' $state.Customer.Access $null @('toDate')
     }
     Invoke-Case 'Admin wallet history contains every payment request and ledger entry with independent pages' {
         Require-State @('WithdrawalTransactionId', 'DeclinedWithdrawalId', 'ManualCreditId')
-        $path = "/admin/accounts/$($state.Customer.Id)/wallet"
-        $history = Invoke-Api GET "$path/history?perPage=100" $state.Admin.Access
+        $path = "/admin/accounts_wallet_show/$($state.Customer.Id)"
+        $history = Invoke-Api GET "$($path.Replace('wallet_show', 'wallet_history'))?perPage=100" $state.Admin.Access
         Assert-Pagination $history.Json.data.transactions 3
         Assert-Pagination $history.Json.data.withdrawalRequests 2
         Assert-Pagination $history.Json.data.walletTransactions $state.Movements.Count
@@ -1237,113 +1232,115 @@ try {
         foreach ($entry in $history.Json.data.walletTransactions.items) {
             Assert-Equal $entry.walletId $history.Json.data.wallet.id 'Ledger belongs to the selected wallet'
         }
-        $paged = Invoke-Api GET "$path/history?perPage=1&transactionsPage=2&withdrawalRequestsPage=2&walletTransactionsPage=2" $state.Admin.Access
+        $paged = Invoke-Api GET "$($path.Replace('wallet_show', 'wallet_history'))?perPage=1&transactionsPage=2&withdrawalRequestsPage=2&walletTransactionsPage=2" $state.Admin.Access
         foreach ($key in @('transactions', 'withdrawalRequests', 'walletTransactions')) {
             Assert-Equal $paged.Json.data.$key.pagination.currentPage 2 "Independent page for $key"
             Assert-Equal @($paged.Json.data.$key.items).Count 1 "Independent page size for $key"
         }
-        $filtered = Invoke-Api GET "$path/history?transactionType=deposit&transactionStatus=rejected&withdrawalStatus=declined&movementType=manual_adjustment&direction=in" $state.Admin.Access
+        $filtered = Invoke-Api GET "$($path.Replace('wallet_show', 'wallet_history'))?transactionType=deposit&transactionStatus=rejected&withdrawalStatus=declined&movementType=manual_adjustment&direction=in" $state.Admin.Access
         Assert-Pagination $filtered.Json.data.transactions 1
         Assert-Pagination $filtered.Json.data.withdrawalRequests 1
         Assert-Pagination $filtered.Json.data.walletTransactions 1
         Assert-Equal $filtered.Json.data.walletTransactions.items[0].id $state.ManualCreditId 'Filtered manual credit'
-        $other = Invoke-Api GET "/admin/accounts/$($state.Other.Id)/wallet/history?paymentUserId=$($state.Customer.Id)" $state.Admin.Access
+        $other = Invoke-Api GET "/admin/accounts_wallet_history/$($state.Other.Id)?paymentUserId=$($state.Customer.Id)" $state.Admin.Access
         foreach ($key in @('transactions', 'withdrawalRequests', 'walletTransactions')) {
             Assert-Pagination $other.Json.data.$key 0
         }
-        Invoke-Api GET "$path/history" $state.Customer.Access -ExpectedStatus 403
-        Invoke-Api GET "$path/history" -ExpectedStatus 401
-        Assert-Validation GET "$path/history?perPage=101&transactionsPage=0" $state.Admin.Access $null @('perPage', 'transactionsPage')
+        Invoke-Api GET "$($path.Replace('wallet_show', 'wallet_history'))" $state.Customer.Access -ExpectedStatus 403
+        Invoke-Api GET "$($path.Replace('wallet_show', 'wallet_history'))" -ExpectedStatus 401
+        Assert-Validation GET "$($path.Replace('wallet_show', 'wallet_history'))?perPage=101&transactionsPage=0" $state.Admin.Access $null @('perPage', 'transactionsPage')
     }
     Invoke-Case 'Admin wallet detail traces deposits withdrawals and manual adjustments without cross-customer access' {
         Require-State @('WithdrawalTransactionId', 'DeclinedWithdrawalId', 'ManualCreditId')
-        $path = "/admin/accounts/$($state.Customer.Id)/wallet"
-        $deposit = Invoke-Api GET "$path/transactions/$($state.DepositId)" $state.Admin.Access
+        $path = "/admin/accounts_wallet_show/$($state.Customer.Id)"
+        $deposit = Invoke-Api GET "$($path.Replace('wallet_show', 'wallet_transaction_show'))/$($state.DepositId)" $state.Admin.Access
         Assert-Equal $deposit.Json.data.transaction.status 'approved' 'Deposit detail status'
         Assert-Equal @($deposit.Json.data.walletTransactions).Count 1 'Deposit has one credit'
         $depositEntry = $deposit.Json.data.walletTransactions[0]
-        $ledger = Invoke-Api GET "$path/wallet-transactions/$($depositEntry.id)" $state.Admin.Access
+        $ledger = Invoke-Api GET "$($path.Replace('wallet_show', 'wallet_movement_show'))/$($depositEntry.id)" $state.Admin.Access
         Assert-Equal $ledger.Json.data.transaction.id $state.DepositId 'Ledger links to deposit transaction'
-        $withdrawal = Invoke-Api GET "$path/withdrawal-requests/$($state.WithdrawalId)" $state.Admin.Access
+        $withdrawal = Invoke-Api GET "$($path.Replace('wallet_show', 'wallet_withdrawal_show'))/$($state.WithdrawalId)" $state.Admin.Access
         Assert-Equal $withdrawal.Json.data.transaction.id $state.WithdrawalTransactionId 'Approved request links to payment'
         Assert-Equal @($withdrawal.Json.data.walletTransactions).Count 1 'Approved withdrawal has one reservation'
-        $transaction = Invoke-Api GET "$path/transactions/$($state.WithdrawalTransactionId)" $state.Admin.Access
+        $transaction = Invoke-Api GET "$($path.Replace('wallet_show', 'wallet_transaction_show'))/$($state.WithdrawalTransactionId)" $state.Admin.Access
         Assert-Equal $transaction.Json.data.withdrawalRequests[0].id $state.WithdrawalId 'Payment links back to request'
         Assert-Equal @($transaction.Json.data.walletTransactions).Count 1 'Payment traces reservation without another debit'
-        $declined = Invoke-Api GET "$path/withdrawal-requests/$($state.DeclinedWithdrawalId)" $state.Admin.Access
+        $declined = Invoke-Api GET "$($path.Replace('wallet_show', 'wallet_withdrawal_show'))/$($state.DeclinedWithdrawalId)" $state.Admin.Access
         Assert-True ($null -eq $declined.Json.data.transaction) 'Declined request must not have a completed payment.'
         Assert-Equal @($declined.Json.data.walletTransactions).Count 2 'Declined withdrawal traces reservation and refund'
         foreach ($entry in $declined.Json.data.walletTransactions) {
-            $trace = Invoke-Api GET "$path/wallet-transactions/$($entry.id)" $state.Admin.Access
+            $trace = Invoke-Api GET "$($path.Replace('wallet_show', 'wallet_movement_show'))/$($entry.id)" $state.Admin.Access
             Assert-Equal $trace.Json.data.withdrawalRequest.id $state.DeclinedWithdrawalId 'Ledger links to declined request'
         }
-        $manual = Invoke-Api GET "$path/wallet-transactions/$($state.ManualCreditId)" $state.Admin.Access
+        $manual = Invoke-Api GET "$($path.Replace('wallet_show', 'wallet_movement_show'))/$($state.ManualCreditId)" $state.Admin.Access
         Assert-Equal $manual.Json.data.walletTransaction.actorUserId $state.Admin.Id 'Manual adjustment detail actor'
         Assert-Equal $manual.Json.data.walletTransaction.clientReference $state.ManualCreditReference 'Manual adjustment retry reference'
         Assert-Money $manual.Json.data.walletTransaction.balanceBefore 0 'Manual adjustment prior balance'
         Assert-Money $manual.Json.data.walletTransaction.balanceAfter 250.75 'Manual adjustment resulting balance'
-        $otherPath = "/admin/accounts/$($state.Other.Id)/wallet"
-        foreach ($suffix in @("transactions/$($state.DepositId)", "withdrawal-requests/$($state.WithdrawalId)", "wallet-transactions/$($state.ManualCreditId)")) {
-            Invoke-Api GET "$otherPath/$suffix" $state.Admin.Access -ExpectedStatus 404
-            Invoke-Api GET "$path/$suffix" $state.Customer.Access -ExpectedStatus 403
+        $otherPath = "/admin/accounts_wallet_show/$($state.Other.Id)"
+        foreach ($detail in @(
+            @{ Action = 'transaction_show'; Id = $state.DepositId },
+            @{ Action = 'withdrawal_show'; Id = $state.WithdrawalId },
+            @{ Action = 'movement_show'; Id = $state.ManualCreditId }
+        )) {
+            Invoke-Api GET "/admin/accounts_wallet_$($detail.Action)/$($state.Other.Id)/$($detail.Id)" $state.Admin.Access -ExpectedStatus 404
+            Invoke-Api GET "/admin/accounts_wallet_$($detail.Action)/$($state.Customer.Id)/$($detail.Id)" $state.Customer.Access -ExpectedStatus 403
         }
     }
     Invoke-Case 'Delete customer destination; hide it and reject future withdrawals' {
         Require-State @('WithdrawalAccountId')
-        Invoke-Api DELETE "/paymentaccount/withdrawal/$($state.WithdrawalAccountId)" $state.Customer.Access
-        foreach ($path in @('/paymentaccount/withdrawal', '/paymentmethod/withdrawal')) {
+        Invoke-Api DELETE "/payment_account_withdrawal_delete/$($state.WithdrawalAccountId)" $state.Customer.Access
+        foreach ($path in @('/payment_account_withdrawal_list', '/payment_method_withdrawal_list')) {
             $response = Invoke-Api GET $path $state.Customer.Access
             Assert-Equal @($response.Json.data).Count 0 'Deleted account is hidden'
         }
-        Invoke-Api POST '/payment/withdrawal' $state.Customer.Access (New-WithdrawalBody '1.00') -ExpectedStatus 400
+        Invoke-Api POST '/payment_withdrawal_create' $state.Customer.Access (New-WithdrawalBody '1.00') -ExpectedStatus 400
         Assert-Wallet
     }
     Invoke-Case 'Email change requires password, keeps uniqueness, and revokes sessions' {
         Require-Value $state.Customer.Access 'customer login'
         $newEmail = "curl.changed.$runId@example.test"
-        Assert-Validation PATCH '/profile' $state.Customer.Access @{ email = $newEmail } @('currentPassword')
-        Assert-Validation PATCH '/profile' $state.Customer.Access @{ email = $state.Other.Email; currentPassword = $CustomerPassword } @('email')
-        Invoke-Api PATCH '/profile' $state.Customer.Access -Body @{ email = $newEmail; currentPassword = 'wrong-password' } -ExpectedStatus 400
-        $oldAccess = $state.Customer.Access; $oldRefresh = $state.Customer.Refresh; $oldEmail = $state.Customer.Email
-        $updated = Invoke-Api PATCH '/profile' $oldAccess -Body @{ email = $newEmail; currentPassword = $CustomerPassword }
+        Assert-Validation PATCH '/profile_update' $state.Customer.Access @{ email = $newEmail } @('currentPassword')
+        Assert-Validation PATCH '/profile_update' $state.Customer.Access @{ email = $state.Other.Email; currentPassword = $CustomerPassword } @('email')
+        Invoke-Api PATCH '/profile_update' $state.Customer.Access -Body @{ email = $newEmail; currentPassword = 'wrong-password' } -ExpectedStatus 400
+        $oldAccess = $state.Customer.Access; $oldEmail = $state.Customer.Email
+        $updated = Invoke-Api PATCH '/profile_update' $oldAccess -Body @{ email = $newEmail; currentPassword = $CustomerPassword }
         $state.Customer.Email = $newEmail
         Assert-Equal $updated.Json.data.email $newEmail 'Changed profile email'
-        Invoke-Api GET '/profile' $oldAccess -ExpectedStatus 401
-        Invoke-Api POST '/auth/refresh' $oldRefresh -ExpectedStatus 401
-        Invoke-Api POST '/auth/login' -Body @{ email = $oldEmail; password = $CustomerPassword } -ExpectedStatus 401
+        Invoke-Api GET '/profile_show' $oldAccess -ExpectedStatus 401
+        Invoke-Api POST '/auth_login' -Body @{ email = $oldEmail; password = $CustomerPassword } -ExpectedStatus 401
         Set-Login $state.Customer $CustomerPassword
         Assert-Wallet
     }
     Invoke-Case 'Password change checks old password/confirmation and revokes all sessions' {
         Require-Value $state.Customer.Access 'customer login'
         $newPassword = 'Changed!' + [guid]::NewGuid().ToString('N'); $script:Secrets.Add($newPassword)
-        Assert-Validation POST '/profile/password' $state.Customer.Access @{
+        Assert-Validation POST '/profile_password_update' $state.Customer.Access @{
             currentPassword = $CustomerPassword; password = $newPassword; password_confirmation = 'mismatch'
         } @('password')
-        Invoke-Api POST '/profile/password' $state.Customer.Access -Body @{
+        Invoke-Api POST '/profile_password_update' $state.Customer.Access -Body @{
             currentPassword = 'wrong-password'; password = $newPassword; password_confirmation = $newPassword
         } -ExpectedStatus 400
-        $oldAccess = $state.Customer.Access; $oldRefresh = $state.Customer.Refresh
+        $oldAccess = $state.Customer.Access
         # A second device/session must also be revoked by a password change.
         $secondSession = @{ Email = $state.Customer.Email }
         Set-Login $secondSession $CustomerPassword
-        Invoke-Api POST '/profile/password' $oldAccess -Body @{
+        Invoke-Api POST '/profile_password_update' $oldAccess -Body @{
             currentPassword = $CustomerPassword; password = $newPassword; password_confirmation = $newPassword
         }
         $state.CurrentPassword = $newPassword
-        Invoke-Api GET '/profile' $oldAccess -ExpectedStatus 401
-        Invoke-Api GET '/profile' $secondSession.Access -ExpectedStatus 401
-        Invoke-Api POST '/auth/refresh' $oldRefresh -ExpectedStatus 401
-        Invoke-Api POST '/auth/login' -Body @{ email = $state.Customer.Email; password = $CustomerPassword } -ExpectedStatus 401
+        Invoke-Api GET '/profile_show' $oldAccess -ExpectedStatus 401
+        Invoke-Api GET '/profile_show' $secondSession.Access -ExpectedStatus 401
+        Invoke-Api POST '/auth_login' -Body @{ email = $state.Customer.Email; password = $CustomerPassword } -ExpectedStatus 401
         Set-Login $state.Customer $state.CurrentPassword
         Assert-Wallet
     }
     Invoke-Case 'Recovery validates input and invalid tokens cannot change a password' {
         Require-Value $state.Customer.Id 'customer registration'
-        Assert-Validation POST '/auth/forgot-password' '' @{ email = 'bad-email' } @('email')
-        Assert-Validation POST '/auth/reset-password' '' @{} @('email', 'token', 'password')
+        Assert-Validation POST '/auth_forgot_password' '' @{ email = 'bad-email' } @('email')
+        Assert-Validation POST '/auth_reset_password' '' @{} @('email', 'token', 'password')
         $password = 'InvalidReset!' + [guid]::NewGuid().ToString('N'); $script:Secrets.Add($password)
-        Invoke-Api POST '/auth/reset-password' -Body @{
+        Invoke-Api POST '/auth_reset_password' -Body @{
             email = $state.Customer.Email; token = ('0' * 64); password = $password; password_confirmation = $password
         } -ExpectedStatus 400
         Assert-Wallet
@@ -1355,8 +1352,8 @@ try {
         if ($RecoveryMailLogPath -and (Test-Path -LiteralPath $RecoveryMailLogPath)) {
             $state.RecoveryLogOffset = (Get-Item -LiteralPath $RecoveryMailLogPath).Length
         }
-        $known = Invoke-Api POST '/auth/forgot-password' -Body @{ email = $state.Customer.Email }
-        $unknown = Invoke-Api POST '/auth/forgot-password' -Body @{ email = "curl.unknown.$runId@example.test" }
+        $known = Invoke-Api POST '/auth_forgot_password' -Body @{ email = $state.Customer.Email }
+        $unknown = Invoke-Api POST '/auth_forgot_password' -Body @{ email = "curl.unknown.$runId@example.test" }
         Assert-Equal ($known.Json | ConvertTo-Json -Compress -Depth 10) ($unknown.Json | ConvertTo-Json -Compress -Depth 10) 'Recovery must not disclose account existence'
         $state.RecoverySent = $true
     }
@@ -1368,29 +1365,27 @@ try {
         $token = Get-RecoveryToken $state.Customer.Email $state.RecoveryRequestedAt $state.RecoveryLogOffset
         $script:Secrets.Add($token)
         $password = 'Recovered!' + [guid]::NewGuid().ToString('N'); $script:Secrets.Add($password)
-        $oldAccess = $state.Customer.Access; $oldRefresh = $state.Customer.Refresh; $oldPassword = $state.CurrentPassword
+        $oldAccess = $state.Customer.Access; $oldPassword = $state.CurrentPassword
         $body = @{ email = $state.Customer.Email; token = $token; password = $password; password_confirmation = $password }
-        Invoke-Api POST '/auth/reset-password' -Body $body
+        Invoke-Api POST '/auth_reset_password' -Body $body
         $state.CurrentPassword = $password
-        Invoke-Api POST '/auth/reset-password' -Body $body -ExpectedStatus 400
-        Invoke-Api GET '/profile' $oldAccess -ExpectedStatus 401
-        Invoke-Api POST '/auth/refresh' $oldRefresh -ExpectedStatus 401
-        Invoke-Api POST '/auth/login' -Body @{ email = $state.Customer.Email; password = $oldPassword } -ExpectedStatus 401
+        Invoke-Api POST '/auth_reset_password' -Body $body -ExpectedStatus 400
+        Invoke-Api GET '/profile_show' $oldAccess -ExpectedStatus 401
+        Invoke-Api POST '/auth_login' -Body @{ email = $state.Customer.Email; password = $oldPassword } -ExpectedStatus 401
         Set-Login $state.Customer $password
         Assert-Wallet
     }
-    Invoke-Case 'Logout revokes the current pair and preserves another device session' {
+    Invoke-Case 'Logout revokes the current token and preserves another device session' {
         Require-Value $state.Customer.Access 'customer login'
         Require-State @('CurrentPassword')
         $otherDevice = @{ Email = $state.Customer.Email }
         Set-Login $otherDevice $state.CurrentPassword
-        $oldAccess = $state.Customer.Access; $oldRefresh = $state.Customer.Refresh
-        Invoke-Api POST '/auth/logout' $oldAccess
-        Invoke-Api GET '/profile' $oldAccess -ExpectedStatus 401
-        Invoke-Api POST '/auth/refresh' $oldRefresh -ExpectedStatus 401
-        $profile = Invoke-Api GET '/profile' $otherDevice.Access
+        $oldAccess = $state.Customer.Access
+        Invoke-Api POST '/auth_logout' $oldAccess
+        Invoke-Api GET '/profile_show' $oldAccess -ExpectedStatus 401
+        $profile = Invoke-Api GET '/profile_show' $otherDevice.Access
         Assert-Equal $profile.Json.data.id $state.Customer.Id 'Other device remains authenticated'
-        $state.Customer.Access = $otherDevice.Access; $state.Customer.Refresh = $otherDevice.Refresh
+        $state.Customer.Access = $otherDevice.Access
         Assert-Wallet
     }
 } catch {
@@ -1400,13 +1395,13 @@ try {
     foreach ($game in @($state.LastOdds.Keys)) {
         if ($state.OriginalOdds.ContainsKey($game)) {
             Invoke-Case "Cleanup: restore prior $game odds by adding a settings row" {
-                $current = Invoke-Api GET "/$game/odds" $state.Admin.Access
+                $current = Invoke-Api GET "/betting_odds_list/$game" $state.Admin.Access
                 Assert-Equal $current.Json.data.id $state.LastOdds[$game] 'Odds changed by another client; refusing to overwrite their setting'
                 $old = $state.OriginalOdds[$game]
-                Invoke-Api POST "/admin/$game/odds" $state.Admin.Access -Body @{
+                Invoke-Api POST "/admin/betting_odds_create/$game" $state.Admin.Access -Body @{
                     name = "Restored after curl $runId"; oddNumber = $old.oddNumber; payoutMode = $old.payoutMode
                 }
-                $restored = Invoke-Api GET "/$game/odds" $state.Admin.Access
+                $restored = Invoke-Api GET "/betting_odds_list/$game" $state.Admin.Access
                 Assert-Money $restored.Json.data.oddNumber ([decimal] $old.oddNumber) 'Restored odds rate'
                 Assert-Equal $restored.Json.data.payoutMode $old.payoutMode 'Restored payout mode'
             }
@@ -1414,28 +1409,28 @@ try {
     }
     if ($state.ContainsKey('DepositAccountId')) {
         Invoke-Case 'Cleanup: deactivate the test receiving account' {
-            Invoke-Api PATCH "/admin/paymentaccount/deposit/$($state.DepositAccountId)/status" $state.Admin.Access -Body @{ status = 'inactive' }
+            Invoke-Api PATCH "/admin/payment_account_deposit_status_update/$($state.DepositAccountId)" $state.Admin.Access -Body @{ status = 'inactive' }
         }
     }
     foreach ($key in @('DepositMethodId', 'WithdrawalMethodId')) {
         if ($state.ContainsKey($key)) {
             Invoke-Case "Cleanup: deactivate $key" {
-                Invoke-Api PATCH "/admin/master/payment-methods/$($state[$key])" $state.Admin.Access -Body @{ status = 'inactive' }
+                Invoke-Api PATCH "/admin/master_update/payment-methods/$($state[$key])" $state.Admin.Access -Body @{ status = 'inactive' }
             }
         }
     }
     foreach ($entry in @(@{ Key = 'WithdrawalAccountId'; User = $state.Customer }, @{ Key = 'OtherAccountId'; User = $state.Other })) {
         if ($state.ContainsKey($entry.Key) -and $entry.User.Access) {
             Invoke-Case "Cleanup: delete test destination $($entry.Key)" {
-                Invoke-Api DELETE "/paymentaccount/withdrawal/$($state[$entry.Key])" $entry.User.Access
+                Invoke-Api DELETE "/payment_account_withdrawal_delete/$($state[$entry.Key])" $entry.User.Access
             }
         }
     }
     foreach ($user in @($state.Customer, $state.Other, $state.Admin)) {
         if ($user.Access) {
             Invoke-Case "Cleanup: revoke test session for $($user.Email)" {
-                Invoke-Api POST '/auth/logout' $user.Access
-                $user.Access = ''; $user.Refresh = ''
+                Invoke-Api POST '/auth_logout' $user.Access
+                $user.Access = ''
             }
         }
     }

@@ -7,9 +7,13 @@ use App\Http\Requests\Admin\WalletHistoryRequest;
 use App\Http\Requests\Admin\WalletManagementRequest;
 use App\Http\ServiceContractor\IWalletService;
 use Illuminate\Http\JsonResponse;
+use Knuckles\Scribe\Attributes\Authenticated;
 use Knuckles\Scribe\Attributes\Group;
+use Knuckles\Scribe\Attributes\Response;
 
-#[Group("Admin Wallet Handler", "APIs for managing admin and users Wallet")]
+#[Group('Admin Wallet Handler', 'APIs for managing admin and users Wallet')]
+#[Authenticated]
+#[Response(status: 401, content: ['message' => 'Unauthenticated.'], description: 'Missing or invalid bearer token.')]
 class WalletController extends Controller
 {
     public function __construct(private IWalletService $service) {}

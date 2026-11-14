@@ -6,6 +6,13 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class DrawRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('calculationTime') && ! $this->has('calculationMode')) {
+            $this->merge(['calculationMode' => 'scheduled']);
+        }
+    }
+
     public function authorize(): bool
     {
         return $this->user()?->isAdministrator() ?? false;

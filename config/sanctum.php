@@ -53,8 +53,7 @@ return [
 
     'expiration' => null,
 
-    'access_token_lifetime_seconds' => (int) env('ACCESS_TOKEN_LIFETIME', env('SESSION_LIFETIME', 30)),
-    'refresh_token_lifetime_days' => (int) env('REFRESH_TOKEN_LIFETIME', 30),
+    'access_token_lifetime_seconds' => (int) env('ACCESS_TOKEN_LIFETIME', 2592000),
 
     /*
     |--------------------------------------------------------------------------

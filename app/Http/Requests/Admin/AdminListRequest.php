@@ -17,7 +17,7 @@ class AdminListRequest extends FormRequest
         return [
             'search' => 'sometimes|string|max:255',
             'status' => 'sometimes|in:active,inactive,suspended',
-            'roleId' => 'sometimes|uuid|exists:roles,id',
+            'roleName' => 'sometimes|string|exists:roles,role_name',
             'page' => 'sometimes|integer|min:1',
             'paymentsPage' => 'sometimes|integer|min:1',
             'withdrawalsPage' => 'sometimes|integer|min:1',

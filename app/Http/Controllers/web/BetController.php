@@ -7,9 +7,13 @@ use App\Http\Requests\GameHistoryRequest;
 use App\Http\Requests\Web\BetRequest;
 use App\Http\ServiceContractor\IBetService;
 use Illuminate\Http\JsonResponse;
+use Knuckles\Scribe\Attributes\Authenticated;
 use Knuckles\Scribe\Attributes\Group;
+use Knuckles\Scribe\Attributes\Response;
 
-#[Group("Customer Betting Handler", "APIs for managing users bettings")]
+#[Group('Customer Betting Handler', 'APIs for managing users bettings')]
+#[Authenticated]
+#[Response(status: 401, content: ['message' => 'Unauthenticated.'], description: 'Missing or invalid bearer token.')]
 class BetController extends Controller
 {
     public function __construct(private IBetService $service) {}

@@ -5,7 +5,7 @@ endpoints:
     custom: []
     httpMethods:
       - POST
-    uri: api/auth/login
+    uri: api/auth_login
     metadata:
       custom: []
       groupName: 'Admin and User Auth Things'
@@ -50,7 +50,19 @@ endpoints:
       email: gbailey@example.net
       password: '+-0pBNvYgxwmi/#iw'
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 200
+        content: '{"status":200,"message":"Login successfully.","data":{"token_type":"Bearer","access_token":"1|example-access-token","access_token_expire_at":"2026-12-11T12:00:00.000000Z","user":{"id":"019a0000-0000-7000-8000-000000000001","name":"Example Customer","email":"customer@example.com"}}}'
+        headers: []
+        description: 'Send the access token as a Bearer token on protected routes.'
+      -
+        custom: []
+        status: 401
+        content: '{"status":401,"message":"Email or password is incorrect.","data":null}'
+        headers: []
+        description: ''
     responseFields: []
     auth: []
     controller: null
@@ -60,7 +72,7 @@ endpoints:
     custom: []
     httpMethods:
       - POST
-    uri: api/auth/register
+    uri: api/auth_register
     metadata:
       custom: []
       groupName: 'Admin and User Auth Things'
@@ -117,7 +129,13 @@ endpoints:
       email: zbailey@example.net
       password: '-0pBNvYgxw'
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 200
+        content: '{"status":200,"message":"User created successfully.","data":null}'
+        headers: []
+        description: 'Log in to obtain an access token.'
     responseFields: []
     auth: []
     controller: null
@@ -127,7 +145,7 @@ endpoints:
     custom: []
     httpMethods:
       - POST
-    uri: api/auth/refresh
+    uri: api/auth_logout
     metadata:
       custom: []
       groupName: 'Admin and User Auth Things'
@@ -139,6 +157,7 @@ endpoints:
       authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -148,40 +167,24 @@ endpoints:
     bodyParameters: []
     cleanBodyParameters: []
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 200
+        content: '{"status":200,"message":"Logged out successfully.","data":null}'
+        headers: []
+        description: ''
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid access token.'
     responseFields: []
-    auth: []
-    controller: null
-    method: null
-    route: null
-  -
-    custom: []
-    httpMethods:
-      - POST
-    uri: api/auth/logout
-    metadata:
-      custom: []
-      groupName: 'Admin and User Auth Things'
-      groupDescription: 'APIs for managing users'
-      subgroup: ''
-      subgroupDescription: ''
-      title: ''
-      description: ''
-      authenticated: true
-      deprecated: false
-    headers:
-      Content-Type: application/json
-      Accept: application/json
-    urlParameters: []
-    cleanUrlParameters: []
-    queryParameters: []
-    cleanQueryParameters: []
-    bodyParameters: []
-    cleanBodyParameters: []
-    fileParameters: []
-    responses: []
-    responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null

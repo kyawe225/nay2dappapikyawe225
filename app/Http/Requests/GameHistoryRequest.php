@@ -20,8 +20,10 @@ class GameHistoryRequest extends FormRequest
             'status' => 'sometimes|in:active,settled,cancelled,lost',
             'resultStatus' => 'sometimes|in:pending,won,lost',
             'paymentUserId' => 'sometimes|uuid|exists:users,id',
-            'page' => 'sometimes|integer|min:1',
-            'perPage' => 'sometimes|integer|min:1|max:100',
+            ...($this->routeIs('admin.*') ? [
+                'page' => 'sometimes|integer|min:1',
+                'perPage' => 'sometimes|integer|min:1|max:100',
+            ] : []),
         ];
     }
 }

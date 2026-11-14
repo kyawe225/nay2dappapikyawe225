@@ -21,7 +21,7 @@ class CustomerPaymentHistorySeeder extends Seeder
             $administrator = User::query()->where('email', 'test@example.com')->firstOrFail();
             $customers = User::query()
                 ->whereIn('email', ['customer1@example.com', 'customer2@example.com'])
-                ->whereHas('role', fn (Builder $query): Builder => $query->where('name', 'Customer'))
+                ->whereHas('role', fn (Builder $query): Builder => $query->where('role_name', 'Customer'))
                 ->get();
 
             foreach ($customers as $customer) {

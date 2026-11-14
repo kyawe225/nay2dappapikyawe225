@@ -35,9 +35,6 @@ class UserService implements IUserService
         return DB::transaction(function () use ($request, $user): ResponseModel {
             $user = User::query()->lockForUpdate()->findOrFail($user->id);
             $data = $request->validated();
-            if (isset($data['email']) && ! Hash::check($data['currentPassword'], $user->password)) {
-                return ResponseModel::badRequest('Current password is incorrect!', null);
-            }
             if (isset($data['name'])) {
                 $user->name = $data['name'];
             }
@@ -99,8 +96,8 @@ class UserService implements IUserService
 
     public function Index(AdminListRequest $request): ResponseModel
     {
-        $query = User::query()->with('role');
-        foreach (['status' => 'status', 'roleId' => 'role_id'] as $field => $column) {
+        $query = User::query()->with(['role', 'wallet.user.role']);
+        foreach (['status' => 'status', 'roleName' => 'role_name'] as $field => $column) {
             if ($request->filled($field)) {
                 $query->where($column, $request->validated($field));
             }
@@ -116,23 +113,23 @@ class UserService implements IUserService
 
     public function Show(string $userId): ResponseModel
     {
-        $user = User::query()->with('role')->find($userId);
+        $user = User::query()->with(['role', 'wallet.user.role'])->find($userId);
 
         return $user === null ? ResponseModel::NotFound('Account was not found!', null) : $this->Profile($user);
     }
 
     public function Roles(): ResponseModel
     {
-        return ResponseModel::ok('Roles fetched successfully!', Role::query()->where('status', 'active')->get(['id', 'name']));
+        return ResponseModel::ok('Roles fetched successfully!', Role::query()->where('status', 'active')->get(['role_name', 'status']));
     }
 
     public function Create(UserManagementRequest $request, User $actor): ResponseModel
     {
         return DB::transaction(function () use ($request, $actor): ResponseModel {
             $data = $request->validated();
-            $roleId = $data['roleId'] ?? Role::query()->where('name', 'Customer')->where('status', 'active')->firstOrFail()->id;
-            $user = User::create(['name' => $data['name'], 'email' => $data['email'], 'password' => $data['password'], 'role_id' => $roleId, 'status' => $data['status'] ?? 'active']);
-            $this->activities->Record($actor, 'account.created', 'users', $user->id, ['roleId' => $roleId, 'status' => $user->status]);
+            $roleName = $data['roleName'] ?? Role::query()->where('role_name', 'Customer')->where('status', 'active')->firstOrFail()->role_name;
+            $user = User::create(['name' => $data['name'], 'email' => $data['email'], 'password' => $data['password'], 'role_name' => $roleName, 'status' => $data['status'] ?? 'active']);
+            $this->activities->Record($actor, 'account.created', 'users', $user->id, ['roleName' => $roleName, 'status' => $user->status]);
 
             return ResponseModel::ok('Account created successfully!', new UserResource($user->load('role')));
         }, 3);
@@ -141,23 +138,23 @@ class UserService implements IUserService
     public function Update(UserManagementRequest $request, string $userId, User $actor): ResponseModel
     {
         return DB::transaction(function () use ($request, $userId, $actor): ResponseModel {
-            Role::query()->where('name', 'Super Admin')->lockForUpdate()->firstOrFail();
+            Role::query()->where('role_name', 'Super Admin')->lockForUpdate()->firstOrFail();
             $user = User::query()->lockForUpdate()->find($userId);
             if ($user === null) {
                 return ResponseModel::NotFound('Account was not found!', null);
             }
             $data = $request->validated();
-            if ($user->id === $actor->id && (isset($data['roleId']) || isset($data['status']))) {
+            if ($user->id === $actor->id && (isset($data['roleName']) || isset($data['status']))) {
                 return new ResponseModel(403, 'Use another Super Admin to change your own role or account status!', null);
             }
-            $roleId = $data['roleId'] ?? $user->role_id;
+            $roleName = $data['roleName'] ?? $user->role_name;
             $status = $data['status'] ?? $user->status;
-            $newRole = Role::query()->findOrFail($roleId);
-            if ($user->isSuperAdministrator() && ($newRole->name !== 'Super Admin' || $status !== 'active')
-                && ! User::query()->where('id', '!=', $user->id)->where('status', 'active')->whereHas('role', fn (Builder $query): Builder => $query->where('name', 'Super Admin')->where('status', 'active'))->exists()) {
+            $newRole = Role::query()->findOrFail($roleName);
+            if ($user->isSuperAdministrator() && ($newRole->role_name !== 'Super Admin' || $status !== 'active')
+                && ! User::query()->where('id', '!=', $user->id)->where('status', 'active')->whereHas('role', fn (Builder $query): Builder => $query->where('role_name', 'Super Admin')->where('status', 'active'))->exists()) {
                 return ResponseModel::conflict('The last active Super Admin cannot be removed!', null);
             }
-            $sensitiveChange = $roleId !== $user->role_id || $status !== $user->status || (isset($data['email']) && $data['email'] !== $user->email);
+            $sensitiveChange = $roleName !== $user->role_name || $status !== $user->status || (isset($data['email']) && $data['email'] !== $user->email);
             if (isset($data['email']) && $data['email'] !== $user->email) {
                 DB::table('password_reset_tokens')->where('email', $user->email)->delete();
             }
@@ -169,7 +166,7 @@ class UserService implements IUserService
             if (isset($data['email'])) {
                 $user->email_verified_at = null;
             }
-            $user->role_id = $roleId;
+            $user->role_name = $roleName;
             $user->status = $status;
             $user->save();
             if ($sensitiveChange) {

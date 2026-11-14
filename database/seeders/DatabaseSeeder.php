@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Role;
 use App\Models\User;
 use Hash;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -24,10 +23,12 @@ class DatabaseSeeder extends Seeder
         User::query()->firstOrCreate(['email' => 'test@example.com'], [
             'name' => 'Admin',
             'password' => Hash::make('password'),
-            'role_id' => Role::where('name', 'Super Admin')->first()->id,
+            'role_name' => 'Super Admin',
         ]);
 
         $this->call(MasterDataSeeder::class);
         $this->call(CustomerPaymentHistorySeeder::class);
+        $this->call(TwodOddSeeder::class);
+        $this->call(ThreedOddSeeder::class);
     }
 }

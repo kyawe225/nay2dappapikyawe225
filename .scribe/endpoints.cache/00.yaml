@@ -7,7 +7,7 @@ endpoints:
     custom: []
     httpMethods:
       - POST
-    uri: api/auth/forgot-password
+    uri: api/auth_forgot_password
     metadata:
       custom: []
       groupName: 'Customer Profile Handler'
@@ -16,7 +16,7 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: true
+      authenticated: false
       deprecated: false
     headers:
       Content-Type: application/json
@@ -40,7 +40,13 @@ endpoints:
     cleanBodyParameters:
       email: gbailey@example.net
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 200
+        content: '{"status":200,"message":"If this email has an active account, password reset instructions have been sent.","data":null}'
+        headers: []
+        description: ''
     responseFields: []
     auth: []
     controller: null
@@ -50,7 +56,7 @@ endpoints:
     custom: []
     httpMethods:
       - POST
-    uri: api/auth/reset-password
+    uri: api/auth_reset_password
     metadata:
       custom: []
       groupName: 'Customer Profile Handler'
@@ -59,7 +65,7 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: true
+      authenticated: false
       deprecated: false
     headers:
       Content-Type: application/json
@@ -107,7 +113,13 @@ endpoints:
       token: m
       password: '-0pBNvYgxw'
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 200
+        content: '{"status":200,"message":"Password reset successfully! Please log in again.","data":null}'
+        headers: []
+        description: ''
     responseFields: []
     auth: []
     controller: null
@@ -117,7 +129,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: api/profile
+    uri: api/profile_show
     metadata:
       custom: []
       groupName: 'Customer Profile Handler'
@@ -129,6 +141,7 @@ endpoints:
       authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -141,16 +154,21 @@ endpoints:
     responses:
       -
         custom: []
+        status: 200
+        content: '{"status":200,"message":"Profile fetched successfully!","data":{"id":"019a0000-0000-7000-8000-000000000001","name":"Example Customer","email":"customer@example.com","status":"active","role":{"id":"019a0000-0000-7000-8000-000000000003","name":"Customer"},"created_at":"2026-11-11T12:00:00.000000Z"}}'
+        headers: []
+        description: ''
+      -
+        custom: []
         status: 401
         content: '{"message":"Unauthenticated."}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0c14-7111-aac7-649fc1e3b2be
-          access-control-allow-origin: '*'
-        description: null
+        headers: []
+        description: 'Missing or invalid access token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -158,7 +176,7 @@ endpoints:
     custom: []
     httpMethods:
       - PATCH
-    uri: api/profile
+    uri: api/profile_update
     metadata:
       custom: []
       groupName: 'Customer Profile Handler'
@@ -170,6 +188,7 @@ endpoints:
       authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -215,9 +234,24 @@ endpoints:
       email: zbailey@example.net
       currentPassword: i
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 200
+        content: '{"status":200,"message":"Profile fetched successfully!","data":{"id":"019a0000-0000-7000-8000-000000000001","name":"Example Customer","email":"customer@example.com","status":"active","role":{"id":"019a0000-0000-7000-8000-000000000003","name":"Customer"},"created_at":"2026-11-11T12:00:00.000000Z"}}'
+        headers: []
+        description: ''
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid access token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -225,7 +259,7 @@ endpoints:
     custom: []
     httpMethods:
       - POST
-    uri: api/profile/password
+    uri: api/profile_password_update
     metadata:
       custom: []
       groupName: 'Customer Profile Handler'
@@ -237,6 +271,7 @@ endpoints:
       authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -270,9 +305,24 @@ endpoints:
       currentPassword: b
       password: ']|{+-0pBNvYg'
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 200
+        content: '{"status":200,"message":"Password changed successfully! Please log in again.","data":null}'
+        headers: []
+        description: ''
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid access token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null

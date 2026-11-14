@@ -15,7 +15,5 @@ interface IAuthService
 
     public function Register(RegisterRequest $request): ResponseModel;
 
-    public function RefreshToken(Request $request): ResponseModel;
-
     public function Logout(Request $request): ResponseModel;
 }

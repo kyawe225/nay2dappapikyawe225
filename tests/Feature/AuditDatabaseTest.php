@@ -1,19 +1,19 @@
 <?php
 
-use App\Models\Role;
 use App\Models\User;
 use App\Service\AdminActivityService;
 use App\Service\AuditDatabase;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
     $this->seed(RoleSeeder::class);
-    $this->administrator = User::factory()->create(['role_id' => Role::query()->where('name', 'Admin')->sole()->id]);
-    $this->customer = User::factory()->create(['role_id' => Role::query()->where('name', 'Customer')->sole()->id]);
+    $this->administrator = User::factory()->create(['role_name' => 'Admin']);
+    $this->customer = User::factory()->create(['role_name' => 'Customer']);
 });
 
 test('audit storage uses the application connection and records administrator actions', function (): void {
@@ -22,7 +22,13 @@ test('audit storage uses the application connection and records administrator ac
     app(AdminActivityService::class)->Record($this->administrator, 'test.action', 'users', $this->customer->id);
 
     $this->assertDatabaseCount('admin_activities', 1);
-    $this->assertDatabaseHas('admin_activities', ['user_id' => $this->administrator->id, 'actor_role_id' => $this->administrator->role_id]);
+    $this->assertDatabaseHas('admin_activities', ['user_id' => $this->administrator->id, 'actor_role_name' => $this->administrator->role_name]);
+    Sanctum::actingAs($this->administrator, ['access']);
+    $this->getJson('/api/admin/activities_list')->assertOk()
+        ->assertJsonPath('data.data.0.actorUser.id', $this->administrator->id)
+        ->assertJsonPath('data.data.0.actorUser.role.roleName', 'Admin')
+        ->assertJsonMissingPath('data.data.0.created_at')
+        ->assertJsonMissingPath('data.data.0.updated_at');
 });
 
 test('business auditing ignores customers and excludes rolled back administrator actions', function (): void {

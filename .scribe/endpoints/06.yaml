@@ -5,7 +5,7 @@ endpoints:
     custom: []
     httpMethods:
       - POST
-    uri: api/payment/deposit
+    uri: api/payment_deposit_create
     metadata:
       custom: []
       groupName: 'Customer Payment Handler'
@@ -14,9 +14,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -68,27 +69,24 @@ endpoints:
         exampleWasSpecified: false
         nullable: false
         deprecated: false
-      clientReference:
-        custom: []
-        name: clientReference
-        description: 'Must be a valid UUID.'
-        required: false
-        example: 5d093e7f-5aae-3aa3-bece-f6e784dcbd67
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
     cleanBodyParameters:
       lastSixTranId: bngzmi
       amount: '6425593142326822'
       PaymentAccountId: a232abbe-3006-3f67-bed4-124abab91dce
       PaymentMethodId: bfc53181-d647-36b2-9080-f9c2b76006f4
-      clientReference: 5d093e7f-5aae-3aa3-bece-f6e784dcbd67
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -96,7 +94,7 @@ endpoints:
     custom: []
     httpMethods:
       - POST
-    uri: api/payment/withdrawal
+    uri: api/payment_withdrawal_create
     metadata:
       custom: []
       groupName: 'Customer Payment Handler'
@@ -105,9 +103,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -165,9 +164,18 @@ endpoints:
       paymentMethodId: bfc53181-d647-36b2-9080-f9c2b76006f4
       clientReference: 5d093e7f-5aae-3aa3-bece-f6e784dcbd67
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -175,7 +183,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: api/payment/deposit/history
+    uri: api/payment_deposit_history
     metadata:
       custom: []
       groupName: 'Customer Payment Handler'
@@ -184,9 +192,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -201,14 +210,13 @@ endpoints:
         custom: []
         status: 401
         content: '{"message":"Unauthenticated."}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0c52-72a0-8907-d844b62c62f8
-          access-control-allow-origin: '*'
-        description: null
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -216,7 +224,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: api/payment/withdrawal/history
+    uri: api/payment_withdrawal_history
     metadata:
       custom: []
       groupName: 'Customer Payment Handler'
@@ -225,9 +233,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -242,14 +251,13 @@ endpoints:
         custom: []
         status: 401
         content: '{"message":"Unauthenticated."}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0c56-73bb-9315-0e174a92423f
-          access-control-allow-origin: '*'
-        description: null
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -257,7 +265,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: api/payment/withdrawal/request/history
+    uri: api/payment_withdrawal_request_history
     metadata:
       custom: []
       groupName: 'Customer Payment Handler'
@@ -266,9 +274,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -283,14 +292,13 @@ endpoints:
         custom: []
         status: 401
         content: '{"message":"Unauthenticated."}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0c5a-71af-925e-9fd5941a747a
-          access-control-allow-origin: '*'
-        description: null
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null

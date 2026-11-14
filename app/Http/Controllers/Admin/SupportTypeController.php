@@ -7,9 +7,13 @@ use App\Http\Requests\Admin\AdminListRequest;
 use App\Http\Requests\Admin\SupportTypeRequest;
 use App\Http\ServiceContractor\ISupportTypeService;
 use Illuminate\Http\JsonResponse;
+use Knuckles\Scribe\Attributes\Authenticated;
 use Knuckles\Scribe\Attributes\Group;
+use Knuckles\Scribe\Attributes\Response;
 
-#[Group("Admin Support Type Handler", "APIs for managing admin and users Support Type")]
+#[Group('Admin Support Type Handler', 'APIs for managing admin and users Support Type')]
+#[Authenticated]
+#[Response(status: 401, content: ['message' => 'Unauthenticated.'], description: 'Missing or invalid bearer token.')]
 class SupportTypeController extends Controller
 {
     public function __construct(private ISupportTypeService $service) {}

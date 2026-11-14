@@ -18,7 +18,6 @@ class ProfileRequest extends FormRequest
         return [
             'name' => 'sometimes|required|string|max:255',
             'email' => ['sometimes', 'required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->user()?->id)],
-            'currentPassword' => 'required_with:email|string|max:255',
         ];
     }
 }

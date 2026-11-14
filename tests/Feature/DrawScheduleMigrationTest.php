@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 beforeEach(function (): void {
     $this->originalDefault = config('database.default');
     config(['database.connections.upgrade' => ['driver' => 'sqlite', 'database' => ':memory:', 'foreign_key_constraints' => true], 'database.default' => 'upgrade']);
-    $paths = array_values(array_filter(glob(database_path('migrations/*.php')), fn (string $path): bool => ! str_starts_with(basename($path), '2026_11_02_')));
+    $paths = array_values(array_filter(glob(database_path('migrations/*.php')), fn (string $path): bool => ! str_starts_with(basename($path), '2026_11_02_') && ! str_starts_with(basename($path), '2026_11_12_085945_')));
     $this->artisan('migrate', ['--database' => 'upgrade', '--path' => $paths, '--realpath' => true, '--force' => true, '--no-interaction' => true])->assertExitCode(0);
 });
 
@@ -24,7 +24,7 @@ test('upgrading to date-only 3D draws preserves existing results', function (): 
     $this->assertDatabaseHas('threed_draws', ['id' => $draw->id, 'winning_number' => '007']);
     expect(Schema::hasColumn('threed_draws', 'time_type'))->toBeFalse();
     expect(Schema::hasColumn('threed_bets', 'time'))->toBeFalse();
-    expect(Schema::hasColumn('admin_activities', 'actor_role_id'))->toBeTrue();
+    expect(Schema::hasColumn('admin_activities', 'actor_role_name'))->toBeTrue();
 });
 
 test('migration refuses conflicting AM and PM results without losing either record', function (): void {

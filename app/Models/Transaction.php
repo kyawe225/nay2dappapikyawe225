@@ -66,4 +66,9 @@ class Transaction extends Model
     {
         return $this->belongsTo(User::class, 'approver_user_id');
     }
+
+    public function decliner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'declined_user_id');
+    }
 }

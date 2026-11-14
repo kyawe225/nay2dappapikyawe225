@@ -7,7 +7,11 @@ use App\Http\Requests\Admin\AdminListRequest;
 use App\Http\Requests\Admin\MasterDataRequest;
 use App\Http\ServiceContractor\IAdminManagementService;
 use Illuminate\Http\JsonResponse;
+use Knuckles\Scribe\Attributes\Authenticated;
+use Knuckles\Scribe\Attributes\Response;
 
+#[Authenticated]
+#[Response(status: 401, content: ['message' => 'Unauthenticated.'], description: 'Missing or invalid bearer token.')]
 class MasterDataController extends Controller
 {
     public function __construct(private IAdminManagementService $service) {}

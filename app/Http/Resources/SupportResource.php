@@ -16,7 +16,6 @@ class SupportResource extends JsonResource
             'type' => $this->type,
             'value' => $this->value,
             'status' => $this->status,
-            'supportTypeId' => $this->support_type_id,
             'supportType' => new SupportTypeResource($this->whenLoaded('supportType')),
         ];
     }

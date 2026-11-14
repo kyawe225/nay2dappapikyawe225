@@ -5,7 +5,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: 'api/admin/accounts/{account_id}/wallet'
+    uri: 'api/admin/accounts_wallet_show/{account}'
     metadata:
       custom: []
       groupName: 'Admin Wallet Handler'
@@ -14,25 +14,26 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
-      account_id:
+      account:
         custom: []
-        name: account_id
-        description: 'The ID of the account.'
+        name: account
+        description: ''
         required: true
-        example: architecto
+        example: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
         type: string
         enumValues: []
         exampleWasSpecified: false
         nullable: false
         deprecated: false
     cleanUrlParameters:
-      account_id: architecto
+      account: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
     queryParameters: []
     cleanQueryParameters: []
     bodyParameters: []
@@ -41,19 +42,15 @@ endpoints:
     responses:
       -
         custom: []
-        status: 404
-        content: |-
-          {
-              "message": "The route api/admin/accounts/architecto/wallet could not be found."
-          }
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0cc1-734d-a549-81da69821621
-          access-control-allow-origin: '*'
-        description: null
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -61,7 +58,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: 'api/admin/accounts/{account}/wallet/history'
+    uri: 'api/admin/accounts_wallet_history/{account}'
     metadata:
       custom: []
       groupName: 'Admin Wallet Handler'
@@ -70,16 +67,17 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
       account:
         custom: []
         name: account
-        description: 'The account.'
+        description: ''
         required: true
         example: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
         type: string
@@ -97,7 +95,7 @@ endpoints:
         name: fromDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-11-01'
+        example: '2026-11-14'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -108,7 +106,7 @@ endpoints:
         name: toDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-11-01'
+        example: '2026-11-14'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -176,7 +174,7 @@ endpoints:
         name: transactionStatus
         description: ''
         required: false
-        example: rejected
+        example: approved
         type: string
         enumValues:
           - pending
@@ -191,7 +189,7 @@ endpoints:
         name: withdrawalStatus
         description: ''
         required: false
-        example: requested
+        example: approved
         type: string
         enumValues:
           - requested
@@ -256,15 +254,15 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      fromDate: '2026-11-01'
-      toDate: '2026-11-01'
+      fromDate: '2026-11-14'
+      toDate: '2026-11-14'
       perPage: 1
       transactionsPage: 22
       withdrawalRequestsPage: 67
       walletTransactionsPage: 66
       transactionType: deposit
-      transactionStatus: rejected
-      withdrawalStatus: requested
+      transactionStatus: approved
+      withdrawalStatus: approved
       movementType: withdraw_failed
       direction: out
       referenceType: m
@@ -275,14 +273,13 @@ endpoints:
         custom: []
         status: 401
         content: '{"message":"Unauthenticated."}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0ccf-720b-8a1c-099a82d80e84
-          access-control-allow-origin: '*'
-        description: null
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -290,7 +287,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: 'api/admin/accounts/{account_id}/wallet/transactions/{id}'
+    uri: 'api/admin/accounts_wallet_transaction_show/{account}/{transaction}'
     metadata:
       custom: []
       groupName: 'Admin Wallet Handler'
@@ -299,37 +296,38 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
-      account_id:
+      account:
         custom: []
-        name: account_id
-        description: 'The ID of the account.'
+        name: account
+        description: ''
         required: true
-        example: architecto
+        example: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
         type: string
         enumValues: []
         exampleWasSpecified: false
         nullable: false
         deprecated: false
-      id:
+      transaction:
         custom: []
-        name: id
-        description: 'The ID of the transaction.'
+        name: transaction
+        description: ''
         required: true
-        example: architecto
+        example: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
         type: string
         enumValues: []
         exampleWasSpecified: false
         nullable: false
         deprecated: false
     cleanUrlParameters:
-      account_id: architecto
-      id: architecto
+      account: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
+      transaction: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
     queryParameters: []
     cleanQueryParameters: []
     bodyParameters: []
@@ -338,19 +336,15 @@ endpoints:
     responses:
       -
         custom: []
-        status: 404
-        content: |-
-          {
-              "message": "The route api/admin/accounts/architecto/wallet/transactions/architecto could not be found."
-          }
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0cd9-71bf-9142-50df793d92a0
-          access-control-allow-origin: '*'
-        description: null
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -358,7 +352,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: 'api/admin/accounts/{account_id}/wallet/withdrawal-requests/{withdrawal}'
+    uri: 'api/admin/accounts_wallet_withdrawal_show/{account}/{withdrawal}'
     metadata:
       custom: []
       groupName: 'Admin Wallet Handler'
@@ -367,18 +361,19 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
-      account_id:
+      account:
         custom: []
-        name: account_id
-        description: 'The ID of the account.'
+        name: account
+        description: ''
         required: true
-        example: architecto
+        example: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -396,7 +391,7 @@ endpoints:
         nullable: false
         deprecated: false
     cleanUrlParameters:
-      account_id: architecto
+      account: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
       withdrawal: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
     queryParameters: []
     cleanQueryParameters: []
@@ -406,19 +401,15 @@ endpoints:
     responses:
       -
         custom: []
-        status: 404
-        content: |-
-          {
-              "message": "The route api/admin/accounts/architecto/wallet/withdrawal-requests/BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc could not be found."
-          }
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0ce1-7232-be7d-d5535abbc512
-          access-control-allow-origin: '*'
-        description: null
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -426,7 +417,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: 'api/admin/accounts/{account_id}/wallet/wallet-transactions/{movement}'
+    uri: 'api/admin/accounts_wallet_movement_show/{account}/{movement}'
     metadata:
       custom: []
       groupName: 'Admin Wallet Handler'
@@ -435,18 +426,19 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
-      account_id:
+      account:
         custom: []
-        name: account_id
-        description: 'The ID of the account.'
+        name: account
+        description: ''
         required: true
-        example: architecto
+        example: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -464,7 +456,7 @@ endpoints:
         nullable: false
         deprecated: false
     cleanUrlParameters:
-      account_id: architecto
+      account: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
       movement: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
     queryParameters: []
     cleanQueryParameters: []
@@ -474,19 +466,15 @@ endpoints:
     responses:
       -
         custom: []
-        status: 404
-        content: |-
-          {
-              "message": "The route api/admin/accounts/architecto/wallet/wallet-transactions/BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc could not be found."
-          }
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0ce7-70d3-80f1-aaf17fd06ae9
-          access-control-allow-origin: '*'
-        description: null
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -494,7 +482,7 @@ endpoints:
     custom: []
     httpMethods:
       - POST
-    uri: 'api/admin/accounts/{account}/wallet'
+    uri: 'api/admin/accounts_wallet_create/{account}'
     metadata:
       custom: []
       groupName: 'Admin Wallet Handler'
@@ -503,16 +491,17 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
       account:
         custom: []
         name: account
-        description: 'The account.'
+        description: ''
         required: true
         example: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
         type: string
@@ -638,9 +627,18 @@ endpoints:
     cleanBodyParameters:
       reason: b
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -648,7 +646,7 @@ endpoints:
     custom: []
     httpMethods:
       - PATCH
-    uri: 'api/admin/accounts/{account}/wallet'
+    uri: 'api/admin/accounts_wallet_adjust/{account}'
     metadata:
       custom: []
       groupName: 'Admin Wallet Handler'
@@ -657,16 +655,17 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
       account:
         custom: []
         name: account
-        description: 'The account.'
+        description: ''
         required: true
         example: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
         type: string
@@ -797,9 +796,18 @@ endpoints:
       direction: in
       clientReference: cd1eb1ea-4697-3b9a-9dd0-988044a83af6
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -807,7 +815,7 @@ endpoints:
     custom: []
     httpMethods:
       - DELETE
-    uri: 'api/admin/accounts/{account}/wallet'
+    uri: 'api/admin/accounts_wallet_delete/{account}'
     metadata:
       custom: []
       groupName: 'Admin Wallet Handler'
@@ -816,16 +824,17 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
       account:
         custom: []
         name: account
-        description: 'The account.'
+        description: ''
         required: true
         example: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
         type: string
@@ -951,9 +960,18 @@ endpoints:
     cleanBodyParameters:
       reason: b
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null

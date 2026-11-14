@@ -7,7 +7,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: api/user
+    uri: api/user_current
     metadata:
       custom: []
       groupName: Endpoints
@@ -16,9 +16,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -31,16 +32,21 @@ endpoints:
     responses:
       -
         custom: []
+        status: 200
+        content: '{"id":"019a0000-0000-7000-8000-000000000001","name":"Example Customer","email":"customer@example.com","role_name":"Customer","status":"active","role":{"role_name":"Customer","status":"active"}}'
+        headers: []
+        description: ''
+      -
+        custom: []
         status: 401
         content: '{"message":"Unauthenticated."}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0be5-73ad-8e26-be54e4be6b5d
-          access-control-allow-origin: '*'
-        description: null
+        headers: []
+        description: ''
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -48,7 +54,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: api/master
+    uri: api/master_list
     metadata:
       custom: []
       groupName: Endpoints
@@ -57,9 +63,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -86,14 +93,13 @@ endpoints:
         custom: []
         status: 401
         content: '{"message":"Unauthenticated."}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0c27-72d1-af13-2ef99325f907
-          access-control-allow-origin: '*'
-        description: null
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -101,7 +107,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: api/admin/dashboard
+    uri: api/admin/dashboard_show
     metadata:
       custom: []
       groupName: Endpoints
@@ -110,9 +116,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -127,14 +134,13 @@ endpoints:
         custom: []
         status: 401
         content: '{"message":"Unauthenticated."}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0c9b-72b2-a4e4-a41e5e137200
-          access-control-allow-origin: '*'
-        description: null
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -142,7 +148,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: api/admin/activities
+    uri: api/admin/dashboard_customers_summary
     metadata:
       custom: []
       groupName: Endpoints
@@ -151,9 +157,51 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: api/admin/activities_list
+    metadata:
+      custom: []
+      groupName: Endpoints
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -186,12 +234,12 @@ endpoints:
         exampleWasSpecified: false
         nullable: false
         deprecated: false
-      roleId:
+      roleName:
         custom: []
-        name: roleId
-        description: 'Must be a valid UUID. Must match an existing stored value.'
+        name: roleName
+        description: 'Must match an existing stored value.'
         required: false
-        example: a4855dc5-0acb-33c3-b921-f4291f719ca0
+        example: architecto
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -202,7 +250,7 @@ endpoints:
         name: page
         description: 'Must be at least 1.'
         required: false
-        example: 66
+        example: 22
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -213,7 +261,7 @@ endpoints:
         name: paymentsPage
         description: 'Must be at least 1.'
         required: false
-        example: 27
+        example: 67
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -224,7 +272,7 @@ endpoints:
         name: withdrawalsPage
         description: 'Must be at least 1.'
         required: false
-        example: 35
+        example: 66
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -235,7 +283,7 @@ endpoints:
         name: movementsPage
         description: 'Must be at least 1.'
         required: false
-        example: 43
+        example: 27
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -246,7 +294,7 @@ endpoints:
         name: perPage
         description: 'Must be at least 1. Must not be greater than 100.'
         required: false
-        example: 1
+        example: 15
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -255,26 +303,25 @@ endpoints:
     cleanBodyParameters:
       search: b
       status: suspended
-      roleId: a4855dc5-0acb-33c3-b921-f4291f719ca0
-      page: 66
-      paymentsPage: 27
-      withdrawalsPage: 35
-      movementsPage: 43
-      perPage: 1
+      roleName: architecto
+      page: 22
+      paymentsPage: 67
+      withdrawalsPage: 66
+      movementsPage: 27
+      perPage: 15
     fileParameters: []
     responses:
       -
         custom: []
         status: 401
         content: '{"message":"Unauthenticated."}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0ca4-7107-8da2-5da6122e494b
-          access-control-allow-origin: '*'
-        description: null
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -282,7 +329,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: api/admin/audit-logs
+    uri: api/admin/audit_logs_list
     metadata:
       custom: []
       groupName: Endpoints
@@ -291,9 +338,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -328,7 +376,7 @@ endpoints:
         name: method
         description: ''
         required: false
-        example: PUT
+        example: POST
         type: string
         enumValues:
           - GET
@@ -368,7 +416,7 @@ endpoints:
         name: fromDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-11-01'
+        example: '2026-11-14'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -379,7 +427,7 @@ endpoints:
         name: toDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-11-01'
+        example: '2026-11-14'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -410,11 +458,11 @@ endpoints:
     cleanBodyParameters:
       actorUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
       requestId: 6b72fe4a-5b40-307c-bc24-f79acf9a1bb9
-      method: PUT
+      method: POST
       statusCode: 100
       search: i
-      fromDate: '2026-11-01'
-      toDate: '2026-11-01'
+      fromDate: '2026-11-14'
+      toDate: '2026-11-14'
       page: 43
       perPage: 1
     fileParameters: []
@@ -423,14 +471,13 @@ endpoints:
         custom: []
         status: 401
         content: '{"message":"Unauthenticated."}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0cb6-7011-92fe-cdd7381a53d0
-          access-control-allow-origin: '*'
-        description: null
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -438,7 +485,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: 'api/admin/accounts/{account}/history'
+    uri: 'api/admin/master_list/{resource}'
     metadata:
       custom: []
       groupName: Endpoints
@@ -447,161 +494,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
-      Content-Type: application/json
-      Accept: application/json
-    urlParameters:
-      account:
-        custom: []
-        name: account
-        description: 'The account.'
-        required: true
-        example: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-    cleanUrlParameters:
-      account: BcECdBDA-CdED-bFEA-CbCE-BcCdeBfbbebc
-    queryParameters: []
-    cleanQueryParameters: []
-    bodyParameters:
-      search:
-        custom: []
-        name: search
-        description: 'Must not be greater than 255 characters.'
-        required: false
-        example: b
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      status:
-        custom: []
-        name: status
-        description: ''
-        required: false
-        example: inactive
-        type: string
-        enumValues:
-          - active
-          - inactive
-          - suspended
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      roleId:
-        custom: []
-        name: roleId
-        description: 'Must be a valid UUID. Must match an existing stored value.'
-        required: false
-        example: a4855dc5-0acb-33c3-b921-f4291f719ca0
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      page:
-        custom: []
-        name: page
-        description: 'Must be at least 1.'
-        required: false
-        example: 66
-        type: integer
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      paymentsPage:
-        custom: []
-        name: paymentsPage
-        description: 'Must be at least 1.'
-        required: false
-        example: 27
-        type: integer
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      withdrawalsPage:
-        custom: []
-        name: withdrawalsPage
-        description: 'Must be at least 1.'
-        required: false
-        example: 35
-        type: integer
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      movementsPage:
-        custom: []
-        name: movementsPage
-        description: 'Must be at least 1.'
-        required: false
-        example: 43
-        type: integer
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      perPage:
-        custom: []
-        name: perPage
-        description: 'Must be at least 1. Must not be greater than 100.'
-        required: false
-        example: 1
-        type: integer
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-    cleanBodyParameters:
-      search: b
-      status: inactive
-      roleId: a4855dc5-0acb-33c3-b921-f4291f719ca0
-      page: 66
-      paymentsPage: 27
-      withdrawalsPage: 35
-      movementsPage: 43
-      perPage: 1
-    fileParameters: []
-    responses:
-      -
-        custom: []
-        status: 401
-        content: '{"message":"Unauthenticated."}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0d06-72c2-abdb-f0bf0323d7b0
-          access-control-allow-origin: '*'
-        description: null
-    responseFields: []
-    auth: []
-    controller: null
-    method: null
-    route: null
-  -
-    custom: []
-    httpMethods:
-      - GET
-    uri: 'api/admin/master/{resource}'
-    metadata:
-      custom: []
-      groupName: Endpoints
-      groupDescription: ''
-      subgroup: ''
-      subgroupDescription: ''
-      title: ''
-      description: ''
-      authenticated: false
-      deprecated: false
-    headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
@@ -637,7 +533,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: active
+        example: suspended
         type: string
         enumValues:
           - active
@@ -646,12 +542,12 @@ endpoints:
         exampleWasSpecified: false
         nullable: false
         deprecated: false
-      roleId:
+      roleName:
         custom: []
-        name: roleId
-        description: 'Must be a valid UUID. Must match an existing stored value.'
+        name: roleName
+        description: 'Must match an existing stored value.'
         required: false
-        example: a4855dc5-0acb-33c3-b921-f4291f719ca0
+        example: architecto
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -662,7 +558,7 @@ endpoints:
         name: page
         description: 'Must be at least 1.'
         required: false
-        example: 66
+        example: 22
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -673,7 +569,7 @@ endpoints:
         name: paymentsPage
         description: 'Must be at least 1.'
         required: false
-        example: 27
+        example: 67
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -684,7 +580,7 @@ endpoints:
         name: withdrawalsPage
         description: 'Must be at least 1.'
         required: false
-        example: 35
+        example: 66
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -695,7 +591,7 @@ endpoints:
         name: movementsPage
         description: 'Must be at least 1.'
         required: false
-        example: 43
+        example: 27
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -706,7 +602,7 @@ endpoints:
         name: perPage
         description: 'Must be at least 1. Must not be greater than 100.'
         required: false
-        example: 1
+        example: 15
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -714,30 +610,26 @@ endpoints:
         deprecated: false
     cleanBodyParameters:
       search: b
-      status: active
-      roleId: a4855dc5-0acb-33c3-b921-f4291f719ca0
-      page: 66
-      paymentsPage: 27
-      withdrawalsPage: 35
-      movementsPage: 43
-      perPage: 1
+      status: suspended
+      roleName: architecto
+      page: 22
+      paymentsPage: 67
+      withdrawalsPage: 66
+      movementsPage: 27
+      perPage: 15
     fileParameters: []
     responses:
       -
         custom: []
-        status: 404
-        content: |-
-          {
-              "message": "The route api/admin/master/payment-methods|support-types|supports could not be found."
-          }
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0db9-715a-ace5-e3c3f4e4ccca
-          access-control-allow-origin: '*'
-        description: null
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -745,7 +637,7 @@ endpoints:
     custom: []
     httpMethods:
       - POST
-    uri: 'api/admin/master/{resource}'
+    uri: 'api/admin/master_create/{resource}'
     metadata:
       custom: []
       groupName: Endpoints
@@ -754,9 +646,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
@@ -778,9 +671,18 @@ endpoints:
     bodyParameters: []
     cleanBodyParameters: []
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -788,7 +690,7 @@ endpoints:
     custom: []
     httpMethods:
       - PATCH
-    uri: 'api/admin/master/{resource}/{record}'
+    uri: 'api/admin/master_update/{resource}/{record}'
     metadata:
       custom: []
       groupName: Endpoints
@@ -797,9 +699,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
@@ -833,9 +736,18 @@ endpoints:
     bodyParameters: []
     cleanBodyParameters: []
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -843,7 +755,7 @@ endpoints:
     custom: []
     httpMethods:
       - DELETE
-    uri: 'api/admin/master/{resource}/{record}'
+    uri: 'api/admin/master_delete/{resource}/{record}'
     metadata:
       custom: []
       groupName: Endpoints
@@ -852,9 +764,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
@@ -888,9 +801,18 @@ endpoints:
     bodyParameters: []
     cleanBodyParameters: []
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null

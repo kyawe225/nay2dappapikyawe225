@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\BettingCutoffSettingRequest;
 use App\Http\Requests\Admin\CalculationScheduleRequest;
 use App\Http\Requests\Admin\CalculationSettingRequest;
 use App\Http\Requests\Admin\CancelDrawRequest;
+use App\Http\Requests\Admin\DrawCutoffRequest;
 use App\Http\Requests\Admin\DrawRequest;
 use App\Http\Requests\Admin\DrawScheduleRequest;
 use App\Http\Requests\Admin\OddRequest;
@@ -13,13 +15,33 @@ use App\Http\Requests\Admin\SettlementRequest;
 use App\Http\Requests\GameHistoryRequest;
 use App\Http\ServiceContractor\IBetService;
 use Illuminate\Http\JsonResponse;
+use Knuckles\Scribe\Attributes\Authenticated;
 use Knuckles\Scribe\Attributes\Group;
+use Knuckles\Scribe\Attributes\Response;
 
 #[Group('Admin Bet Handler', 'APIs for managing admin and users bets')]
 
+#[Authenticated]
+#[Response(status: 401, content: ['message' => 'Unauthenticated.'], description: 'Missing or invalid bearer token.')]
 class BetController extends Controller
 {
     public function __construct(private IBetService $service) {}
+
+    /** Read the saved betting cutoff for each session. Existing draws retain their cutoff. */
+    public function BettingCutoffSettings(string $game): JsonResponse
+    {
+        $response = $this->service->BettingCutoffSettings($game);
+
+        return response()->json($response, $response->status);
+    }
+
+    /** Update the cutoff used by newly scheduled draws. */
+    public function SaveBettingCutoffSetting(BettingCutoffSettingRequest $request, string $game): JsonResponse
+    {
+        $response = $this->service->SaveBettingCutoffSetting($game, $request, auth()->user());
+
+        return response()->json($response, $response->status);
+    }
 
     /** Read the defaults used when scheduling new draws. Times use the betting timezone. */
     public function CalculationSettings(string $game): JsonResponse
@@ -57,9 +79,17 @@ class BetController extends Controller
         return response()->json($response, $response->status);
     }
 
+    /** Change the cutoff for a selected open draw without changing the master setting. */
+    public function UpdateDrawCutoff(DrawCutoffRequest $request, string $game): JsonResponse
+    {
+        $response = $this->service->UpdateDrawCutoff($game, $request, auth()->user());
+
+        return response()->json($response, $response->status);
+    }
+
     public function Index(GameHistoryRequest $request, string $game): JsonResponse
     {
-        $response = $this->service->Index($game, $request, auth()->user());
+        $response = $this->service->Index($game, $request, auth()->user(), true);
 
         return response()->json($response, $response->status);
     }

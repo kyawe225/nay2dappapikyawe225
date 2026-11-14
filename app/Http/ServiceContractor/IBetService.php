@@ -2,9 +2,11 @@
 
 namespace App\Http\ServiceContractor;
 
+use App\Http\Requests\Admin\BettingCutoffSettingRequest;
 use App\Http\Requests\Admin\CalculationScheduleRequest;
 use App\Http\Requests\Admin\CalculationSettingRequest;
 use App\Http\Requests\Admin\CancelDrawRequest;
+use App\Http\Requests\Admin\DrawCutoffRequest;
 use App\Http\Requests\Admin\DrawRequest;
 use App\Http\Requests\Admin\DrawScheduleRequest;
 use App\Http\Requests\Admin\OddRequest;
@@ -16,6 +18,10 @@ use App\Response\ResponseModel;
 
 interface IBetService
 {
+    public function BettingCutoffSettings(string $game): ResponseModel;
+
+    public function SaveBettingCutoffSetting(string $game, BettingCutoffSettingRequest $request, User $user): ResponseModel;
+
     public function CalculationSettings(string $game): ResponseModel;
 
     public function SaveCalculationSetting(string $game, CalculationSettingRequest $request, User $user): ResponseModel;
@@ -26,9 +32,11 @@ interface IBetService
 
     public function Schedule(string $game, DrawScheduleRequest $request, User $user): ResponseModel;
 
+    public function UpdateDrawCutoff(string $game, DrawCutoffRequest $request, User $user): ResponseModel;
+
     public function AvailableDraws(string $game, GameHistoryRequest $request): ResponseModel;
 
-    public function Index(string $game, GameHistoryRequest $request, User $user): ResponseModel;
+    public function Index(string $game, GameHistoryRequest $request, User $user, bool $administrator = false): ResponseModel;
 
     public function Show(string $game, string $betId, User $user): ResponseModel;
 

@@ -27,7 +27,6 @@ class DepositRequest extends FormRequest
             'amount' => ['required', 'numeric', 'gt:0', 'regex:/^\d{1,50}(\.\d{1,2})?$/'],
             'PaymentAccountId' => 'required|uuid|exists:payment_accounts,id',
             'PaymentMethodId' => 'required|uuid|exists:payment_methods,id',
-            'clientReference' => 'sometimes|required|uuid',
         ];
     }
 }

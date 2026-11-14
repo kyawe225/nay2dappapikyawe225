@@ -2,7 +2,6 @@
 
 use App\Models\PaymentMethod;
 use App\Models\PaymentTransactions;
-use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -13,8 +12,8 @@ uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
     $this->seed(RoleSeeder::class);
-    $this->customer = User::factory()->create(['role_id' => Role::query()->where('name', 'Customer')->firstOrFail()->id]);
-    $this->administrator = User::factory()->create(['role_id' => Role::query()->where('name', 'Admin')->firstOrFail()->id]);
+    $this->customer = User::factory()->create(['role_name' => 'Customer']);
+    $this->administrator = User::factory()->create(['role_name' => 'Admin']);
     $this->paymentMethod = PaymentMethod::factory()->create();
     $this->deposit = [
         'type' => 'deposit',
@@ -34,10 +33,10 @@ beforeEach(function (): void {
 });
 
 test('wallet and payment routes require an access token', function (): void {
-    $this->getJson('/api/wallet')->assertUnauthorized();
+    $this->getJson('/api/wallet_show')->assertUnauthorized();
     $this->getJson('/api/payments')->assertUnauthorized();
-    Sanctum::actingAs($this->customer, ['refresh']);
-    $this->getJson('/api/wallet')->assertForbidden();
+    Sanctum::actingAs($this->customer, ['other']);
+    $this->getJson('/api/wallet_show')->assertForbidden();
 });
 
 test('customers only see active payment methods', function (): void {
@@ -189,10 +188,10 @@ test('wallet history contains only the current customers balance changes', funct
     $this->customer->forceFill(['balance' => 10000])->save();
     Sanctum::actingAs($this->customer, ['access']);
     $this->postJson('/api/payments', $this->withdrawal)->assertCreated();
-    $this->getJson('/api/wallet')->assertOk()->assertJsonPath('data.balance', 8000)->assertJsonPath('data.currency', 'MMK');
-    $this->getJson('/api/wallet/transactions')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.type', 'withdrawal');
+    $this->getJson('/api/wallet_show')->assertOk()->assertJsonPath('data.balance', 8000)->assertJsonPath('data.currency', 'MMK');
+    $this->getJson('/api/wallet_show_history')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.type', 'withdrawal');
     Sanctum::actingAs($this->administrator, ['access']);
-    $this->getJson('/api/wallet/transactions?user_id='.$this->customer->id)->assertOk()->assertJsonCount(0, 'data');
+    $this->getJson('/api/wallet_show_history?user_id='.$this->customer->id)->assertOk()->assertJsonCount(0, 'data');
 });
 
 test('admin payment filters and pagination are validated', function (): void {

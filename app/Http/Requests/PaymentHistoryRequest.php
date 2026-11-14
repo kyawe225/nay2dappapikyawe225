@@ -27,8 +27,10 @@ class PaymentHistoryRequest extends FormRequest
             'paymentUserId' => 'sometimes|uuid|exists:users,id',
             'fromDate' => 'sometimes|date_format:Y-m-d',
             'toDate' => ['sometimes', 'date_format:Y-m-d', ...($this->filled('fromDate') ? ['after_or_equal:fromDate'] : [])],
-            'page' => 'sometimes|integer|min:1',
-            'perPage' => 'sometimes|integer|min:1|max:100',
+            ...($this->routeIs('admin.*') ? [
+                'page' => 'sometimes|integer|min:1',
+                'perPage' => 'sometimes|integer|min:1|max:100',
+            ] : []),
         ];
     }
 }

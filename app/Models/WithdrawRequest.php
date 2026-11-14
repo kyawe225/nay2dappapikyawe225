@@ -42,4 +42,9 @@ class WithdrawRequest extends Model
     {
         return $this->belongsTo(PaymentMethod::class, 'requested_payment_method_id');
     }
+
+    public function paymentAccount(): BelongsTo
+    {
+        return $this->belongsTo(PaymentAccount::class, 'requested_payment_account_id');
+    }
 }

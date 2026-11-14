@@ -12,6 +12,7 @@ use App\Models\PaymentAccount;
 use App\Models\PaymentMethod;
 use App\Models\User;
 use App\Response\ResponseModel;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PaymentMethodService implements IPaymentMethodService
 {
@@ -24,7 +25,7 @@ class PaymentMethodService implements IPaymentMethodService
 
     public function AdminShow(string $recordId): ResponseModel
     {
-        $record = PaymentMethod::query()->with('paymentAccounts')->find($recordId);
+        $record = PaymentMethod::query()->with(['paymentAccounts' => fn (HasMany $query): HasMany => $query->with('paymentMethod')])->find($recordId);
 
         return $record === null ? ResponseModel::NotFound('Payment method was not found!', null)
             : ResponseModel::ok('Payment method fetched successfully!', new PaymentMethodResource($record));
@@ -48,8 +49,8 @@ class PaymentMethodService implements IPaymentMethodService
     public function DepositPaymentAccounts(): ResponseModel
     {
         $depositPaymentAccounts = PaymentMethod::with([
-            'paymentAccounts' => function ($query) {
-                return $query->where('status', 'active')->where('type', 'deposit')->where('status', 'active')->whereHas('user', fn ($user) => $user->where('status', 'active'))->whereHas('user.role', fn ($role) => $role->whereIn('name', ['Super Admin', 'Admin', 'Staff'])->where('status', 'active'));
+            'paymentAccounts' => function (HasMany $query): HasMany {
+                return $query->with('paymentMethod')->where('status', 'active')->where('type', 'deposit')->whereHas('user', fn ($user) => $user->where('status', 'active'))->whereHas('user.role', fn ($role) => $role->whereIn('role_name', ['Super Admin', 'Admin', 'Staff'])->where('status', 'active'));
             },
         ])
             ->where('type', 'deposit')->where('status', 'active')
@@ -63,7 +64,7 @@ class PaymentMethodService implements IPaymentMethodService
 
     public function WithdrawalPaymentAccounts(User $user): ResponseModel
     {
-        $withdrawalPaymentAccounts = PaymentAccount::with('paymentMethod')
+        $withdrawalPaymentAccounts = PaymentAccount::with(PaymentAccountResource::RELATIONS)
             ->where('type', 'withdraw')
             ->where('status', 'active')
             ->where('user_id', $user->id)->whereHas('paymentMethod', fn ($method) => $method->where('status', 'active'))

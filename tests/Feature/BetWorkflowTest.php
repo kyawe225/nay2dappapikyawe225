@@ -59,12 +59,17 @@ test('bets on existing open draws and identical retries only debit the wallet on
     Sanctum::actingAs($scenario['customer'], ['access']);
     $payload = bettingPayload($scenario['number']);
 
-    $batchId = $this->postJson('/api/'.$game.'/bets', $payload)->assertOk()->assertJsonPath('data.entries.0.number', $scenario['number'])->json('data.batchId');
+    $batchId = $this->postJson('/api/betting_bets_create/'.$game, $payload)->assertOk()
+        ->assertJsonPath('data.entries.0.number', $scenario['number'])
+        ->assertJsonMissingPath('data.entries.0.created_at')
+        ->json('data.batchId');
+    $this->getJson('/api/betting_bets_list/'.$game)->assertOk()
+        ->assertJsonPath('data.items.0.placed_at', $scenario['betClass']::query()->sole()->created_at->toISOString());
     if ($game === 'threed') {
         $scenario['betClass']::query()->update(['request_hash' => hash('sha256', 'legacy AM/PM request hash')]);
     }
-    $this->postJson('/api/'.$game.'/bets', $payload)->assertOk()->assertJsonPath('data.batchId', $batchId);
-    $this->postJson('/api/'.$game.'/bets', [...$payload, 'drawDate' => '2026-10-22'])->assertConflict();
+    $this->postJson('/api/betting_bets_create/'.$game, $payload)->assertOk()->assertJsonPath('data.batchId', $batchId);
+    $this->postJson('/api/betting_bets_create/'.$game, [...$payload, 'drawDate' => '2026-10-22'])->assertConflict();
 
     $this->assertDatabaseCount($game.'_draws', $game === 'twod' ? 4 : 2);
     $this->assertDatabaseCount($game.'_bets', 1);
@@ -77,26 +82,28 @@ test('a queued result calculates date and session matches without paying until a
     Sanctum::actingAs($scenario['customer'], ['access']);
     $payload = bettingPayload($scenario['number']);
     $payload['entries'][] = ['number' => $scenario['losingNumber'], 'stakeAmount' => '150.00'];
-    $this->postJson('/api/'.$game.'/bets', $payload)->assertOk();
-    $this->postJson('/api/'.$game.'/bets', [...bettingPayload($scenario['number']), ...($game === 'twod' ? ['timeType' => 'pm'] : ['drawDate' => '2026-10-22'])])->assertOk();
+    $this->postJson('/api/betting_bets_create/'.$game, $payload)->assertOk();
+    $this->postJson('/api/betting_bets_create/'.$game, [...bettingPayload($scenario['number']), ...($game === 'twod' ? ['timeType' => 'pm'] : ['drawDate' => '2026-10-22'])])->assertOk();
     Queue::fake([CalculateBetResults::class]);
     Sanctum::actingAs($scenario['administrator'], ['access']);
     $key = ['drawDate' => '2026-10-21', ...($game === 'twod' ? ['timeType' => 'am'] : [])];
 
-    $this->postJson('/api/admin/'.$game.'/results', [...$key, 'winningNumber' => $scenario['number']])->assertOk();
+    $this->postJson('/api/admin/betting_results_create/'.$game, [...$key, 'winningNumber' => $scenario['number']])->assertOk();
     Queue::assertPushed(CalculateBetResults::class, fn (CalculateBetResults $job): bool => $job->game === $game && $job->drawDate === '2026-10-21' && $job->timeType === ($game === 'twod' ? 'am' : null));
-    $this->postJson('/api/admin/'.$game.'/results/preview', $key)->assertConflict();
+    $this->postJson('/api/admin/betting_results_preview/'.$game, $key)->assertConflict();
     $draw = $scenario['drawClass']::query()->whereNotNull('winning_number')->sole();
     (new CalculateBetResults($game, '2026-10-21', $game === 'twod' ? 'am' : null, $draw->result_revision))->handle(app(IBetService::class));
-    $previewToken = $this->postJson('/api/admin/'.$game.'/results/preview', $key)->assertOk()
+    $previewToken = $this->postJson('/api/admin/betting_results_preview/'.$game, $key)->assertOk()
         ->assertJsonPath('data.winnerCount', 1)->assertJsonPath('data.loserCount', 1)
+        ->assertJsonPath('data.bets.0.user.id', $scenario['customer']->id)
+        ->assertJsonMissingPath('data.bets.0.userId')
         ->assertJsonPath('data.totalPayout', $payout)->json('data.previewToken');
     $this->assertDatabaseHas('wallet', ['user_id' => $scenario['customer']->id, 'avaliable_balance' => 9650]);
     $this->assertDatabaseMissing('wallet_transactions', ['type' => 'bet_won']);
-    $this->postJson('/api/admin/'.$game.'/results/settle', $key)->assertUnprocessable()->assertJsonValidationErrors('previewToken');
-    $this->postJson('/api/admin/'.$game.'/results/settle', [...$key, 'previewToken' => str_repeat('0', 64)])->assertConflict();
-    $this->postJson('/api/admin/'.$game.'/results/settle', [...$key, 'previewToken' => $previewToken])->assertOk();
-    $this->postJson('/api/admin/'.$game.'/results/settle', [...$key, 'previewToken' => $previewToken])->assertOk();
+    $this->postJson('/api/admin/betting_results_settle/'.$game, $key)->assertUnprocessable()->assertJsonValidationErrors('previewToken');
+    $this->postJson('/api/admin/betting_results_settle/'.$game, [...$key, 'previewToken' => str_repeat('0', 64)])->assertConflict();
+    $this->postJson('/api/admin/betting_results_settle/'.$game, [...$key, 'previewToken' => $previewToken])->assertOk();
+    $this->postJson('/api/admin/betting_results_settle/'.$game, [...$key, 'previewToken' => $previewToken])->assertOk();
     (new CalculateBetResults($game, '2026-10-21', $game === 'twod' ? 'am' : null, $draw->result_revision))->handle(app(IBetService::class));
 
     $this->assertDatabaseHas('wallet', ['user_id' => $scenario['customer']->id, 'avaliable_balance' => $balance]);
@@ -104,9 +111,9 @@ test('a queued result calculates date and session matches without paying until a
     $this->assertDatabaseCount('wallet_transactions', 3);
     expect($scenario['betClass']::query()->whereDate('draw_date', $game === 'twod' ? '2026-10-21' : '2026-10-22')
         ->where('result_status', 'pending')->where('status', 'active')->count())->toBe(1);
-    $this->postJson('/api/admin/'.$game.'/results', [...$key, 'winningNumber' => $scenario['losingNumber']])->assertConflict();
+    $this->postJson('/api/admin/betting_results_create/'.$game, [...$key, 'winningNumber' => $scenario['losingNumber']])->assertConflict();
     Sanctum::actingAs($scenario['customer'], ['access']);
-    $this->postJson('/api/'.$game.'/bets', bettingPayload($scenario['number']))->assertConflict();
+    $this->postJson('/api/betting_bets_create/'.$game, bettingPayload($scenario['number']))->assertConflict();
 })->with(['2D' => ['twod', '8500.00', '18150.00'], '3D' => ['threed', '55000.00', '64650.00']]);
 
 test('the newest odds row applies to every date and session while accepted bets retain their payout', function (string $game, string $initialOdds, string $initialPayout): void {
@@ -115,27 +122,27 @@ test('the newest odds row applies to every date and session while accepted bets 
     $scenario['odd']->update(['start_date' => '2026-10-21']);
     Sanctum::actingAs($scenario['customer'], ['access']);
     $originalPayload = bettingPayload($scenario['number']);
-    $originalBatch = $this->postJson('/api/'.$game.'/bets', $originalPayload)->assertOk()
+    $originalBatch = $this->postJson('/api/betting_bets_create/'.$game, $originalPayload)->assertOk()
         ->assertJsonPath('data.entries.0.acceptedOdds', $initialOdds)
         ->assertJsonPath('data.entries.0.potentialPayout', $initialPayout)->json('data.batchId');
-    $this->postJson('/api/'.$game.'/bets', [...bettingPayload($scenario['number']), 'drawDate' => '2026-10-22', ...($game === 'twod' ? ['timeType' => 'pm'] : [])])
+    $this->postJson('/api/betting_bets_create/'.$game, [...bettingPayload($scenario['number']), 'drawDate' => '2026-10-22', ...($game === 'twod' ? ['timeType' => 'pm'] : [])])
         ->assertOk()->assertJsonPath('data.entries.0.acceptedOdds', $initialOdds);
     Sanctum::actingAs($scenario['administrator'], ['access']);
 
-    $this->patchJson('/api/admin/'.$game.'/odds/'.$scenario['odd']->id, ['name' => 'Changed', 'oddNumber' => '90', 'payoutMode' => 'total'])->assertConflict();
-    $this->postJson('/api/admin/'.$game.'/odds', ['name' => 'Next rate', 'oddNumber' => '90', 'payoutMode' => 'total'])->assertOk();
-    $latestId = $this->postJson('/api/admin/'.$game.'/odds', ['name' => 'Latest rate', 'oddNumber' => '95', 'payoutMode' => 'profit'])
+    $this->patchJson('/api/admin/betting_odds_update/'.$game.'/'.$scenario['odd']->id, ['name' => 'Changed', 'oddNumber' => '90', 'payoutMode' => 'total'])->assertConflict();
+    $this->postJson('/api/admin/betting_odds_create/'.$game, ['name' => 'Next rate', 'oddNumber' => '90', 'payoutMode' => 'total'])->assertOk();
+    $latestId = $this->postJson('/api/admin/betting_odds_create/'.$game, ['name' => 'Latest rate', 'oddNumber' => '95', 'payoutMode' => 'profit'])
         ->assertOk()->assertJsonPath('data.startDate', '2026-10-21')->json('data.id');
-    $this->getJson('/api/admin/'.$game.'/odds')->assertOk()->assertJsonPath('data.pagination.total', 3)->assertJsonPath('data.items.0.id', $latestId);
+    $this->getJson('/api/admin/betting_odds_list/'.$game)->assertOk()->assertJsonPath('data.pagination.total', 3)->assertJsonPath('data.items.0.id', $latestId);
     Sanctum::actingAs($scenario['customer'], ['access']);
     foreach (['2026-10-20', '2026-10-21', '2026-10-22'] as $drawDate) {
-        $this->getJson('/api/'.$game.'/odds?drawDate='.$drawDate)->assertOk()->assertJsonPath('data.id', $latestId);
+        $this->getJson('/api/betting_odds_list/'.$game.'?drawDate='.$drawDate)->assertOk()->assertJsonPath('data.id', $latestId);
     }
     foreach ($game === 'twod' ? [['timeType' => 'am'], ['timeType' => 'pm']] : [['drawDate' => '2026-10-21'], ['drawDate' => '2026-10-22']] as $key) {
-        $this->postJson('/api/'.$game.'/bets', [...bettingPayload($scenario['number']), ...$key])
+        $this->postJson('/api/betting_bets_create/'.$game, [...bettingPayload($scenario['number']), ...$key])
             ->assertOk()->assertJsonPath('data.entries.0.acceptedOdds', '95.0000')->assertJsonPath('data.entries.0.potentialPayout', '9600.00');
     }
-    $this->postJson('/api/'.$game.'/bets', $originalPayload)->assertOk()->assertJsonPath('data.batchId', $originalBatch)
+    $this->postJson('/api/betting_bets_create/'.$game, $originalPayload)->assertOk()->assertJsonPath('data.batchId', $originalBatch)
         ->assertJsonPath('data.entries.0.acceptedOdds', $initialOdds)->assertJsonPath('data.entries.0.potentialPayout', $initialPayout);
 
     $this->assertDatabaseHas($game.'_bets', ['batch_id' => $originalBatch, 'potential_payout' => $initialPayout, 'accepted_odds' => $initialOdds]);
@@ -148,13 +155,13 @@ test('an odds start date is optional metadata and does not schedule a new settin
     $otherOddClass = $otherGame === 'twod' ? TwodOdd::class : ThreedOdd::class;
     $otherOdd = $otherOddClass::factory()->create();
     Sanctum::actingAs($scenario['administrator'], ['access']);
-    $latestId = $this->postJson('/api/admin/'.$game.'/odds', ['name' => 'New setting', 'oddNumber' => '90', 'startDate' => '2099-01-01', 'payoutMode' => 'total'])
+    $latestId = $this->postJson('/api/admin/betting_odds_create/'.$game, ['name' => 'New setting', 'oddNumber' => '90', 'startDate' => '2099-01-01', 'payoutMode' => 'total'])
         ->assertOk()->json('data.id');
     Sanctum::actingAs($scenario['customer'], ['access']);
 
-    $this->getJson('/api/'.$game.'/odds')->assertOk()->assertJsonPath('data.id', $latestId);
-    $this->getJson('/api/'.$otherGame.'/odds')->assertOk()->assertJsonPath('data.id', $otherOdd->id);
-    $this->postJson('/api/'.$game.'/bets', bettingPayload($scenario['number']))->assertOk()
+    $this->getJson('/api/betting_odds_list/'.$game)->assertOk()->assertJsonPath('data.id', $latestId);
+    $this->getJson('/api/betting_odds_list/'.$otherGame)->assertOk()->assertJsonPath('data.id', $otherOdd->id);
+    $this->postJson('/api/betting_bets_create/'.$game, bettingPayload($scenario['number']))->assertOk()
         ->assertJsonPath('data.entries.0.acceptedOdds', '90.0000')->assertJsonPath('data.entries.0.potentialPayout', '9000.00');
 })->with(['2D' => 'twod', '3D' => 'threed']);
 
@@ -162,7 +169,7 @@ test('odds changes require a new row even when no bets have used the current set
     $scenario = bettingScenario($game);
     Sanctum::actingAs($scenario['administrator'], ['access']);
 
-    $this->patchJson('/api/admin/'.$game.'/odds/'.$scenario['odd']->id, ['name' => 'Changed', 'oddNumber' => '90', 'payoutMode' => 'total'])->assertConflict();
+    $this->patchJson('/api/admin/betting_odds_update/'.$game.'/'.$scenario['odd']->id, ['name' => 'Changed', 'oddNumber' => '90', 'payoutMode' => 'total'])->assertConflict();
 
     $this->assertDatabaseCount($game.'_odds', 1);
     $this->assertDatabaseHas($game.'_odds', ['id' => $scenario['odd']->id, 'odd_number' => $scenario['odd']->odd_number]);
@@ -171,19 +178,19 @@ test('odds changes require a new row even when no bets have used the current set
 test('cancelling a draw refunds accepted stakes once and blocks late calculation', function (string $game): void {
     $scenario = bettingScenario($game);
     Sanctum::actingAs($scenario['customer'], ['access']);
-    $this->postJson('/api/'.$game.'/bets', bettingPayload($scenario['number']))->assertOk();
+    $this->postJson('/api/betting_bets_create/'.$game, bettingPayload($scenario['number']))->assertOk();
     Sanctum::actingAs($scenario['administrator'], ['access']);
     $key = ['drawDate' => '2026-10-21', ...($game === 'twod' ? ['timeType' => 'am'] : []), 'reason' => 'Draw cancelled'];
 
-    $this->postJson('/api/admin/'.$game.'/results/cancel', $key)->assertOk();
-    $this->postJson('/api/admin/'.$game.'/results/cancel', $key)->assertOk();
+    $this->postJson('/api/admin/betting_results_cancel/'.$game, $key)->assertOk();
+    $this->postJson('/api/admin/betting_results_cancel/'.$game, $key)->assertOk();
     app(IBetService::class)->CalculateResults($game, '2026-10-21', $game === 'twod' ? 'am' : null, (string) Str::uuid7());
 
     $this->assertDatabaseHas('wallet', ['user_id' => $scenario['customer']->id, 'avaliable_balance' => 10000]);
     $this->assertDatabaseHas($game.'_bets', ['status' => 'cancelled']);
     $this->assertDatabaseCount('wallet_transactions', 2);
     Sanctum::actingAs($scenario['customer'], ['access']);
-    $this->postJson('/api/'.$game.'/bets', bettingPayload($scenario['number']))->assertConflict();
+    $this->postJson('/api/betting_bets_create/'.$game, bettingPayload($scenario['number']))->assertConflict();
 })->with(['twod', 'threed']);
 
 test('a batch rejects invalid numbers or insufficient funds without a partial debit', function (): void {
@@ -191,8 +198,8 @@ test('a batch rejects invalid numbers or insufficient funds without a partial de
     Sanctum::actingAs($scenario['customer'], ['access']);
     $payload = bettingPayload('07');
 
-    $this->postJson('/api/twod/bets', [...$payload, 'entries' => [['number' => '07', 'stakeAmount' => '100'], ['number' => '007', 'stakeAmount' => '100']]])->assertUnprocessable()->assertJsonValidationErrors('entries.1.number');
-    $this->postJson('/api/twod/bets', [...$payload, 'entries' => [['number' => '07', 'stakeAmount' => '10001']]])->assertBadRequest();
+    $this->postJson('/api/betting_bets_create/twod', [...$payload, 'entries' => [['number' => '07', 'stakeAmount' => '100'], ['number' => '007', 'stakeAmount' => '100']]])->assertUnprocessable()->assertJsonValidationErrors('entries.1.number');
+    $this->postJson('/api/betting_bets_create/twod', [...$payload, 'entries' => [['number' => '07', 'stakeAmount' => '10001']]])->assertBadRequest();
 
     $this->assertDatabaseCount('twod_bets', 0);
     $this->assertDatabaseCount('wallet_transactions', 0);
@@ -201,14 +208,14 @@ test('a batch rejects invalid numbers or insufficient funds without a partial de
 test('customers cannot inspect another customers bets or access result and odds administration', function (): void {
     $scenario = bettingScenario('twod');
     Sanctum::actingAs($scenario['customer'], ['access']);
-    $betId = $this->postJson('/api/twod/bets', bettingPayload('07'))->assertOk()->json('data.entries.0.id');
+    $betId = $this->postJson('/api/betting_bets_create/twod', bettingPayload('07'))->assertOk()->json('data.entries.0.id');
     $other = User::query()->where('email', 'customer2@example.com')->firstOrFail();
     Sanctum::actingAs($other, ['access']);
 
-    $this->getJson('/api/twod/bets/'.$betId)->assertNotFound();
-    $this->getJson('/api/twod/bets?paymentUserId='.$scenario['customer']->id)->assertOk()->assertJsonPath('data.pagination.total', 0);
-    $this->postJson('/api/admin/twod/results', ['drawDate' => '2026-10-21', 'timeType' => 'am', 'winningNumber' => '07'])->assertForbidden();
-    $this->postJson('/api/admin/twod/odds', [])->assertForbidden();
+    $this->getJson('/api/betting_bets_show/twod/'.$betId)->assertNotFound();
+    $this->getJson('/api/betting_bets_list/twod?paymentUserId='.$scenario['customer']->id)->assertOk()->assertJsonCount(0, 'data.items')->assertJsonMissingPath('data.pagination');
+    $this->postJson('/api/admin/betting_results_create/twod', ['drawDate' => '2026-10-21', 'timeType' => 'am', 'winningNumber' => '07'])->assertForbidden();
+    $this->postJson('/api/admin/betting_odds_create/twod', [])->assertForbidden();
     $this->getJson('/api/unknown/bets')->assertNotFound();
 });
 
@@ -216,16 +223,16 @@ test('missing payout settings return 409 and failed calculations can be retried'
     $scenario = bettingScenario('twod');
     $scenario['odd']->update(['payout_mode' => null]);
     Sanctum::actingAs($scenario['customer'], ['access']);
-    $this->postJson('/api/twod/bets', bettingPayload('07'))->assertConflict();
+    $this->postJson('/api/betting_bets_create/twod', bettingPayload('07'))->assertConflict();
     Queue::fake([CalculateBetResults::class]);
     Sanctum::actingAs($scenario['administrator'], ['access']);
     $key = ['drawDate' => '2026-10-21', 'timeType' => 'am'];
-    $this->postJson('/api/admin/twod/results', [...$key, 'winningNumber' => '07'])->assertOk();
+    $this->postJson('/api/admin/betting_results_create/twod', [...$key, 'winningNumber' => '07'])->assertOk();
     $draw = TwodDraw::query()->whereNotNull('winning_number')->sole();
     app(IBetService::class)->CalculationFailed('twod', '2026-10-21', 'am', $draw->result_revision);
     $this->assertDatabaseHas('twod_draws', ['id' => $draw->id, 'calculation_status' => 'failed']);
 
-    $this->postJson('/api/admin/twod/results/recalculate', $key)->assertOk();
+    $this->postJson('/api/admin/betting_results_recalculate/twod', $key)->assertOk();
     (new CalculateBetResults('twod', '2026-10-21', 'am', $draw->result_revision))->handle(app(IBetService::class));
 
     $this->assertDatabaseHas('twod_draws', ['id' => $draw->id, 'calculation_status' => 'completed']);

@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -30,41 +29,44 @@ test('web requests include request ids and structured completion logs', function
 
 test('validation and authentication logs exclude bodies query strings and authorization headers', function (): void {
     $response = $this->withHeader('Authorization', 'Bearer private-bearer-value')
-        ->postJson('/api/auth/login?token=private-query-value', ['email' => 'invalid', 'password' => 'private-password-value'])->assertUnprocessable();
+        ->postJson('/api/auth_login?token=private-query-value', ['email' => 'invalid', 'password' => 'private-password-value'])->assertUnprocessable();
     expect(Str::isUuid($response->headers->get('X-Request-ID')))->toBeTrue();
     Log::shouldHaveReceived('log')->with('warning', 'HTTP request completed', Mockery::on(function (array $context): bool {
-        return $context['path'] === '/api/auth/login' && $context['status_code'] === 422
+        return $context['path'] === '/api/auth_login' && $context['status_code'] === 422
             && ! str_contains(json_encode($context), 'private-')
             && array_intersect(['body', 'headers', 'query'], array_keys($context)) === [];
     }))->once();
 });
 
 test('customer and anonymous requests do not enter the administrator audit tables', function (): void {
-    $this->getJson('/api/admin/dashboard')->assertUnauthorized();
-    $customer = User::factory()->create(['role_id' => Role::query()->where('name', 'Customer')->sole()->id]);
+    $this->getJson('/api/admin/dashboard_show')->assertUnauthorized();
+    $customer = User::factory()->create(['role_name' => 'Customer']);
     Sanctum::actingAs($customer, ['access']);
-    $this->getJson('/api/admin/dashboard')->assertForbidden();
-    $this->getJson('/api/admin/audit-logs')->assertForbidden();
-    $this->getJson('/api/profile')->assertOk();
+    $this->getJson('/api/admin/dashboard_show')->assertForbidden();
+    $this->getJson('/api/admin/audit_logs_list')->assertForbidden();
+    $this->getJson('/api/profile_show')->assertOk();
     $this->assertDatabaseCount('admin_api_audits', 0);
     $this->assertDatabaseCount('admin_activities', 0);
 });
 
 test('administrator request audits use the application database and can be filtered', function (): void {
-    $administrator = User::factory()->create(['role_id' => Role::query()->where('name', 'Admin')->sole()->id]);
+    $administrator = User::factory()->create(['role_name' => 'Admin']);
     Sanctum::actingAs($administrator, ['access']);
-    $success = $this->getJson('/api/admin/dashboard')->assertOk();
+    $success = $this->getJson('/api/admin/dashboard_show')->assertOk();
     $requestId = $success->headers->get('X-Request-ID');
-    $this->getJson('/api/admin/audit-logs?requestId='.$requestId.'&method=GET&statusCode=200&actorUserId='.$administrator->id)
+    $this->getJson('/api/admin/audit_logs_list?requestId='.$requestId.'&method=GET&statusCode=200&actorUserId='.$administrator->id)
         ->assertOk()->assertJsonPath('data.pagination.total', 1)
-        ->assertJsonPath('data.items.0.request_id', $requestId)->assertJsonPath('data.items.0.user_id', $administrator->id);
-    $this->getJson('/api/admin/audit-logs?perPage=101')->assertUnprocessable();
+        ->assertJsonPath('data.items.0.request_id', $requestId)->assertJsonPath('data.items.0.user_id', $administrator->id)
+        ->assertJsonPath('data.items.0.actorUser.id', $administrator->id)
+        ->assertJsonPath('data.items.0.actorUser.role.roleName', 'Admin')
+        ->assertJsonMissingPath('data.items.0.created_at');
+    $this->getJson('/api/admin/audit_logs_list?perPage=101')->assertUnprocessable();
     expect(DB::connection()->table('admin_api_audits')->where('request_id', $requestId)->count())->toBe(1);
     $this->assertDatabaseCount('admin_api_audits', 3);
 });
 
 test('administrator errors have a correlation id and a separate audit record', function (): void {
-    $administrator = User::factory()->create(['role_id' => Role::query()->where('name', 'Admin')->sole()->id]);
+    $administrator = User::factory()->create(['role_name' => 'Admin']);
     Sanctum::actingAs($administrator, ['access']);
     Route::get('/api/admin/logging-failure', function (): never {
         abort(500, 'Logging test failure');

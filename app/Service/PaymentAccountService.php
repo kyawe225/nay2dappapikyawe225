@@ -41,14 +41,14 @@ class PaymentAccountService implements IPaymentAccountService
 
     public function WithdrawalAccounts(User $user): ResponseModel
     {
-        $accounts = $user->paymentAccounts()->with('paymentMethod')->where('type', 'withdraw')->where('status', '!=', 'delete')->latest()->latest('id')->get();
+        $accounts = $user->paymentAccounts()->with(PaymentAccountResource::RELATIONS)->where('type', 'withdraw')->where('status', '!=', 'delete')->latest()->latest('id')->get();
 
         return ResponseModel::ok('Withdrawal accounts fetched successfully!', PaymentAccountResource::collection($accounts));
     }
 
     public function DepositAccounts(): ResponseModel
     {
-        $accounts = PaymentAccount::query()->with('paymentMethod')->where('type', 'deposit')->where('status', '!=', 'delete')->latest()->latest('id')->get();
+        $accounts = PaymentAccount::query()->with(PaymentAccountResource::RELATIONS)->where('type', 'deposit')->where('status', '!=', 'delete')->latest()->latest('id')->get();
 
         return ResponseModel::ok('Deposit accounts fetched successfully!', PaymentAccountResource::collection($accounts));
     }
@@ -82,7 +82,7 @@ class PaymentAccountService implements IPaymentAccountService
             $account->status = $request->validated('status');
             $account->save();
 
-            return ResponseModel::ok('Deposit account status changed successfully!', new PaymentAccountResource($account));
+            return ResponseModel::ok('Deposit account status changed successfully!', new PaymentAccountResource($account->load(PaymentAccountResource::RELATIONS)));
         }, 3);
     }
 
@@ -112,7 +112,7 @@ class PaymentAccountService implements IPaymentAccountService
                 'status' => 'active',
             ]);
 
-            return ResponseModel::ok('Payment account created successfully!', new PaymentAccountResource($account));
+            return ResponseModel::ok('Payment account created successfully!', new PaymentAccountResource($account->load(PaymentAccountResource::RELATIONS)));
         }, 3);
     }
 }

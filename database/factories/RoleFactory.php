@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 /** @extends Factory<Role> */
 class RoleFactory extends Factory
 {
-    /** @return array{name: string, status: string} */
+    /** @return array{role_name: string, status: string} */
     public function definition(): array
     {
-        return ['name' => fake()->unique()->word(), 'status' => 'active'];
+        return ['role_name' => fake()->unique()->word(), 'status' => 'active'];
     }
 }

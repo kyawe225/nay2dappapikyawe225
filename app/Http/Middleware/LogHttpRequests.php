@@ -34,11 +34,11 @@ class LogHttpRequests
         } catch (Throwable) {
             $user = null;
         }
-        $administratorEndpoint = $request->is('api/admin', 'api/admin/*');
+        $administratorEndpoint = $request->is('api/admin/*');
         $context = [
             'request_id' => $request->attributes->get('http_request_id'),
             'category' => $administratorEndpoint ? 'admin' : ($request->is('api/*') ? 'customer_api' : 'web'),
-            'user_id' => $user?->id, 'actor_role_id' => $user?->role_id,
+            'user_id' => $user?->id, 'actor_role_name' => $user?->role_name,
             'method' => substr($request->method(), 0, 10),
             'path' => substr('/'.ltrim($request->path(), '/'), 0, 1024),
             'route' => $request->route()?->getName(),
@@ -52,7 +52,7 @@ class LogHttpRequests
             try {
                 app(AuditDatabase::class)->Connection()->table('admin_api_audits')->insert([
                     'id' => (string) Str::uuid7(), 'request_id' => $context['request_id'],
-                    'user_id' => $context['user_id'], 'actor_role_id' => $context['actor_role_id'],
+                    'user_id' => $context['user_id'], 'actor_role_name' => $context['actor_role_name'],
                     'method' => $context['method'], 'path' => $context['path'], 'route' => $context['route'],
                     'status_code' => $context['status_code'], 'duration_ms' => $context['duration_ms'],
                     'ip_address' => $context['ip_address'], 'created_at' => now('UTC'),

@@ -6,8 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AuditLogRequest;
 use App\Service\AdminActivityService;
 use Illuminate\Http\JsonResponse;
+use Knuckles\Scribe\Attributes\Authenticated;
+use Knuckles\Scribe\Attributes\Response;
 
-#[Group("Admin audit Log Handler", "APIs for managing admin aduit Logs")]
+#[Group('Admin audit Log Handler', 'APIs for managing admin aduit Logs')]
+#[Authenticated]
+#[Response(status: 401, content: ['message' => 'Unauthenticated.'], description: 'Missing or invalid bearer token.')]
 class AuditLogController extends Controller
 {
     public function __construct(private AdminActivityService $activities) {}

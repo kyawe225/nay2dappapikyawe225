@@ -32,15 +32,19 @@ class WalletService implements IWalletService
 
     public function ShowForCustomer(string $userId): ResponseModel
     {
-        $customer = User::query()->whereHas('role', fn (Builder $query): Builder => $query->where('name', 'Customer'))->find($userId);
+        $customer = User::query()->whereHas('role', fn (Builder $query): Builder => $query->where('role_name', 'Customer'))->find($userId);
         if ($customer === null) {
             return ResponseModel::NotFound('Customer account was not found!', null);
         }
-        $wallet = $customer->wallets()->first();
+        $wallet = $customer->wallets()->with(WalletResource::RELATIONS)->first();
 
         return $wallet === null
             ? ResponseModel::NotFound('Customer wallet was not found!', null)
-            : ResponseModel::ok('Wallet fetched successfully!', new WalletResource($wallet));
+            : ResponseModel::ok('Wallet fetched successfully!', new WalletResource($wallet->load([
+                'paymentTransactions' => fn (HasMany $query): HasMany => $query->with(TransactionResource::RELATIONS)->latest()->latest('id'),
+                'withdrawalRequests' => fn (HasMany $query): HasMany => $query->with(WithdrawResource::RELATIONS)->latest()->latest('id'),
+                'transactions' => fn (HasMany $query): HasMany => $query->with(WalletTransactionResource::RELATIONS)->latest()->latest('id'),
+            ])));
     }
 
     public function HistoryForCustomer(string $userId, WalletHistoryRequest $request): ResponseModel
@@ -49,16 +53,16 @@ class WalletService implements IWalletService
         if ($wallet === null) {
             return ResponseModel::NotFound('Customer wallet was not found!', null);
         }
-        $transactions = $wallet->paymentTransactions()->with(['approver', 'user']);
-        $withdrawals = $wallet->withdrawalRequests()->with(['approver', 'user']);
-        $movements = $wallet->transactions();
+        $transactions = $wallet->paymentTransactions()->with(TransactionResource::RELATIONS);
+        $withdrawals = $wallet->withdrawalRequests()->with(WithdrawResource::RELATIONS);
+        $movements = $wallet->transactions()->with(WalletTransactionResource::RELATIONS);
         $this->FilterHistory($transactions, $request, ['transactionType' => 'type', 'transactionStatus' => 'status', 'referenceId' => 'reference_id']);
         $this->FilterHistory($withdrawals, $request, ['withdrawalStatus' => 'status', 'referenceId' => 'reference_id']);
         $this->FilterHistory($movements, $request, ['movementType' => 'type', 'direction' => 'direction', 'referenceType' => 'reference_type', 'referenceId' => 'reference_id']);
         $perPage = $request->integer('perPage', 20);
 
         return ResponseModel::ok('Customer wallet history fetched successfully!', [
-            'wallet' => new WalletResource($wallet),
+            'wallet' => new WalletResource($wallet->load(WalletResource::RELATIONS)),
             'transactions' => $this->HistoryPage($transactions->latest()->latest('id')->paginate($perPage, ['*'], 'transactionsPage'), TransactionResource::class),
             'withdrawalRequests' => $this->HistoryPage($withdrawals->latest()->latest('id')->paginate($perPage, ['*'], 'withdrawalRequestsPage'), WithdrawResource::class),
             'walletTransactions' => $this->HistoryPage($movements->latest()->latest('id')->paginate($perPage, ['*'], 'walletTransactionsPage'), WalletTransactionResource::class),
@@ -68,18 +72,18 @@ class WalletService implements IWalletService
     public function TransactionForCustomer(string $userId, string $transactionId): ResponseModel
     {
         $wallet = $this->FindCustomerWallet($userId);
-        $transaction = $wallet?->paymentTransactions()->find($transactionId);
+        $transaction = $wallet?->paymentTransactions()->with(TransactionResource::RELATIONS)->find($transactionId);
         if ($transaction === null) {
             return ResponseModel::NotFound('Customer wallet transaction was not found!', null);
         }
-        $withdrawals = $wallet->withdrawalRequests()->with(['approver', 'user'])->where('transaction_id', $transaction->id)->get();
-        $movements = $wallet->transactions()->where(function (Builder $query) use ($transaction, $withdrawals): void {
+        $withdrawals = $wallet->withdrawalRequests()->with(WithdrawResource::RELATIONS)->where('transaction_id', $transaction->id)->get();
+        $movements = $wallet->transactions()->with(WalletTransactionResource::RELATIONS)->where(function (Builder $query) use ($transaction, $withdrawals): void {
             $query->where(fn (Builder $query): Builder => $query->where('reference_type', 'transaction')->where('reference_id', $transaction->id))
                 ->orWhere(fn (Builder $query): Builder => $query->where('reference_type', 'withdraw_request')->whereIn('reference_id', $withdrawals->modelKeys()));
         })->latest()->latest('id')->get();
 
         return ResponseModel::ok('Customer payment transaction fetched successfully!', [
-            'wallet' => new WalletResource($wallet), 'transaction' => new TransactionResource($transaction),
+            'wallet' => new WalletResource($wallet->load(WalletResource::RELATIONS)), 'transaction' => new TransactionResource($transaction),
             'withdrawalRequests' => WithdrawResource::collection($withdrawals),
             'walletTransactions' => WalletTransactionResource::collection($movements),
         ]);
@@ -88,15 +92,15 @@ class WalletService implements IWalletService
     public function WithdrawalForCustomer(string $userId, string $withdrawalId): ResponseModel
     {
         $wallet = $this->FindCustomerWallet($userId);
-        $withdrawal = $wallet?->withdrawalRequests()->find($withdrawalId);
+        $withdrawal = $wallet?->withdrawalRequests()->with(WithdrawResource::RELATIONS)->find($withdrawalId);
         if ($withdrawal === null) {
             return ResponseModel::NotFound('Customer wallet withdrawal request was not found!', null);
         }
-        $transaction = $wallet->paymentTransactions()->find($withdrawal->transaction_id);
-        $movements = $wallet->transactions()->where('reference_type', 'withdraw_request')->where('reference_id', $withdrawal->id)->latest()->latest('id')->get();
+        $transaction = $wallet->paymentTransactions()->with(TransactionResource::RELATIONS)->find($withdrawal->transaction_id);
+        $movements = $wallet->transactions()->with(WalletTransactionResource::RELATIONS)->where('reference_type', 'withdraw_request')->where('reference_id', $withdrawal->id)->latest()->latest('id')->get();
 
         return ResponseModel::ok('Customer withdrawal request fetched successfully!', [
-            'wallet' => new WalletResource($wallet), 'withdrawalRequest' => new WithdrawResource($withdrawal),
+            'wallet' => new WalletResource($wallet->load(WalletResource::RELATIONS)), 'withdrawalRequest' => new WithdrawResource($withdrawal),
             'transaction' => $transaction === null ? null : new TransactionResource($transaction),
             'walletTransactions' => WalletTransactionResource::collection($movements),
         ]);
@@ -105,16 +109,16 @@ class WalletService implements IWalletService
     public function MovementForCustomer(string $userId, string $movementId): ResponseModel
     {
         $wallet = $this->FindCustomerWallet($userId);
-        $movement = $wallet?->transactions()->find($movementId);
+        $movement = $wallet?->transactions()->with(WalletTransactionResource::RELATIONS)->find($movementId);
         if ($movement === null) {
             return ResponseModel::NotFound('Customer wallet ledger entry was not found!', null);
         }
-        $withdrawal = $movement->reference_type === 'withdraw_request' ? $wallet->withdrawalRequests()->find($movement->reference_id) : null;
+        $withdrawal = $movement->reference_type === 'withdraw_request' ? $wallet->withdrawalRequests()->with(WithdrawResource::RELATIONS)->find($movement->reference_id) : null;
         $transactionId = $movement->reference_type === 'transaction' ? $movement->reference_id : $withdrawal?->transaction_id;
-        $transaction = $wallet->paymentTransactions()->find($transactionId);
+        $transaction = $wallet->paymentTransactions()->with(TransactionResource::RELATIONS)->find($transactionId);
 
         return ResponseModel::ok('Customer wallet ledger entry fetched successfully!', [
-            'wallet' => new WalletResource($wallet), 'walletTransaction' => new WalletTransactionResource($movement),
+            'wallet' => new WalletResource($wallet->load(WalletResource::RELATIONS)), 'walletTransaction' => new WalletTransactionResource($movement),
             'transaction' => $transaction === null ? null : new TransactionResource($transaction),
             'withdrawalRequest' => $withdrawal === null ? null : new WithdrawResource($withdrawal),
         ]);
@@ -123,7 +127,7 @@ class WalletService implements IWalletService
     private function FindCustomerWallet(string $userId): ?Wallet
     {
         return Wallet::query()->where('user_id', $userId)
-            ->whereHas('user.role', fn (Builder $query): Builder => $query->where('name', 'Customer'))->first();
+            ->whereHas('user.role', fn (Builder $query): Builder => $query->where('role_name', 'Customer'))->first();
     }
 
     /** @param array<string, string> $filters */
@@ -168,7 +172,7 @@ class WalletService implements IWalletService
                 'customerUserId' => $customer->id, 'reason' => $request->validated('reason'),
             ]);
 
-            return ResponseModel::ok('Customer wallet created successfully!', new WalletResource($wallet));
+            return ResponseModel::ok('Customer wallet created successfully!', new WalletResource($wallet->load(WalletResource::RELATIONS)));
         }, 3);
     }
 
@@ -191,7 +195,7 @@ class WalletService implements IWalletService
                     return ResponseModel::conflict('Client reference is already used for a different wallet adjustment!', null);
                 }
 
-                return ResponseModel::ok('Wallet adjustment already exists!', ['wallet' => new WalletResource($wallet), 'transaction' => new WalletTransactionResource($existing)]);
+                return ResponseModel::ok('Wallet adjustment already exists!', ['wallet' => new WalletResource($wallet->load(WalletResource::RELATIONS)), 'transaction' => new WalletTransactionResource($existing->load(WalletTransactionResource::RELATIONS))]);
             }
             $referenceId = (string) Str::uuid7();
             $this->Move($wallet, 'manual_adjustment', $data['direction'], (string) $data['amount'], 'admin_adjustment', $referenceId);
@@ -204,7 +208,7 @@ class WalletService implements IWalletService
                 'clientReference' => $data['clientReference'], 'reason' => $data['reason'],
             ]);
 
-            return ResponseModel::ok('Wallet adjusted successfully!', ['wallet' => new WalletResource($wallet), 'transaction' => new WalletTransactionResource($movement)]);
+            return ResponseModel::ok('Wallet adjusted successfully!', ['wallet' => new WalletResource($wallet->load(WalletResource::RELATIONS)), 'transaction' => new WalletTransactionResource($movement->load(WalletTransactionResource::RELATIONS))]);
         }, 3);
     }
 
@@ -233,7 +237,7 @@ class WalletService implements IWalletService
 
     private function LockCustomer(string $userId): ?User
     {
-        return User::query()->whereHas('role', fn (Builder $query): Builder => $query->where('name', 'Customer'))->lockForUpdate()->find($userId);
+        return User::query()->whereHas('role', fn (Builder $query): Builder => $query->where('role_name', 'Customer'))->lockForUpdate()->find($userId);
     }
 
     public function Move(Wallet $wallet, string $type, string $direction, string $amount, string $referenceType, string $referenceId): void

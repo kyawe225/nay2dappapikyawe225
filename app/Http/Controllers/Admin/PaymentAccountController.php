@@ -7,9 +7,13 @@ use App\Http\Requests\Admin\DepositAccountRequest;
 use App\Http\Requests\Admin\PaymentAccountStatusRequest;
 use App\Http\ServiceContractor\IPaymentAccountService;
 use Illuminate\Http\JsonResponse;
+use Knuckles\Scribe\Attributes\Authenticated;
 use Knuckles\Scribe\Attributes\Group;
+use Knuckles\Scribe\Attributes\Response;
 
-#[Group("Admin Payment Accounts Handler", "APIs for managing admin and users Payment Accounts")]
+#[Group('Admin Payment Accounts Handler', 'APIs for managing admin and users Payment Accounts')]
+#[Authenticated]
+#[Response(status: 401, content: ['message' => 'Unauthenticated.'], description: 'Missing or invalid bearer token.')]
 class PaymentAccountController extends Controller
 {
     public function __construct(private IPaymentAccountService $service) {}

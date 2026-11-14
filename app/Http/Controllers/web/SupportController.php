@@ -7,9 +7,11 @@ use App\Http\ServiceContractor\ISupportService;
 use Illuminate\Http\JsonResponse;
 use Knuckles\Scribe\Attributes\Authenticated;
 use Knuckles\Scribe\Attributes\Group;
+use Knuckles\Scribe\Attributes\Response;
 
-#[Group("Customer Support Handler", "APIs for managing users Support")]
+#[Group('Customer Support Handler', 'APIs for managing users Support')]
 #[Authenticated]
+#[Response(status: 401, content: ['message' => 'Unauthenticated.'], description: 'Missing or invalid bearer token.')]
 class SupportController extends Controller
 {
     private ISupportService $service;

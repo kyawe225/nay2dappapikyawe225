@@ -5,7 +5,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: api/admin/payment/deposit
+    uri: api/admin/payment_deposit_list
     metadata:
       custom: []
       groupName: 'Admin Payment Handler'
@@ -14,266 +14,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
-      Content-Type: application/json
-      Accept: application/json
-    urlParameters: []
-    cleanUrlParameters: []
-    queryParameters: []
-    cleanQueryParameters: []
-    bodyParameters:
-      status:
-        custom: []
-        name: status
-        description: ''
-        required: false
-        example: approved
-        type: string
-        enumValues:
-          - pending
-          - pending_approval
-          - approved
-          - rejected
-          - requested
-          - declined
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      paymentUserId:
-        custom: []
-        name: paymentUserId
-        description: 'Must be a valid UUID. Must match an existing stored value.'
-        required: false
-        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      fromDate:
-        custom: []
-        name: fromDate
-        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
-        required: false
-        example: '2026-11-01'
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      toDate:
-        custom: []
-        name: toDate
-        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
-        required: false
-        example: '2026-11-01'
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      page:
-        custom: []
-        name: page
-        description: 'Must be at least 1.'
-        required: false
-        example: 67
-        type: integer
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      perPage:
-        custom: []
-        name: perPage
-        description: 'Must be at least 1. Must not be greater than 100.'
-        required: false
-        example: 16
-        type: integer
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-    cleanBodyParameters:
-      status: approved
-      paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
-      fromDate: '2026-11-01'
-      toDate: '2026-11-01'
-      page: 67
-      perPage: 16
-    fileParameters: []
-    responses:
-      -
-        custom: []
-        status: 401
-        content: '{"message":"Unauthenticated."}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0e49-716f-8c10-3389e66c9eff
-          access-control-allow-origin: '*'
-        description: null
-    responseFields: []
-    auth: []
-    controller: null
-    method: null
-    route: null
-  -
-    custom: []
-    httpMethods:
-      - POST
-    uri: 'api/admin/payment/deposit/{transaction_id}/approve'
-    metadata:
-      custom: []
-      groupName: 'Admin Payment Handler'
-      groupDescription: 'APIs for managing admin and users Payments'
-      subgroup: ''
-      subgroupDescription: ''
-      title: ''
-      description: ''
-      authenticated: false
-      deprecated: false
-    headers:
-      Content-Type: application/json
-      Accept: application/json
-    urlParameters:
-      transaction_id:
-        custom: []
-        name: transaction_id
-        description: 'The ID of the transaction.'
-        required: true
-        example: 01a16704-b575-734f-bef2-803ac543e8de
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-    cleanUrlParameters:
-      transaction_id: 01a16704-b575-734f-bef2-803ac543e8de
-    queryParameters: []
-    cleanQueryParameters: []
-    bodyParameters:
-      status:
-        custom: []
-        name: status
-        description: ''
-        required: true
-        example: rejected
-        type: string
-        enumValues:
-          - approved
-          - rejected
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      lastSixTranId:
-        custom: []
-        name: lastSixTranId
-        description: 'Must be 6 characters.'
-        required: false
-        example: bngzmi
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-    cleanBodyParameters:
-      status: rejected
-      lastSixTranId: bngzmi
-    fileParameters: []
-    responses: []
-    responseFields: []
-    auth: []
-    controller: null
-    method: null
-    route: null
-  -
-    custom: []
-    httpMethods:
-      - PATCH
-    uri: 'api/admin/payment/deposit/{transaction_id}/status'
-    metadata:
-      custom: []
-      groupName: 'Admin Payment Handler'
-      groupDescription: 'APIs for managing admin and users Payments'
-      subgroup: ''
-      subgroupDescription: ''
-      title: ''
-      description: ''
-      authenticated: false
-      deprecated: false
-    headers:
-      Content-Type: application/json
-      Accept: application/json
-    urlParameters:
-      transaction_id:
-        custom: []
-        name: transaction_id
-        description: 'The ID of the transaction.'
-        required: true
-        example: 01a16704-b575-734f-bef2-803ac543e8de
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-    cleanUrlParameters:
-      transaction_id: 01a16704-b575-734f-bef2-803ac543e8de
-    queryParameters: []
-    cleanQueryParameters: []
-    bodyParameters:
-      status:
-        custom: []
-        name: status
-        description: ''
-        required: true
-        example: rejected
-        type: string
-        enumValues:
-          - approved
-          - rejected
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      lastSixTranId:
-        custom: []
-        name: lastSixTranId
-        description: 'Must be 6 characters.'
-        required: false
-        example: bngzmi
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-    cleanBodyParameters:
-      status: rejected
-      lastSixTranId: bngzmi
-    fileParameters: []
-    responses: []
-    responseFields: []
-    auth: []
-    controller: null
-    method: null
-    route: null
-  -
-    custom: []
-    httpMethods:
-      - GET
-    uri: api/admin/payment/withdrawal
-    metadata:
-      custom: []
-      groupName: 'Admin Payment Handler'
-      groupDescription: 'APIs for managing admin and users Payments'
-      subgroup: ''
-      subgroupDescription: ''
-      title: ''
-      description: ''
-      authenticated: false
-      deprecated: false
-    headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -314,7 +58,7 @@ endpoints:
         name: fromDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-11-01'
+        example: '2026-11-14'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -325,7 +69,7 @@ endpoints:
         name: toDate
         description: 'Must be a valid date in the format <code>Y-m-d</code>.'
         required: false
-        example: '2026-11-01'
+        example: '2026-11-14'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -356,8 +100,8 @@ endpoints:
     cleanBodyParameters:
       status: declined
       paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
-      fromDate: '2026-11-01'
-      toDate: '2026-11-01'
+      fromDate: '2026-11-14'
+      toDate: '2026-11-14'
       page: 67
       perPage: 16
     fileParameters: []
@@ -366,14 +110,13 @@ endpoints:
         custom: []
         status: 401
         content: '{"message":"Unauthenticated."}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0e8a-73a0-9cc6-be8b97d56e80
-          access-control-allow-origin: '*'
-        description: null
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -381,7 +124,7 @@ endpoints:
     custom: []
     httpMethods:
       - POST
-    uri: 'api/admin/payment/withdrawal/{withdrawal_id}/approve'
+    uri: 'api/admin/payment_deposit_approve/{transaction_id}'
     metadata:
       custom: []
       groupName: 'Admin Payment Handler'
@@ -390,94 +133,26 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
-      withdrawal_id:
+      transaction_id:
         custom: []
-        name: withdrawal_id
-        description: 'The ID of the withdrawal.'
+        name: transaction_id
+        description: 'The ID of the transaction.'
         required: true
-        example: 01a16704-b5bd-7105-b09f-421c1cae5cf4
+        example: 01a1bbec-1917-7264-a6c4-d0c16f77352e
         type: string
         enumValues: []
         exampleWasSpecified: false
         nullable: false
         deprecated: false
     cleanUrlParameters:
-      withdrawal_id: 01a16704-b5bd-7105-b09f-421c1cae5cf4
-    queryParameters: []
-    cleanQueryParameters: []
-    bodyParameters:
-      status:
-        custom: []
-        name: status
-        description: ''
-        required: true
-        example: rejected
-        type: string
-        enumValues:
-          - approved
-          - rejected
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-      lastSixTranId:
-        custom: []
-        name: lastSixTranId
-        description: 'Must be 6 characters.'
-        required: false
-        example: bngzmi
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-    cleanBodyParameters:
-      status: rejected
-      lastSixTranId: bngzmi
-    fileParameters: []
-    responses: []
-    responseFields: []
-    auth: []
-    controller: null
-    method: null
-    route: null
-  -
-    custom: []
-    httpMethods:
-      - PATCH
-    uri: 'api/admin/payment/withdrawal/{withdrawal_id}/status'
-    metadata:
-      custom: []
-      groupName: 'Admin Payment Handler'
-      groupDescription: 'APIs for managing admin and users Payments'
-      subgroup: ''
-      subgroupDescription: ''
-      title: ''
-      description: ''
-      authenticated: false
-      deprecated: false
-    headers:
-      Content-Type: application/json
-      Accept: application/json
-    urlParameters:
-      withdrawal_id:
-        custom: []
-        name: withdrawal_id
-        description: 'The ID of the withdrawal.'
-        required: true
-        example: 01a16704-b5bd-7105-b09f-421c1cae5cf4
-        type: string
-        enumValues: []
-        exampleWasSpecified: false
-        nullable: false
-        deprecated: false
-    cleanUrlParameters:
-      withdrawal_id: 01a16704-b5bd-7105-b09f-421c1cae5cf4
+      transaction_id: 01a1bbec-1917-7264-a6c4-d0c16f77352e
     queryParameters: []
     cleanQueryParameters: []
     bodyParameters:
@@ -509,9 +184,374 @@ endpoints:
       status: approved
       lastSixTranId: bngzmi
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - PATCH
+    uri: 'api/admin/payment_deposit_status_update/{transaction_id}'
+    metadata:
+      custom: []
+      groupName: 'Admin Payment Handler'
+      groupDescription: 'APIs for managing admin and users Payments'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      transaction_id:
+        custom: []
+        name: transaction_id
+        description: 'The ID of the transaction.'
+        required: true
+        example: 01a1bbec-1917-7264-a6c4-d0c16f77352e
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      transaction_id: 01a1bbec-1917-7264-a6c4-d0c16f77352e
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      status:
+        custom: []
+        name: status
+        description: ''
+        required: true
+        example: rejected
+        type: string
+        enumValues:
+          - approved
+          - rejected
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      lastSixTranId:
+        custom: []
+        name: lastSixTranId
+        description: 'Must be 6 characters.'
+        required: false
+        example: bngzmi
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      status: rejected
+      lastSixTranId: bngzmi
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: api/admin/payment_withdrawal_list
+    metadata:
+      custom: []
+      groupName: 'Admin Payment Handler'
+      groupDescription: 'APIs for managing admin and users Payments'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      status:
+        custom: []
+        name: status
+        description: ''
+        required: false
+        example: pending_approval
+        type: string
+        enumValues:
+          - pending
+          - pending_approval
+          - approved
+          - rejected
+          - requested
+          - declined
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      paymentUserId:
+        custom: []
+        name: paymentUserId
+        description: 'Must be a valid UUID. Must match an existing stored value.'
+        required: false
+        example: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      fromDate:
+        custom: []
+        name: fromDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: false
+        example: '2026-11-14'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      toDate:
+        custom: []
+        name: toDate
+        description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+        required: false
+        example: '2026-11-14'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      page:
+        custom: []
+        name: page
+        description: 'Must be at least 1.'
+        required: false
+        example: 67
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      perPage:
+        custom: []
+        name: perPage
+        description: 'Must be at least 1. Must not be greater than 100.'
+        required: false
+        example: 16
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      status: pending_approval
+      paymentUserId: 6ff8f7f6-1eb3-3525-be4a-3932c805afed
+      fromDate: '2026-11-14'
+      toDate: '2026-11-14'
+      page: 67
+      perPage: 16
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: 'api/admin/payment_withdrawal_approve/{withdrawal_id}'
+    metadata:
+      custom: []
+      groupName: 'Admin Payment Handler'
+      groupDescription: 'APIs for managing admin and users Payments'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      withdrawal_id:
+        custom: []
+        name: withdrawal_id
+        description: 'The ID of the withdrawal.'
+        required: true
+        example: 01a1bbec-1952-70a8-b80b-807bee718157
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      withdrawal_id: 01a1bbec-1952-70a8-b80b-807bee718157
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      status:
+        custom: []
+        name: status
+        description: ''
+        required: true
+        example: rejected
+        type: string
+        enumValues:
+          - approved
+          - rejected
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      lastSixTranId:
+        custom: []
+        name: lastSixTranId
+        description: 'Must be 6 characters.'
+        required: false
+        example: bngzmi
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      status: rejected
+      lastSixTranId: bngzmi
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - PATCH
+    uri: 'api/admin/payment_withdrawal_status_update/{withdrawal_id}'
+    metadata:
+      custom: []
+      groupName: 'Admin Payment Handler'
+      groupDescription: 'APIs for managing admin and users Payments'
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: true
+      deprecated: false
+    headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      withdrawal_id:
+        custom: []
+        name: withdrawal_id
+        description: 'The ID of the withdrawal.'
+        required: true
+        example: 01a1bbec-1952-70a8-b80b-807bee718157
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      withdrawal_id: 01a1bbec-1952-70a8-b80b-807bee718157
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      status:
+        custom: []
+        name: status
+        description: ''
+        required: true
+        example: approved
+        type: string
+        enumValues:
+          - approved
+          - rejected
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      lastSixTranId:
+        custom: []
+        name: lastSixTranId
+        description: 'Must be 6 characters.'
+        required: false
+        example: bngzmi
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      status: approved
+      lastSixTranId: bngzmi
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
+    responseFields: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null

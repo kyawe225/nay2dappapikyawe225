@@ -2,7 +2,6 @@
 
 use App\Http\ServiceContractor\IBetService;
 use App\Jobs\CalculateBetResults;
-use App\Models\Role;
 use App\Models\ThreedDraw;
 use App\Models\ThreedOdd;
 use App\Models\TwodDraw;
@@ -22,7 +21,7 @@ uses(RefreshDatabase::class);
 beforeEach(function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-11-10 09:00', config('betting.timezone')));
     $this->seed(RoleSeeder::class);
-    $this->administrator = User::factory()->create(['role_id' => Role::query()->where('name', 'Admin')->sole()->id]);
+    $this->administrator = User::factory()->create(['role_name' => 'Admin']);
     Sanctum::actingAs($this->administrator, ['access']);
 });
 
@@ -34,51 +33,51 @@ function calculationKey(string $game): array
 
 function calculationDraw(string $game, string $mode = 'scheduled', string $time = '12:00'): void
 {
-    test()->postJson('/api/admin/'.$game.'/draws', [
+    test()->postJson('/api/admin/betting_draws_create/'.$game, [
         ...calculationKey($game), 'openTime' => '08:00', 'cutoffTime' => '11:00',
         'calculationMode' => $mode, ...($mode === 'scheduled' ? ['calculationTime' => $time] : []),
     ])->assertOk()->assertJsonPath('data.calculationMode', $mode);
 }
 
 test('default settings are independent and only affect subsequently scheduled draws', function (): void {
-    $this->getJson('/api/admin/twod/calculation-settings')->assertOk()->assertJsonCount(2, 'data.items')
+    $this->getJson('/api/admin/betting_calculation_settings_list/twod')->assertOk()->assertJsonCount(2, 'data.items')
         ->assertJsonPath('data.items.0.calculationMode', 'immediate');
-    $this->getJson('/api/admin/threed/calculation-settings')->assertOk()->assertJsonCount(1, 'data.items')
+    $this->getJson('/api/admin/betting_calculation_settings_list/threed')->assertOk()->assertJsonCount(1, 'data.items')
         ->assertJsonMissingPath('data.items.0.timeType');
-    $this->patchJson('/api/admin/twod/calculation-settings', ['timeType' => 'am', 'calculationMode' => 'scheduled', 'calculationTime' => '12:01'])
+    $this->patchJson('/api/admin/betting_calculation_settings_update/twod', ['timeType' => 'am', 'calculationMode' => 'scheduled', 'calculationTime' => '12:01'])
         ->assertOk()->assertJsonPath('data.items.0.calculationTime', '12:01')->assertJsonPath('data.items.1.calculationMode', 'immediate');
     $schedule = ['drawDate' => '2026-11-10', 'timeType' => 'am', 'openTime' => '08:00', 'cutoffTime' => '11:00'];
-    $this->postJson('/api/admin/twod/draws', $schedule)->assertOk()->assertJsonPath('data.calculationTime', '12:01')
+    $this->postJson('/api/admin/betting_draws_create/twod', $schedule)->assertOk()->assertJsonPath('data.calculationTime', '12:01')
         ->assertJsonPath('data.calculationScheduledAt', '2026-11-10T05:31:00.000000Z');
-    $this->patchJson('/api/admin/twod/calculation-settings', ['timeType' => 'am', 'calculationMode' => 'manual'])->assertOk();
-    $this->postJson('/api/admin/twod/draws', [...$schedule, 'drawDate' => '2026-11-11'])->assertOk()->assertJsonPath('data.calculationMode', 'manual');
-    $this->postJson('/api/admin/twod/draws', [...$schedule, 'drawDate' => '2026-11-12', 'calculationMode' => 'scheduled', 'calculationTime' => '13:00'])
+    $this->patchJson('/api/admin/betting_calculation_settings_update/twod', ['timeType' => 'am', 'calculationMode' => 'manual'])->assertOk();
+    $this->postJson('/api/admin/betting_draws_create/twod', [...$schedule, 'drawDate' => '2026-11-11'])->assertOk()->assertJsonPath('data.calculationMode', 'manual');
+    $this->postJson('/api/admin/betting_draws_create/twod', [...$schedule, 'drawDate' => '2026-11-12', 'calculationMode' => 'scheduled', 'calculationTime' => '13:00'])
         ->assertOk()->assertJsonPath('data.calculationTime', '13:00');
-    $this->getJson('/api/admin/threed/calculation-settings')->assertOk()->assertJsonPath('data.items.0.calculationMode', 'immediate');
+    $this->getJson('/api/admin/betting_calculation_settings_list/threed')->assertOk()->assertJsonPath('data.items.0.calculationMode', 'immediate');
     $this->assertDatabaseHas('twod_draws', ['draw_date' => '2026-11-10 00:00:00', 'calculation_time' => '12:01']);
 });
 
 test('scheduled results calculate at the configured minute without paying wallets', function (string $game): void {
     calculationDraw($game);
-    $customer = User::factory()->create(['role_id' => Role::query()->where('name', 'Customer')->sole()->id]);
+    $customer = User::factory()->create(['role_name' => 'Customer']);
     $customer->wallets()->create(['avaliable_balance' => '1000.00', 'locked_balance' => '0.00', 'version' => (string) Str::uuid7()]);
     ($game === 'twod' ? TwodOdd::class : ThreedOdd::class)::factory()->create();
     $number = $game === 'twod' ? '07' : '007';
     Sanctum::actingAs($customer, ['access']);
-    $this->postJson('/api/'.$game.'/bets', [...calculationKey($game), 'clientReference' => (string) Str::uuid7(), 'entries' => [
+    $this->postJson('/api/betting_bets_create/'.$game, [...calculationKey($game), 'clientReference' => (string) Str::uuid7(), 'entries' => [
         ['number' => $number, 'stakeAmount' => '100.00'], ['number' => $game === 'twod' ? '08' : '008', 'stakeAmount' => '50.00'],
     ]])->assertOk();
     Sanctum::actingAs($this->administrator, ['access']);
     Queue::fake([CalculateBetResults::class]);
-    $this->postJson('/api/admin/'.$game.'/results', [...calculationKey($game), 'winningNumber' => $number])->assertOk()->assertJsonPath('data.calculationStatus', 'pending');
+    $this->postJson('/api/admin/betting_results_create/'.$game, [...calculationKey($game), 'winningNumber' => $number])->assertOk()->assertJsonPath('data.calculationStatus', 'pending');
     Queue::assertNothingPushed();
     $this->travelTo(CarbonImmutable::parse('2026-11-10 11:59:59', config('betting.timezone')));
     $this->artisan('betting:calculate-due-results')->assertSuccessful();
     $this->assertDatabaseHas($game.'_bets', ['draw_number' => $number, 'result_status' => 'pending']);
-    $this->postJson('/api/admin/'.$game.'/results/preview', calculationKey($game))->assertConflict();
+    $this->postJson('/api/admin/betting_results_preview/'.$game, calculationKey($game))->assertConflict();
     $this->travelTo(CarbonImmutable::parse('2026-11-10 12:00', config('betting.timezone')));
     $this->artisan('betting:calculate-due-results')->assertSuccessful();
-    $this->postJson('/api/admin/'.$game.'/results/preview', calculationKey($game))->assertOk()->assertJsonPath('data.winnerCount', 1)->assertJsonPath('data.loserCount', 1);
+    $this->postJson('/api/admin/betting_results_preview/'.$game, calculationKey($game))->assertOk()->assertJsonPath('data.winnerCount', 1)->assertJsonPath('data.loserCount', 1);
     $this->assertDatabaseHas($game.'_draws', ['calculation_status' => 'completed', 'winning_number' => $number]);
     $this->assertDatabaseMissing('wallet_transactions', ['type' => 'bet_won']);
     expect($customer->wallets()->sole()->avaliable_balance)->toBe('850.00');
@@ -88,23 +87,48 @@ test('scheduled results calculate at the configured minute without paying wallet
 
 test('each game can save and reuse its calculation default', function (string $game): void {
     $settings = [...($game === 'twod' ? ['timeType' => 'pm'] : []), 'calculationMode' => 'scheduled', 'calculationTime' => '15:30'];
-    $response = $this->patchJson('/api/admin/'.$game.'/calculation-settings', $settings)->assertOk();
+    $response = $this->patchJson('/api/admin/betting_calculation_settings_update/'.$game, $settings)->assertOk();
     $index = $game === 'twod' ? 1 : 0;
     $response->assertJsonPath('data.items.'.$index.'.calculationTime', '15:30');
-    $this->postJson('/api/admin/'.$game.'/draws', [
+    $this->postJson('/api/admin/betting_draws_create/'.$game, [
         ...calculationKey($game), ...($game === 'twod' ? ['timeType' => 'pm'] : []), 'openTime' => '08:00', 'cutoffTime' => '14:00',
     ])->assertOk()->assertJsonPath('data.calculationTime', '15:30');
+})->with(['twod', 'threed']);
+
+test('a calculation time alone overrides the saved default for one draw', function (string $game): void {
+    $session = $game === 'twod' ? ['timeType' => 'am'] : [];
+    $this->patchJson('/api/admin/betting_calculation_settings_update/'.$game, [
+        ...$session, 'calculationMode' => 'scheduled', 'calculationTime' => '12:00',
+    ])->assertOk();
+    $this->patchJson('/api/admin/betting_cutoff_settings_update/'.$game, [...$session, 'cutoffTime' => '11:00'])->assertOk();
+
+    $schedule = [...calculationKey($game), 'openTime' => '08:00'];
+    $this->postJson('/api/admin/betting_draws_create/'.$game, $schedule)->assertOk()
+        ->assertJsonPath('data.cutoffTime', '11:00')->assertJsonPath('data.calculationTime', '12:00');
+    $this->postJson('/api/admin/betting_draws_create/'.$game, [...$schedule, 'drawDate' => '2026-11-11', 'calculationTime' => '13:00'])
+        ->assertOk()->assertJsonPath('data.calculationMode', 'scheduled')->assertJsonPath('data.calculationTime', '13:00');
+    $this->getJson('/api/admin/betting_calculation_settings_list/'.$game)->assertOk()->assertJsonPath('data.items.0.calculationTime', '12:00');
+})->with(['twod', 'threed']);
+
+test('a result can change its calculation time without changing the master setting', function (string $game): void {
+    calculationDraw($game, 'scheduled', '12:00');
+    Queue::fake([CalculateBetResults::class]);
+    $this->postJson('/api/admin/betting_results_create/'.$game, [
+        ...calculationKey($game), 'winningNumber' => $game === 'twod' ? '07' : '007', 'calculationTime' => '13:00',
+    ])->assertOk()->assertJsonPath('data.calculationMode', 'scheduled')->assertJsonPath('data.calculationTime', '13:00');
+    Queue::assertNothingPushed();
+    $this->getJson('/api/admin/betting_calculation_settings_list/'.$game)->assertOk()->assertJsonPath('data.items.0.calculationTime', null);
 })->with(['twod', 'threed']);
 
 test('calculate now bypasses manual mode and future schedules and is idempotent', function (string $game, string $mode): void {
     calculationDraw($game, $mode);
     Queue::fake([CalculateBetResults::class]);
     $key = calculationKey($game);
-    $this->postJson('/api/admin/'.$game.'/results', [...$key, 'winningNumber' => $game === 'twod' ? '07' : '007'])->assertOk();
+    $this->postJson('/api/admin/betting_results_create/'.$game, [...$key, 'winningNumber' => $game === 'twod' ? '07' : '007'])->assertOk();
     $this->travelTo(CarbonImmutable::parse($mode === 'manual' ? '2026-11-11 12:00' : '2026-11-10 09:01', config('betting.timezone')));
     $this->artisan('betting:calculate-due-results')->expectsOutputToContain('Processed 0')->assertSuccessful();
     Queue::assertNothingPushed();
-    $this->postJson('/api/admin/'.$game.'/results/calculate-now', $key)->assertOk();
+    $this->postJson('/api/admin/betting_results_calculate_now/'.$game, $key)->assertOk();
     Queue::assertPushed(CalculateBetResults::class, fn (CalculateBetResults $job): bool => $job->force);
     $job = Queue::pushed(CalculateBetResults::class)->first();
     $job->handle(app(IBetService::class));
@@ -112,7 +136,7 @@ test('calculate now bypasses manual mode and future schedules and is idempotent'
     $calculatedAt = $drawClass::query()->sole()->calculated_at->toISOString();
     $this->travel(1)->minutes();
     $job->handle(app(IBetService::class));
-    $this->postJson('/api/admin/'.$game.'/results/calculate-now', $key)->assertOk();
+    $this->postJson('/api/admin/betting_results_calculate_now/'.$game, $key)->assertOk();
     expect($drawClass::query()->sole()->calculated_at->toISOString())->toBe($calculatedAt);
     Queue::assertPushed(CalculateBetResults::class, 1);
     $this->assertDatabaseCount('wallet_transactions', 0);
@@ -122,9 +146,9 @@ test('rescheduling a draw blocks stale automatic jobs until its new time', funct
     calculationDraw($game, 'immediate');
     Queue::fake([CalculateBetResults::class]);
     $key = calculationKey($game);
-    $this->postJson('/api/admin/'.$game.'/results', [...$key, 'winningNumber' => $game === 'twod' ? '07' : '007'])->assertOk();
+    $this->postJson('/api/admin/betting_results_create/'.$game, [...$key, 'winningNumber' => $game === 'twod' ? '07' : '007'])->assertOk();
     $job = Queue::pushed(CalculateBetResults::class)->first();
-    $this->patchJson('/api/admin/'.$game.'/results/calculation', [...$key, 'calculationMode' => 'scheduled', 'calculationTime' => '13:30'])
+    $this->patchJson('/api/admin/betting_results_calculation_update/'.$game, [...$key, 'calculationMode' => 'scheduled', 'calculationTime' => '13:30'])
         ->assertOk()->assertJsonPath('data.calculationTime', '13:30');
     $job->handle(app(IBetService::class));
     $this->assertDatabaseHas($game.'_draws', ['calculation_status' => 'pending']);
@@ -139,10 +163,10 @@ test('a result can override the draw calculation mode and switching to immediate
     calculationDraw($game);
     Queue::fake([CalculateBetResults::class]);
     $key = calculationKey($game);
-    $this->postJson('/api/admin/'.$game.'/results', [...$key, 'winningNumber' => $game === 'twod' ? '07' : '007', 'calculationMode' => 'manual'])
+    $this->postJson('/api/admin/betting_results_create/'.$game, [...$key, 'winningNumber' => $game === 'twod' ? '07' : '007', 'calculationMode' => 'manual'])
         ->assertOk()->assertJsonPath('data.calculationMode', 'manual')->assertJsonPath('data.calculationTime', null);
     Queue::assertNothingPushed();
-    $this->patchJson('/api/admin/'.$game.'/results/calculation', [...$key, 'calculationMode' => 'immediate'])->assertOk();
+    $this->patchJson('/api/admin/betting_results_calculation_update/'.$game, [...$key, 'calculationMode' => 'immediate'])->assertOk();
     Queue::assertPushed(CalculateBetResults::class, 1);
 })->with(['twod', 'threed']);
 
@@ -150,11 +174,11 @@ test('rescheduling a failed result retries at the new time and ignores old job f
     calculationDraw($game, 'immediate');
     Queue::fake([CalculateBetResults::class]);
     $key = calculationKey($game);
-    $this->postJson('/api/admin/'.$game.'/results', [...$key, 'winningNumber' => $game === 'twod' ? '07' : '007'])->assertOk();
+    $this->postJson('/api/admin/betting_results_create/'.$game, [...$key, 'winningNumber' => $game === 'twod' ? '07' : '007'])->assertOk();
     $job = Queue::pushed(CalculateBetResults::class)->first();
     $job->failed(null);
     $this->assertDatabaseHas($game.'_draws', ['calculation_status' => 'failed']);
-    $this->patchJson('/api/admin/'.$game.'/results/calculation', [...$key, 'calculationMode' => 'scheduled', 'calculationTime' => '12:00'])
+    $this->patchJson('/api/admin/betting_results_calculation_update/'.$game, [...$key, 'calculationMode' => 'scheduled', 'calculationTime' => '12:00'])
         ->assertOk()->assertJsonPath('data.calculationStatus', 'pending');
     $job->failed(null);
     $this->assertDatabaseHas($game.'_draws', ['calculation_status' => 'pending']);
@@ -167,9 +191,9 @@ test('a queued automatic job respects switching to manual mode', function (strin
     calculationDraw($game, 'immediate');
     Queue::fake([CalculateBetResults::class]);
     $key = calculationKey($game);
-    $this->postJson('/api/admin/'.$game.'/results', [...$key, 'winningNumber' => $game === 'twod' ? '07' : '007'])->assertOk();
+    $this->postJson('/api/admin/betting_results_create/'.$game, [...$key, 'winningNumber' => $game === 'twod' ? '07' : '007'])->assertOk();
     $job = Queue::pushed(CalculateBetResults::class)->first();
-    $this->patchJson('/api/admin/'.$game.'/results/calculation', [...$key, 'calculationMode' => 'manual'])->assertOk();
+    $this->patchJson('/api/admin/betting_results_calculation_update/'.$game, [...$key, 'calculationMode' => 'manual'])->assertOk();
     $job->handle(app(IBetService::class));
     $this->travel(1)->days();
     $this->artisan('betting:calculate-due-results')->expectsOutputToContain('Processed 0')->assertSuccessful();
@@ -181,12 +205,12 @@ test('due calculation waits for a winning number and late results are queued imm
     Queue::fake([CalculateBetResults::class]);
     $this->travelTo(CarbonImmutable::parse('2026-11-10 12:30', config('betting.timezone')));
     $this->artisan('betting:calculate-due-results')->expectsOutputToContain('Processed 0')->assertSuccessful();
-    $this->postJson('/api/admin/'.$game.'/results', [...calculationKey($game), 'winningNumber' => $game === 'twod' ? '07' : '007'])->assertOk();
+    $this->postJson('/api/admin/betting_results_create/'.$game, [...calculationKey($game), 'winningNumber' => $game === 'twod' ? '07' : '007'])->assertOk();
     Queue::assertPushed(CalculateBetResults::class, 1);
 })->with(['twod', 'threed']);
 
 test('calculation settings validate mode time and game session', function (array $data, string $field): void {
-    $this->patchJson('/api/admin/twod/calculation-settings', ['timeType' => 'am', ...$data])->assertUnprocessable()->assertJsonValidationErrors($field);
+    $this->patchJson('/api/admin/betting_calculation_settings_update/twod', ['timeType' => 'am', ...$data])->assertUnprocessable()->assertJsonValidationErrors($field);
 })->with([
     'missing mode' => [[], 'calculationMode'],
     'invalid mode' => [['calculationMode' => 'other'], 'calculationMode'],
@@ -198,31 +222,31 @@ test('calculation settings validate mode time and game session', function (array
 ]);
 
 test('3D calculation settings reject AM and PM', function (): void {
-    $this->patchJson('/api/admin/threed/calculation-settings', ['timeType' => 'pm', 'calculationMode' => 'manual'])->assertUnprocessable()->assertJsonValidationErrors('timeType');
-    $this->patchJson('/api/admin/threed/results/calculation', [...calculationKey('threed'), 'timeType' => 'pm', 'calculationMode' => 'manual'])
+    $this->patchJson('/api/admin/betting_calculation_settings_update/threed', ['timeType' => 'pm', 'calculationMode' => 'manual'])->assertUnprocessable()->assertJsonValidationErrors('timeType');
+    $this->patchJson('/api/admin/betting_results_calculation_update/threed', [...calculationKey('threed'), 'timeType' => 'pm', 'calculationMode' => 'manual'])
         ->assertUnprocessable()->assertJsonValidationErrors('timeType');
-    $this->postJson('/api/admin/threed/results/calculate-now', [...calculationKey('threed'), 'timeType' => 'pm'])->assertUnprocessable()->assertJsonValidationErrors('timeType');
+    $this->postJson('/api/admin/betting_results_calculate_now/threed', [...calculationKey('threed'), 'timeType' => 'pm'])->assertUnprocessable()->assertJsonValidationErrors('timeType');
 });
 
 test('calculation controls require an administrator', function (string $game): void {
-    Sanctum::actingAs(User::factory()->create(['role_id' => Role::query()->where('name', 'Customer')->sole()->id]), ['access']);
-    $this->getJson('/api/admin/'.$game.'/calculation-settings')->assertForbidden();
-    $this->patchJson('/api/admin/'.$game.'/calculation-settings', ['calculationMode' => 'manual'])->assertForbidden();
-    $this->patchJson('/api/admin/'.$game.'/results/calculation', [...calculationKey($game), 'calculationMode' => 'manual'])->assertForbidden();
-    $this->postJson('/api/admin/'.$game.'/results/calculate-now', calculationKey($game))->assertForbidden();
+    Sanctum::actingAs(User::factory()->create(['role_name' => 'Customer']), ['access']);
+    $this->getJson('/api/admin/betting_calculation_settings_list/'.$game)->assertForbidden();
+    $this->patchJson('/api/admin/betting_calculation_settings_update/'.$game, ['calculationMode' => 'manual'])->assertForbidden();
+    $this->patchJson('/api/admin/betting_results_calculation_update/'.$game, [...calculationKey($game), 'calculationMode' => 'manual'])->assertForbidden();
+    $this->postJson('/api/admin/betting_results_calculate_now/'.$game, calculationKey($game))->assertForbidden();
     $this->assertDatabaseMissing('result_calculation_settings', ['calculation_mode' => 'manual']);
 })->with(['twod', 'threed']);
 
 test('missing results cannot calculate and completed draws cannot change schedules', function (string $game, string $state): void {
     $key = calculationKey($game);
     if ($state === 'missing') {
-        $this->patchJson('/api/admin/'.$game.'/results/calculation', [...$key, 'calculationMode' => 'manual'])->assertNotFound();
-        $this->postJson('/api/admin/'.$game.'/results/calculate-now', $key)->assertNotFound();
+        $this->patchJson('/api/admin/betting_results_calculation_update/'.$game, [...$key, 'calculationMode' => 'manual'])->assertNotFound();
+        $this->postJson('/api/admin/betting_results_calculate_now/'.$game, $key)->assertNotFound();
 
         return;
     }
     calculationDraw($game);
-    $this->postJson('/api/admin/'.$game.'/results/calculate-now', $key)->assertNotFound();
+    $this->postJson('/api/admin/betting_results_calculate_now/'.$game, $key)->assertNotFound();
     $drawClass = $game === 'twod' ? TwodDraw::class : ThreedDraw::class;
     $draw = $drawClass::query()->sole();
     $draw->forceFill(['winning_number' => $game === 'twod' ? '07' : '007', 'result_revision' => (string) Str::uuid7(), ...match ($state) {
@@ -230,10 +254,10 @@ test('missing results cannot calculate and completed draws cannot change schedul
         'settled' => ['settled_at' => now('UTC')],
         'cancelled' => ['cancelled_at' => now('UTC')],
     }])->save();
-    $this->patchJson('/api/admin/'.$game.'/results/calculation', [...$key, 'calculationMode' => 'manual'])->assertConflict();
+    $this->patchJson('/api/admin/betting_results_calculation_update/'.$game, [...$key, 'calculationMode' => 'manual'])->assertConflict();
     $this->artisan('betting:calculate-due-results')->expectsOutputToContain('Processed 0')->assertSuccessful();
     if ($state !== 'calculated') {
-        $this->postJson('/api/admin/'.$game.'/results/calculate-now', $key)->assertConflict();
+        $this->postJson('/api/admin/betting_results_calculate_now/'.$game, $key)->assertConflict();
         (new CalculateBetResults($game, $key['drawDate'], $key['timeType'] ?? null, $draw->result_revision, true))->handle(app(IBetService::class));
         expect($draw->refresh()->calculation_status)->toBe('pending');
     }

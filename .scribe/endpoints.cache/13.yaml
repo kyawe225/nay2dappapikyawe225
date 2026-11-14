@@ -7,7 +7,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: api/admin/payment-methods
+    uri: api/admin/payment_methods_list
     metadata:
       custom: []
       groupName: 'Admin Payment Method Handler'
@@ -16,9 +16,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters: []
@@ -42,7 +43,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: suspended
+        example: active
         type: string
         enumValues:
           - active
@@ -51,12 +52,12 @@ endpoints:
         exampleWasSpecified: false
         nullable: false
         deprecated: false
-      roleId:
+      roleName:
         custom: []
-        name: roleId
-        description: 'Must be a valid UUID. Must match an existing stored value.'
+        name: roleName
+        description: 'Must match an existing stored value.'
         required: false
-        example: a4855dc5-0acb-33c3-b921-f4291f719ca0
+        example: architecto
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -67,7 +68,7 @@ endpoints:
         name: page
         description: 'Must be at least 1.'
         required: false
-        example: 66
+        example: 22
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -78,7 +79,7 @@ endpoints:
         name: paymentsPage
         description: 'Must be at least 1.'
         required: false
-        example: 27
+        example: 67
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -89,7 +90,7 @@ endpoints:
         name: withdrawalsPage
         description: 'Must be at least 1.'
         required: false
-        example: 35
+        example: 66
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -100,7 +101,7 @@ endpoints:
         name: movementsPage
         description: 'Must be at least 1.'
         required: false
-        example: 43
+        example: 27
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -111,7 +112,7 @@ endpoints:
         name: perPage
         description: 'Must be at least 1. Must not be greater than 100.'
         required: false
-        example: 1
+        example: 15
         type: integer
         enumValues: []
         exampleWasSpecified: false
@@ -119,27 +120,26 @@ endpoints:
         deprecated: false
     cleanBodyParameters:
       search: b
-      status: suspended
-      roleId: a4855dc5-0acb-33c3-b921-f4291f719ca0
-      page: 66
-      paymentsPage: 27
-      withdrawalsPage: 35
-      movementsPage: 43
-      perPage: 1
+      status: active
+      roleName: architecto
+      page: 22
+      paymentsPage: 67
+      withdrawalsPage: 66
+      movementsPage: 27
+      perPage: 15
     fileParameters: []
     responses:
       -
         custom: []
         status: 401
         content: '{"message":"Unauthenticated."}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0d93-70bf-9afb-28f27f16627e
-          access-control-allow-origin: '*'
-        description: null
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -147,7 +147,7 @@ endpoints:
     custom: []
     httpMethods:
       - POST
-    uri: api/admin/payment-methods
+    uri: api/admin/payment_methods_create
     metadata:
       custom: []
       groupName: 'Admin Payment Method Handler'
@@ -156,10 +156,11 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
-      Content-Type: application/json
+      Authorization: 'Bearer {ACCESS_TOKEN}'
+      Content-Type: multipart/form-data
       Accept: application/json
     urlParameters: []
     cleanUrlParameters: []
@@ -182,7 +183,7 @@ endpoints:
         name: type
         description: ''
         required: true
-        example: withdraw
+        example: deposit
         type: string
         enumValues:
           - deposit
@@ -204,10 +205,10 @@ endpoints:
       imageLocation:
         custom: []
         name: imageLocation
-        description: 'Must not be greater than 255 characters.'
+        description: 'Must be an image. Must not be greater than 5120 kilobytes.'
         required: false
-        example: d
-        type: string
+        example: null
+        type: file
         enumValues: []
         exampleWasSpecified: false
         nullable: true
@@ -227,14 +228,23 @@ endpoints:
         deprecated: false
     cleanBodyParameters:
       name: b
-      type: withdraw
+      type: deposit
       description: 'Et animi quos velit et fugiat.'
-      imageLocation: d
       status: active
-    fileParameters: []
-    responses: []
+    fileParameters:
+      imageLocation: null
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -242,7 +252,7 @@ endpoints:
     custom: []
     httpMethods:
       - GET
-    uri: 'api/admin/payment-methods/{record}'
+    uri: 'api/admin/payment_methods_show/{record}'
     metadata:
       custom: []
       groupName: 'Admin Payment Method Handler'
@@ -251,9 +261,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
@@ -280,14 +291,13 @@ endpoints:
         custom: []
         status: 401
         content: '{"message":"Unauthenticated."}'
-        headers:
-          cache-control: 'no-cache, private'
-          content-type: application/json
-          x-request-id: 01a195e2-0da0-734e-8c4b-361e2ea9827f
-          access-control-allow-origin: '*'
-        description: null
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -295,7 +305,7 @@ endpoints:
     custom: []
     httpMethods:
       - PATCH
-    uri: 'api/admin/payment-methods/{record}'
+    uri: 'api/admin/payment_methods_update/{record}'
     metadata:
       custom: []
       groupName: 'Admin Payment Method Handler'
@@ -304,10 +314,11 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
-      Content-Type: application/json
+      Authorization: 'Bearer {ACCESS_TOKEN}'
+      Content-Type: multipart/form-data
       Accept: application/json
     urlParameters:
       record:
@@ -342,7 +353,7 @@ endpoints:
         name: type
         description: ''
         required: false
-        example: withdraw
+        example: deposit
         type: string
         enumValues:
           - deposit
@@ -364,10 +375,10 @@ endpoints:
       imageLocation:
         custom: []
         name: imageLocation
-        description: 'Must not be greater than 255 characters.'
+        description: 'Must be an image. Must not be greater than 5120 kilobytes.'
         required: false
-        example: d
-        type: string
+        example: null
+        type: file
         enumValues: []
         exampleWasSpecified: false
         nullable: true
@@ -377,7 +388,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: active
+        example: inactive
         type: string
         enumValues:
           - active
@@ -387,14 +398,23 @@ endpoints:
         deprecated: false
     cleanBodyParameters:
       name: b
-      type: withdraw
+      type: deposit
       description: 'Et animi quos velit et fugiat.'
-      imageLocation: d
-      status: active
-    fileParameters: []
-    responses: []
+      status: inactive
+    fileParameters:
+      imageLocation: null
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
@@ -402,7 +422,7 @@ endpoints:
     custom: []
     httpMethods:
       - DELETE
-    uri: 'api/admin/payment-methods/{record}'
+    uri: 'api/admin/payment_methods_delete/{record}'
     metadata:
       custom: []
       groupName: 'Admin Payment Method Handler'
@@ -411,9 +431,10 @@ endpoints:
       subgroupDescription: ''
       title: ''
       description: ''
-      authenticated: false
+      authenticated: true
       deprecated: false
     headers:
+      Authorization: 'Bearer {ACCESS_TOKEN}'
       Content-Type: application/json
       Accept: application/json
     urlParameters:
@@ -435,9 +456,18 @@ endpoints:
     bodyParameters: []
     cleanBodyParameters: []
     fileParameters: []
-    responses: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers: []
+        description: 'Missing or invalid bearer token.'
     responseFields: []
-    auth: []
+    auth:
+      - headers
+      - Authorization
+      - 'Bearer 6g43cv8PD1aE5beadkZfhV6'
     controller: null
     method: null
     route: null
